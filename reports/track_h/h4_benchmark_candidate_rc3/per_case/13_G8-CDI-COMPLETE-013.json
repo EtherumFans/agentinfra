@@ -1,0 +1,190 @@
+{
+  "case_id": "CASE-5cc2f033a189",
+  "completion_state": "AUTO_PASS",
+  "documentation_gaps": [],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 28岁, 健康体检。BMI 23, BP 118/76。无吸烟饮酒史。既往无特殊。查体正常。血脂、血糖、肝肾功能均正常。诊断:健康体检, 无异常发现。建议:定期随访。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "健康体检",
+      "无异常发现",
+      "BMI 23",
+      "BP 118/76",
+      "无吸烟饮酒史",
+      "血脂正常",
+      "血糖正常",
+      "肝肾功能正常",
+      "查体正常",
+      "建议定期随访"
+    ],
+    "encounter_metadata": {
+      "patient_age": "28",
+      "patient_sex": "男",
+      "encounter_type": "健康体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "no coding-relevant gaps survived earlier gates",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'BMI' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-56e88140becb",
+    "gap_identification": "run-1043c4ab60e1",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-21461eccf270",
+    "query_generation": "",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a routine health check-up with no abnormal findings; all rel",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-ed5933d68cdb",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-fa5450539b8e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-aa8708182fb1"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-d2e63ca2eb8b",
+    "gap_identification": "trace-7e73f62b64ea",
+    "expert_consultation": "trace-0f693d21c67a",
+    "query_generation": "",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-cb1443bce19e",
+    "semantic_necessity_gate": "trace-76c061dc27b4",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-0db6915b3344"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2339,
+      "prompt_tokens": 229,
+      "completion_tokens": 88,
+      "total_tokens": 317,
+      "run_id": "run-56e88140becb",
+      "trace_id": "trace-d2e63ca2eb8b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2521,
+      "prompt_tokens": 867,
+      "completion_tokens": 84,
+      "total_tokens": 951,
+      "run_id": "run-1043c4ab60e1",
+      "trace_id": "trace-7e73f62b64ea",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d8679d5ef62e",
+      "trace_id": "trace-0ce4eae75ac6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-9f2bb066c162",
+      "trace_id": "trace-2053fcc7a4c1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-128f2e46565e",
+      "trace_id": "trace-aed228d6bbb1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0fab8592b985",
+      "trace_id": "trace-ae959373398f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T02:55:47.629325Z"
+}

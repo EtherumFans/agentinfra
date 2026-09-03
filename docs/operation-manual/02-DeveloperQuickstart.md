@@ -61,7 +61,7 @@
 | 按钮 | 操作 | 预期 |
 |------|------|------|
 | **生成凭据** | 点击 | 调用 `POST /api/oauth/clients` 创建 OAuth 客户端 |
-| **复制 .env** | 点击（凭据已生成后显示） | 复制 `CLIENT_ID=xxx\nCLIENT_SECRET=xxx\n...` |
+| **复制 .env** | 点击（凭据已生成后显示） | 复制 `ICODER_BASE_URL`、`ICODER_CLIENT_ID`、`ICODER_CLIENT_SECRET`；secret 仅在创建时可取 |
 | **管理 API 客户端** | 点击 | 跳转 `/api-clients` |
 
 **错误**: 创建失败 → 红色横幅 "创建 OAuth 客户端失败"（3 秒自动消失）
@@ -72,7 +72,7 @@
 |------|------|------|
 | 1 | 查看凭据 → 复制 .env 或查看凭据 | 同 Step 3 |
 | 2 | 复制 `npm install @icoder/sdk dotenv` | 终端命令 |
-| 2 | 查看 JS SDK 代码示例 → 复制 | 自动填充当前 clientId/origin |
+| 2 | 查看 JS SDK 代码示例 → 复制 | 从环境变量读取 client credentials，按 RFC 6749 换 token，再调用真实 FactsR SDK |
 | 3 | 点击下方 4 个 walkthrough 链接 | 跳转对应产品页 |
 
 ### .NET SDK 标签页
@@ -81,14 +81,14 @@
 |------|------|------|
 | 1 | 同 JS SDK | 凭据管理 |
 | 2 | 复制 `dotnet add package iCoDer.Sdk` | 终端命令 |
-| 2 | 查看 C# 代码示例 → 复制 | 自动填充当前 clientId/origin |
+| 2 | 查看 C# 代码示例 → 复制 | 使用 `ICoDerClientOptions`、表单 OAuth 交换和 `Facts.ExtractAsync` |
 | 3 | 点击 walkthrough 链接 | 跳转对应产品页 |
 
 ### API Playground 标签页
 
 | 元素 | 操作 | 预期 |
 |------|------|------|
-| 端点下拉 | 选择端点（5 个可选） | 请求体自动更新为示例 |
+| 端点下拉 | 选择端点（4 个可选） | 请求体自动更新为真实 Facts、A2A、Coding 或 Usage 示例 |
 | JSON 输入框 | 编辑请求体 | 自由修改 |
 | **Send Request** | 点击 | 实际调用 API，显示状态码/耗时/响应 JSON |
 | 复制按钮 | 点击 | 复制响应 JSON |
@@ -100,5 +100,5 @@
 | 场景 | 预期 |
 |------|------|
 | OAuth 创建失败 | 红色横幅提示，3 秒消失 |
-| SDK 代码为空（无凭据） | 显示 `icoder-xxx` / `ics_xxx` 占位符 |
+| SDK 代码（无凭据） | 始终显示环境变量，不把真实或部分 client secret 拼入源码 |
 | Playground 请求失败 | 显示错误状态 + 错误信息 |

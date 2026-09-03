@@ -1,0 +1,269 @@
+{
+  "case_id": "CASE-fea766095247",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-fea766095247/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "COPD急性加重的严重程度在入院诊断、病程记录和出院诊断中不一致（重度、轻度、中度），需要明确最终严重程度。",
+      "why_it_matters": "严重程度影响编码和DRG分组，不一致会导致编码不准确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": ":pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COP",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-fea766095247/Q-001",
+      "gap_id": "CASE-fea766095247/GAP-001",
+      "topic": "COPD急性加重严重程度不一致",
+      "reason": "入院诊断、病程记录和出院诊断中COPD急性加重严重程度不一致（重度、轻度、中度），需明确最终严重程度。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:COPD急性加重, 重度。",
+        "char_start": 17,
+        "char_end": 35,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:COPD急性加重, 重度。",
+          "char_start": 17,
+          "char_end": 35,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "病程记录:COPD急性加重, 轻度。",
+          "char_start": 67,
+          "char_end": 85,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "出院诊断:COPD急性加重, 中度。",
+          "char_start": 85,
+          "char_end": 103,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据现有记录，COPD急性加重的严重程度在入院诊断、病程记录和出院诊断中分别记录为重度、轻度和中度。请明确本次住院期间COPD急性加重的最终严重程度分级。",
+      "response_options": [
+        "A. 重度",
+        "B. 轻度",
+        "C. 中度",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [],
+  "chart_excerpt_preview": "患者男性, 70岁, COPD史。入院诊断:COPD急性加重, 重度。血气分析:pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，70岁，有COPD病史",
+      "入院诊断：COPD急性加重，重度",
+      "血气分析：pH 7.38, PaCO2 56, PaO2 70",
+      "病程记录：COPD急性加重，轻度",
+      "出院诊断：COPD急性加重，中度"
+    ],
+    "encounter_metadata": {
+      "patient_age": "70岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "COPD急性加重严重程度在入院诊断、病程记录和出院诊断中相互矛盾。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The clinical documentation must be reconciled to a single, final severity classification for this COPD exacerbation, as the conflicting labels (severe, mild, moderate) across admission, progress notes, and discharge summary create ambiguity for accurate coding. Please clarify the definitive severity based on the objective findings (e.g., pH, PaCO2, PaO2, and any use of respiratory support or ICU care) and document it consistently in the discharge summary, noting the rationale for any change from admission. Without this explicit final severity, the coded encounter cannot accurately reflect the patient's true clinical condition.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3477,
+      "tokens": 267
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-b6b40b71b1f0",
+    "gap_identification": "run-399da3992142",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=1",
+    "expert_consultation": "run-a5f889378010",
+    "query_generation": "run-2444f83e120c",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=1;llm_complete=False;llm_reasoning=COPD急性加重的严重程度存在矛盾，且缺乏明确的最终诊断，需要澄清才能准确编码。",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=severity;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-3dbc8890dcba",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-07120da13c5f",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-ff93790cb8db"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-5d471f0caa6e",
+    "gap_identification": "trace-18925ce45bf2",
+    "expert_consultation": "trace-9623abb3b223",
+    "query_generation": "trace-8114d19d0a07",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-dae1dc2efcd7",
+    "semantic_necessity_gate": "trace-f2f74bf1c742",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-bd6f6ef91902"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2340,
+      "prompt_tokens": 235,
+      "completion_tokens": 119,
+      "total_tokens": 354,
+      "run_id": "run-b6b40b71b1f0",
+      "trace_id": "trace-5d471f0caa6e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3873,
+      "prompt_tokens": 1079,
+      "completion_tokens": 331,
+      "total_tokens": 1410,
+      "run_id": "run-399da3992142",
+      "trace_id": "trace-18925ce45bf2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3935,
+      "prompt_tokens": 1167,
+      "completion_tokens": 309,
+      "total_tokens": 1476,
+      "run_id": "run-2444f83e120c",
+      "trace_id": "trace-8114d19d0a07",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3477,
+      "prompt_tokens": 150,
+      "completion_tokens": 117,
+      "total_tokens": 267,
+      "run_id": "run-ead956ea6a37",
+      "trace_id": "trace-90bb6e901980",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-526e5f50f459",
+      "trace_id": "trace-78dc1236175c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-45b842faf742",
+      "trace_id": "trace-1cb46b24dbf5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ca2cd5678fd6",
+      "trace_id": "trace-1c2b95f8d1a1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:41:27.971045Z"
+}

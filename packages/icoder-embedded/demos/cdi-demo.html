@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="version" content="1.0.0-phase7-gate6">
+  <meta name="demo-name" content="cdi">
+  <title>iCoDer Embedded Demo — CDI (临床文档改进)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: #f5f5f7; color: #1d1d1f; padding: 24px; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #86868b; margin-bottom: 20px; }
+    .layout { display: flex; gap: 24px; max-width: 1280px; }
+    .sidebar { width: 280px; background: #fff; border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .sidebar h3 { font-size: 13px; margin-bottom: 8px; color: #1d1d1f; }
+    .sidebar label { display: block; font-size: 11px; color: #86868b; margin-top: 10px; }
+    .sidebar input { width: 100%; padding: 6px 10px; border: 1px solid #e5e5ea; border-radius: 6px; font-size: 12px; }
+    .widget-wrap { flex: 1; max-width: 480px; }
+    .clinical-text { flex: 1; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 13px; line-height: 1.7; max-height: 640px; overflow-y: auto; }
+    .clinical-text h3 { font-size: 13px; margin-bottom: 8px; }
+    .clinical-text pre { white-space: pre-wrap; font-family: inherit; color: #1d1d1f; font-size: 12px; }
+    .event-log { position: fixed; bottom: 12px; right: 12px; width: 360px; max-height: 200px; overflow-y: auto; background: rgba(28,28,32,0.94); color: #f5f5f7; font-family: SFMono-Regular, Menlo, monospace; font-size: 11px; padding: 10px; border-radius: 8px; }
+    .event-log .line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .event-log .name { color: #64d2ff; }
+    .event-log .cost { color: #ffd60a; }
+    .event-log .err { color: #ff453a; }
+    .meta { color: #86868b; font-size: 10px; }
+    button { padding: 8px 16px; background: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 12px; width: 100%; }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.4; cursor: default; }
+    .hint { font-size: 11px; color: #86868b; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>CDI Agent — 临床文档改进 嵌入演示</h1>
+  <p class="subtitle">Phase 6 Gate 7 · 场景: 心衰编码所需的关键临床内涵缺口识别 · Agent: cdi</p>
+
+  <div class="layout">
+    <div class="sidebar">
+      <h3>HIS/EMR 视图</h3>
+      <label>Backend URL</label>
+      <input id="baseUrl">
+      <label>Access Token (JWT)</label>
+      <input id="token" type="password" placeholder="Bearer JWT">
+      <label>Patient Name</label>
+      <input id="patientName" value="李四">
+      <label>Patient ID</label>
+      <input id="patientId" value="P-2026-002">
+      <label>Encounter ID</label>
+      <input id="encounterId" value="E-20260713-002">
+      <button id="init">初始化 widget + 自动提交 CDI 分析</button>
+      <p class="hint">点击后: auth → configureSession(cdi + 李四) → 自动 ask 临床文本 → CDI agent 识别内涵缺口,生成中立澄清任务</p>
+      <p class="hint" style="margin-top:12px;color:#86868b;">9 红线: CDI 不自动改病历,不自动生成诊断</p>
+    </div>
+
+    <div class="widget-wrap">
+      <icoder-embedded id="assistant"></icoder-embedded>
+    </div>
+
+    <div class="clinical-text">
+      <h3>临床文本 — 心衰入院 (含编码所需内涵缺口)</h3>
+      <pre id="clinicalText">主诉: 呼吸困难3天。
+
+现病史: 患者男,68岁,3天前无明显诱因出现呼吸困难,活动后加重,伴双下肢水肿,夜间不能平卧,端坐呼吸。无胸痛,无晕厥。门诊以"心功能不全"收入。
+
+既往史: 高血压病史15年,长期口服"缬沙坦"。糖尿病史8年。否认冠心病、心梗病史。
+
+查体: BP 165/95 mmHg, P 102次/分, R 24次/分, SpO2 92% (室内空气)。神清,半卧位。颈静脉怒张。双肺底湿啰音。心率102次/分,律齐,心尖部可闻及舒张期奔马律。腹软,肝颈静脉回流征(+). 双下肢凹陷性水肿++。
+
+辅助检查:
+- BNP 850 pg/mL ↑ (<100)
+- NT-proBNP 3200 pg/mL ↑ (<300)
+- 心脏彩超: LVEF 38%, 左房扩大, 左室壁运动普遍减弱
+- 胸片: 心影增大, 双侧胸腔积液
+
+入院诊断: 心功能不全</pre>
+    </div>
+  </div>
+
+  <div class="event-log" id="log">
+    <div class="line">Event log (Phase 6 Gate 3 unified envelope):</div>
+  </div>
+
+  <script type="module">
+    // Phase 7 Gate 1 — load partner config first (env-driven, no secrets).
+    try {
+      await import('/examples/config.js');
+    } catch (e) {
+      console.warn('[demo] config.js load failed; using defaults', e);
+    }
+    const cfg = window.icoderConfig || { baseUrl: '', agentRef: 'cdi' };
+    const detectedBase = cfg.baseUrl || window.location.origin;
+    document.getElementById('baseUrl').value = detectedBase;
+    const el0 = document.getElementById('assistant');
+    if (el0) el0.setAttribute('baseURL', detectedBase);
+
+    import '/api/embedded/assistant.js';
+
+    const log = document.getElementById('log');
+    function append(line, cls = '') {
+      const div = document.createElement('div');
+      div.className = 'line';
+      div.innerHTML = `<span class="${cls}">${line}</span>`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    const el = document.getElementById('assistant');
+
+    el.addEventListener('embedded-event', (e) => {
+      const { name, payload, meta } = e.detail;
+      const ts = new Date().toLocaleTimeString();
+      const metaSuffix = meta ? ` <span class="meta">eid=${(meta.eventId || '').slice(0, 8)} sid=${(meta.sessionId || '').slice(0, 8)} ctx=${meta.contextId || '∅'}</span>` : '';
+      if (name === 'run.completed') {
+        const traceLink = payload.trace_url
+          ? ` <a href="${payload.trace_url}" target="_blank" rel="noopener" style="color:#64d2ff;">trace ↗</a>`
+          : '';
+        append(`${ts} <span class="name">${name}</span> agent=${payload.agent_id} latency=${payload.latency_ms}ms${traceLink}${metaSuffix}`, '');
+      } else if (name === 'account.creditsConsumed') {
+        append(`${ts} <span class="name">${name}</span> ${payload.currency} ${payload.amount}${metaSuffix}`, 'cost');
+      } else if (name === 'error.triggered') {
+        append(`${ts} <span class="name">${name}</span> ${payload.message}${metaSuffix}`, 'err');
+      } else {
+        append(`${ts} <span class="name">${name}</span>${metaSuffix}`, '');
+      }
+    });
+
+    el.addEventListener('ready', () => append('widget ready'));
+
+    document.getElementById('init').addEventListener('click', async () => {
+      const btn = document.getElementById('init');
+      btn.disabled = true;
+      btn.textContent = '运行中...';
+      try {
+        await el.auth({
+          access_token: document.getElementById('token').value.trim(),
+          token_type: 'bearer',
+          mode: 'stateless',
+        });
+        await el.configureSession({
+          defaultTemplateKey: 'cdi',
+          defaultLanguage: 'zh-CN',
+          defaultOutputLanguage: 'zh-CN',
+          patientId: document.getElementById('patientId').value,
+          name: document.getElementById('patientName').value,
+          encounterId: document.getElementById('encounterId').value,
+        });
+        await el.configure({
+          features: { aiChat: true, documentFeedback: true, virtualMode: false },
+          locale: { dictationLanguage: 'zh-CN', interfaceLanguage: 'zh-CN' },
+        });
+        el.baseURL = document.getElementById('baseUrl').value.trim();
+        await el.show();
+
+        append('widget 初始化完成,自动提交到 cdi agent...');
+        const clinicalText = document.getElementById('clinicalText').textContent;
+        await el.ask(`请基于以下病历进行 CDI 内涵分析,识别影响编码准确性的关键缺口,并生成中立的临床澄清任务:\n\n${clinicalText}`);
+        append('CDI 分析完成 — 见 widget 输出', '');
+      } catch (e) {
+        append(`failed: ${e.message}`, 'err');
+        btn.disabled = false;
+        btn.textContent = '重试';
+      }
+    });
+  </script>
+</body>
+</html>

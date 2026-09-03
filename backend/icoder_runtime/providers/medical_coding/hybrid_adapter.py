@@ -279,8 +279,10 @@ class HybridCodingAdapter(CodingEngineAdapter):
                 result, rule_result = await self._stage_inference(
                     messages, tools, response_schema, context
                 )
-                if result is None:  # inference hard-failed (mock fallback)
-                    return MedicalCodingOutputSchema.mock_result()
+                if result is None:
+                    return MedicalCodingOutputSchema.failure_result(
+                        self.name, reason="primary_and_fallback_failed"
+                    )
             with inf_ctx.stage("rule_validation"):
                 result = await self._stage_rule_validation(result, rule_result, messages, tools, response_schema, context)
             with inf_ctx.stage("calibration"):
@@ -389,7 +391,9 @@ class HybridCodingAdapter(CodingEngineAdapter):
         """Original (no-recorder) 5-stage pipeline. M2aRecorder=None 时走这里."""
         result, _ = await self._stage_inference(messages, tools, response_schema, context)
         if result is None:
-            return MedicalCodingOutputSchema.mock_result()
+            return MedicalCodingOutputSchema.failure_result(
+                self.name, reason="primary_and_fallback_failed"
+            )
         result = await self._stage_rule_validation(
             result, None, messages, tools, response_schema, context
         )

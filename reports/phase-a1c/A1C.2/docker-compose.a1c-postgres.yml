@@ -1,0 +1,78 @@
+# A1C.2 — PostgreSQL 16 docker-compose for pilot parity verification
+# Phase A1C.2 (2026-07-25)
+#
+# PURPOSE
+#   Provide a reproducible PostgreSQL 16 environment for running the full
+#   alembic 001..028 migration suite against a real PostgreSQL instance,
+#   closing the A1B-AE-RV "PostgreSQL BLOCKED_BY_ENVIRONMENT" finding.
+#
+# HOST ENVIRONMENT STATUS (per A1C.0 ENTRY_AUDIT)
+#   The auditor host (Windows 10 Home China) has neither `docker` nor
+#   `podman` nor `psql` installed. The compose file below is therefore
+#   **authored-and-syntax-validated** but **not executed** on this host.
+#   Pilot environment (hospital-managed or cloud-region sandbox) MUST
+#   execute `docker compose -f docker-compose.a1c-postgres.yml up -d`
+#   followed by the verification scenarios enumerated in
+#   `POSTGRES_MIGRATION_MATRIX.csv` before A1C final verdict can be
+#   promoted past PARTIAL.
+#
+# SYNTAX VALIDATION
+#   $ python -c "import yaml; yaml.safe_load(open('docker-compose.a1c-postgres.yml'))"
+#   (passed at authoring time; see POSTGRES_MIGRATION_RESULTS.json scenario S00)
+
+version: "3.9"
+
+services:
+  icoder-postgres-a1c2:
+    image: postgres:16-alpine
+    container_name: icoder-postgres-a1c2
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: icoder
+      POSTGRES_PASSWORD: icoder_a1c2_pilot
+      POSTGRES_DB: icoder_a1c2
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    ports:
+      - "5433:5432"   # non-default host port to avoid clashing with hospital-local PG instances
+    volumes:
+      - icoder_pg_a1c2_data:/var/lib/postgresql/data
+      - ./postgres-initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U icoder -d icoder_a1c2"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  icoder-backend-a1c2:
+    image: ghcr.io/icoder/icoder-backend:phase-a1c2
+    container_name: icoder-backend-a1c2
+    profiles: ["full"]   # only starts with --profile full; default is PG-only
+    depends_on:
+      icoder-postgres-a1c2:
+        condition: service_healthy
+    environment:
+      ICODER_DEPLOYMENT_MODE: cloud
+      ICODER_DATABASE_URL: postgresql+asyncpg://icoder:icoder_a1c2_pilot@icoder-postgres-a1c2:5432/icoder_a1c2
+      ICODER_ENVIRONMENT: cn
+      ICODER_REGION: cn-hangzhou
+      ICODER_HOSTED_URL: http://icoder-backend-a1c2:8000
+      ALEMBIC_RUN_UPGRADE_ON_START: "true"
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    volumes:
+      - ../../../backend:/app:ro   # repo backend mounted read-only for migration source
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  icoder_pg_a1c2_data:
+    driver: local

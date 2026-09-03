@@ -1,0 +1,219 @@
+{
+  "phase": "A1C.7",
+  "title": "Failure Injection Test Results",
+  "date": "2026-07-25",
+  "verdict": "PARTIAL_A1C_7_FAILURE_INJECTION_DESIGN_AUTHORED_LIVE_INJECTION_DEFERRED_TO_PILOT_ENV",
+  "pdf_required_scenarios": [
+    "数据库主节点宕机 (DB primary down)",
+    "网络分区 (DeepSeek unreachable)",
+    "LLM 调用超时 (LLM timeout > 60s)",
+    "LLM 调用 5xx (DeepSeek 503)",
+    "LLM 调用截断 (finish_reason=length)",
+    "KMS 凭证失效 (KMS key rotated; cached credential stale)",
+    "Redis 队列不可用 (webhook delivery queue)",
+    "磁盘满 (FAISS index / log partition)",
+    "内存压力 (OOM)",
+    "后台 cron 失败 (retention.py / cleanup_orphan_runs.py)",
+    "OAuth IdP 不可用 (hospital IdP down)",
+    "API Client secret 泄露 (revocation)",
+    "PHI 加密失败 (Fernet envelope key missing)",
+    "租户隔离越权 (cross-tenant access attempt)",
+    "审计写入失败 (audit_logs INSERT failed)",
+    "Sentry 发送失败 (network partition)",
+    "SSE 连接断开 (proxy timeout)"
+  ],
+  "scenario_results": [
+    {
+      "scenario_id": "FI-01",
+      "name": "DB primary down",
+      "category": "infrastructure",
+      "test_method": "toxiproxy block pg:5432",
+      "expected_behavior": "uvicorn worker returns 503 Service Unavailable; health check fails; no orphan writes; fail-closed guard prevents audit_logs INSERT with NULL org_id",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "backend/app/services/fail_closed.py + A1A Gate 2 unit tests (test_audit_emit_fail_closed.py); live toxiproxy injection DEFERRED_TO_PILOT",
+      "pilot_action": "Inject via toxiproxy; verify uvicorn workers handle connection errors gracefully; verify no partial DB writes; verify fail-closed guard fires"
+    },
+    {
+      "scenario_id": "FI-02",
+      "name": "DeepSeek unreachable (network partition)",
+      "category": "llm_provider",
+      "test_method": "toxiproxy block api.deepseek.com:443",
+      "expected_behavior": "LLMGateway tenacity retry (3 attempts, 60s total); on final failure, agent_run status=failure, cost=0 (NOT NULL — Phase 7 Gate 4); audit_log row emitted; trace CaptureStatusEvent transition to CAPTURE_FAILED",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "icoder_runtime/core/llm_gateway.py + Phase 7 Gate 4 tests; Phase 7 Gate 12 prior PASS for client_credentials path; live injection DEFERRED_TO_PILOT",
+      "pilot_action": "Inject 60s+ timeout; verify retry budget exhausted; verify RunHistory status=failure; verify SSE emits ErrorEvent"
+    },
+    {
+      "scenario_id": "FI-03",
+      "name": "LLM call timeout (> 60s)",
+      "category": "llm_provider",
+      "test_method": "toxiproxy timeout api.deepseek.com:443 60s",
+      "expected_behavior": "httpx 60s timeout triggers; tenacity retry; same as FI-02",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "llm_gateway.py httpx.Timeout(60.0); Phase 5 A2 tests",
+      "pilot_action": "Inject 65s latency; verify retry-then-fail path"
+    },
+    {
+      "scenario_id": "FI-04",
+      "name": "DeepSeek 503 Service Unavailable",
+      "category": "llm_provider",
+      "test_method": "toxiproxy HTTP 503 stub",
+      "expected_behavior": "tenacity retry on 5xx; after 3 attempts agent_run fails; same fail-handling as FI-02",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "tenacity config in llm_gateway.py (retry_if_exception_type + wait_exponential)",
+      "pilot_action": "Inject 503; verify retry budget exhausted within 60s"
+    },
+    {
+      "scenario_id": "FI-05",
+      "name": "LLM response truncation (finish_reason=length)",
+      "category": "llm_provider",
+      "test_method": "DeepSeek max_tokens=50 forced truncation",
+      "expected_behavior": "DESIGN: response stored with finish_reason=length; audit_log details flag truncation; current IMPLEMENTATION does NOT explicitly detect truncation — Gate 4R-I open item",
+      "actual_result": "DESIGN_ONLY",
+      "evidence": "A1C.5 DEEPSEEK_FAILURE_MODE_MATRIX.csv mode #15 (truncation detection DESIGN)",
+      "pilot_action": "Add post-hoc validation: if finish_reason=length, retry with higher max_tokens; emit audit_log entry 'truncated_response_detected'"
+    },
+    {
+      "scenario_id": "FI-06",
+      "name": "KMS key rotation (cached credential stale)",
+      "category": "kms",
+      "test_method": "Rotate KMS key; attempt to use cached Fernet envelope",
+      "expected_behavior": "DESIGN: CredentialVault.cache invalidation on key version change; current IMPLEMENTATION has NO invalidation signal — Gate 4R-I DESIGN",
+      "actual_result": "DESIGN_ONLY",
+      "evidence": "A1C.5 KMS_INTEGRATION_REPORT.md §4 (KMS key rotation + cache invalidation DESIGN)",
+      "pilot_action": "Implement CredentialVault cache invalidation via KMS version token; add audit_log entry 'credential_rotated'"
+    },
+    {
+      "scenario_id": "FI-07",
+      "name": "Redis webhook queue unavailable",
+      "category": "queue",
+      "test_method": "toxiproxy block redis:6379",
+      "expected_behavior": "DESIGN: webhook delivery falls back to Postgres LISTEN/NOTIFY; dead-letter queue if both fail",
+      "actual_result": "DESIGN_ONLY",
+      "evidence": "A1C.3 RESULT_CALLBACK_SCHEMA.json (Postgres LISTEN/NOTIFY fallback)",
+      "pilot_action": "Inject Redis outage; verify Postgres fallback; verify dead_letter_queue table INSERT"
+    },
+    {
+      "scenario_id": "FI-08",
+      "name": "Disk full (FAISS index partition)",
+      "category": "infrastructure",
+      "test_method": "Fill disk to 99%; attempt to load FAISS index",
+      "expected_behavior": "faiss.read_index raises OSError; health_check reports medcoder_index_ready=false; uvicorn workers continue serving other endpoints",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "backend/app/main.py:284-326 (M2.5 FAISS index health check fail-closed)",
+      "pilot_action": "Inject disk pressure; verify health_check flag flips; verify degraded mode (medical-coding agent fails gracefully)"
+    },
+    {
+      "scenario_id": "FI-09",
+      "name": "Memory pressure (OOM)",
+      "category": "infrastructure",
+      "test_method": "stress-ng --vm 1 --vm-bytes 90%RAM",
+      "expected_behavior": "OOM killer terminates uvicorn worker; systemd restarts; 503 during restart window; health probe recovers within 30s",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "docker-compose.local-dev.yml --restart unless-stopped + systemd unit",
+      "pilot_action": "Inject memory pressure; verify graceful worker restart"
+    },
+    {
+      "scenario_id": "FI-10",
+      "name": "Background cron failure (retention.py)",
+      "category": "cron",
+      "test_method": "Simulate DB outage during cron run",
+      "expected_behavior": "cron emits audit_log row 'cron.retention.failed' with error_message; next run attempts resume; no data corruption",
+      "actual_result": "PARTIAL",
+      "evidence": "backend/app/services/retention.py + cleanup_orphan_runs.py — failure audit emit PRESENT; success audit emit PARTIAL (A1C.6 AUDIT_COMPLETENESS_REPORT §2 #15)",
+      "pilot_action": "Inject DB outage during cron; verify failure audit row; verify cron retry on next interval"
+    },
+    {
+      "scenario_id": "FI-11",
+      "name": "OAuth IdP unavailable (hospital IdP down)",
+      "category": "identity",
+      "test_method": "toxiproxy block hospital-idp:443",
+      "expected_behavior": "All new login attempts return 503; existing JWTs continue to validate until expiry; SDK retries with backoff",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "backend/app/api/auth.py + Phase 7 Gate 5 OAuth client_credentials",
+      "pilot_action": "Inject IdP outage; verify 503; verify existing JWTs still work"
+    },
+    {
+      "scenario_id": "FI-12",
+      "name": "API Client secret compromised",
+      "category": "identity",
+      "test_method": "Use a known compromised secret; verify revocation",
+      "expected_behavior": "Phase 7 Gate 5 disable/rotate endpoint revokes client; subsequent auth attempts return 401 invalid_client; audit_log row 'api_client.authentication_rejected' with reason='revoked'",
+      "actual_result": "PASS_PRIOR_VERIFIED",
+      "evidence": "Phase 7 Gate 5 clients.py disable + rotate endpoints + A1A Gate 1 OAuth audit event",
+      "pilot_action": "Pilot env: rotate a test client; verify revoked secret rejected"
+    },
+    {
+      "scenario_id": "FI-13",
+      "name": "PHI encryption failure (Fernet key missing)",
+      "category": "phi",
+      "test_method": "Unset FERNET_KEY env var; attempt documents.submit",
+      "expected_behavior": "documents.submit fails with 500 (fail-closed); no plaintext write to documents.encrypted_content; audit_log row 'documents.submit' with status=failure",
+      "actual_result": "PASS_PRIOR_VERIFIED",
+      "evidence": "A1A Gate 4.4 phi_encryption.py + Settings._validate_fail_closed_policy (Gate 1)",
+      "pilot_action": "Pilot env: unset FERNET_KEY; verify documents.submit fails; verify no plaintext leak"
+    },
+    {
+      "scenario_id": "FI-14",
+      "name": "Cross-tenant access attempt",
+      "category": "tenant_isolation",
+      "test_method": "Hospital-A JWT attempts to read Hospital-B encounter_id",
+      "expected_behavior": "tenant_read_policy visibility filter returns 404 Not Found (no leak); audit_log row 'tenant_isolation.violation_denied' with details.target_org_id",
+      "actual_result": "PASS_PRIOR_VERIFIED",
+      "evidence": "A1A Gate 3R tenant_read_policy + 234 tests PASS",
+      "pilot_action": "Pilot env: cross-tenant attack attempt; verify 404 + audit row"
+    },
+    {
+      "scenario_id": "FI-15",
+      "name": "Audit log write failure (DB INSERT failed)",
+      "category": "audit",
+      "test_method": "Simulate DB INSERT failure during audit_middleware",
+      "expected_behavior": "fail-closed guard catches; transaction rolled back; primary action (e.g. documents.submit) ALSO fails — fail-closed prevents unaudited PHI write",
+      "actual_result": "PASS_PRIOR_VERIFIED",
+      "evidence": "A1A Gate 2 fail-closed guard + 4 write surfaces (record_run_start / log_action / acquire_or_replay / create_preview_session)",
+      "pilot_action": "Pilot env: corrupt audit_logs table; verify dependent writes also fail"
+    },
+    {
+      "scenario_id": "FI-16",
+      "name": "Sentry send failure (network partition)",
+      "category": "observability",
+      "test_method": "toxiproxy block sentry.io:443",
+      "expected_behavior": "sentry-sdk buffers events in-memory + retries; if buffer full, drops oldest; no impact on primary app flow",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "sentry-sdk default behavior (10s timeout + buffer)",
+      "pilot_action": "Inject Sentry outage; verify app unaffected; verify buffered events deliver after recovery"
+    },
+    {
+      "scenario_id": "FI-17",
+      "name": "SSE connection drop (proxy timeout)",
+      "category": "network",
+      "test_method": "nginx proxy_read_timeout=10s on /events route",
+      "expected_behavior": "Client reconnects with Last-Event-ID header; server replays buffered events; if buffer expired, server emits catchup event",
+      "actual_result": "DESIGN_VERIFIED",
+      "evidence": "Phase 7 Gate 9 SSE endpoint + X-Accel-Buffering=no + backend/app/api/runs.py",
+      "pilot_action": "Pilot env: force proxy timeout; verify client reconnect + replay"
+    }
+  ],
+  "summary": {
+    "total_scenarios": 17,
+    "pass_prior_verified": 4,
+    "design_verified": 8,
+    "design_only": 3,
+    "partial": 1,
+    "design_authored": 1,
+    "deferred_to_pilot": 17
+  },
+  "pilot_required_injections": [
+    "Inject all 17 scenarios via toxiproxy on Pilot env",
+    "Verify 17 expected behaviors within 5-minute window each",
+    "Capture Sentry error events + Grafana metric spikes as evidence",
+    "Document actual vs expected deltas in PILOT_FAILURE_INJECTION_RESULTS.json"
+  ],
+  "charter_section_22_compliance": {
+    "forbidden_verdicts_honoured": [
+      "Not emitted: FAILURE_INJECTION_FULLY_VERIFIED",
+      "Not emitted: ALL_FAILURE_MODES_COVERED",
+      "Not emitted: PRODUCTION_READY"
+    ]
+  }
+}

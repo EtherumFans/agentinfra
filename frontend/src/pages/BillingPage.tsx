@@ -1,7 +1,8 @@
-// iCoDer Billing Page — connected to real backend
-import { CreditCard, Plus, ArrowUpRight, Loader2, Shield, Building2, History } from 'lucide-react';
+// iCoDer Billing Page - honest local-ledger simulation until payment integration.
+import { CreditCard, Plus, ArrowUpRight, Loader2, Shield, Building2, History, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { useT } from '../i18n';
 import { billingApi } from '../services/api';
 
@@ -15,10 +16,16 @@ export default function BillingPage() {
   const t = useT();
   const navigate = useNavigate();
   const [balance, setBalance] = useState<number | null>(null);
+  const [available, setAvailable] = useState<number | null>(null);
+  const [reserved, setReserved] = useState(0);
+  const [simulation, setSimulation] = useState(false);
   const [consumed, setConsumed] = useState(0);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [settlements, setSettlements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reconciling, setReconciling] = useState(false);
+  const [reconcileMessage, setReconcileMessage] = useState('');
 
   // Tabs
   const [activeTab, setActiveTab] = useState('plan');
@@ -27,15 +34,6 @@ export default function BillingPage() {
   const [lowBalanceAlerts, setLowBalanceAlerts] = useState(false);
   const [alertThreshold, setAlertThreshold] = useState('50');
   const [alertUpdated, setAlertUpdated] = useState(false);
-
-  // Auto top-up
-  const [autoTopUp, setAutoTopUp] = useState(false);
-  const [autoTopUpAmount, setAutoTopUpAmount] = useState('100');
-  const [topUpSaved, setTopUpSaved] = useState(false);
-
-  // Payment methods
-  const [paymentMethods, setPaymentMethods] = useState<{id: string; type: string; last4: string; isDefault: boolean}[]>([]);
-  const [showAddPayment, setShowAddPayment] = useState(false);
 
   // Business info
   const [businessInfo, setBusinessInfo] = useState({
@@ -51,13 +49,18 @@ export default function BillingPage() {
     setLoading(true);
     setError('');
     try {
-      const [balRes, txRes] = await Promise.all([
+      const [balRes, txRes, settlementRes] = await Promise.all([
         billingApi.balance(),
         billingApi.transactions(20),
+        billingApi.runSettlements(20),
       ]);
       setBalance(balRes.data.balance);
+      setAvailable(balRes.data.available);
+      setReserved(balRes.data.reserved);
+      setSimulation(balRes.data.simulation);
       const txns = txRes.data.transactions || [];
       setTransactions(txns);
+      setSettlements(settlementRes.data.items || []);
       const debits = txns.filter((t: any) => t.type === 'debit');
       setConsumed(Math.abs(debits.reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0)));
     } catch (err: any) {
@@ -75,10 +78,6 @@ export default function BillingPage() {
       const a = localStorage.getItem('icoder-billing-alerts');
       if (a) { const p = JSON.parse(a); setLowBalanceAlerts(p.enabled ?? false); setAlertThreshold(String(p.threshold ?? 50)); }
     } catch {}
-    try {
-      const t = localStorage.getItem('icoder-billing-autotopup');
-      if (t) { const p = JSON.parse(t); setAutoTopUp(p.enabled ?? false); setAutoTopUpAmount(String(p.amount ?? 100)); }
-    } catch {}
   }, []);
 
   const handleAddCredits = async () => {
@@ -91,6 +90,26 @@ export default function BillingPage() {
     }
   };
 
+  const handleReconcileStale = async () => {
+    if (!window.confirm('协调超过 1 小时且没有活跃 Run 的本地预授权；结算中记录只转为可重试，不免除成本。继续？')) return;
+    setReconciling(true);
+    setReconcileMessage('');
+    try {
+      const result = await billingApi.reconcileStaleRunSettlements(3600);
+      setReconcileMessage(
+        `已检查 ${result.data.inspected} 条，释放 ${result.data.released} 条，将 ${result.data.marked_retryable} 条结算转为可重试，跳过活跃 Run ${result.data.skipped_active} 条。`,
+      );
+      await fetchData();
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      setReconcileMessage(
+        typeof detail === 'string' ? detail : detail?.code || err.message || '协调失败',
+      );
+    } finally {
+      setReconciling(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
@@ -98,7 +117,7 @@ export default function BillingPage() {
   );
 
   if (error) return (
-    <div className="bg-muted/20 min-h-screen p-6 text-center">
+    <div className="bg-muted/20 min-h-dvh p-6 text-center">
       <p className="text-destructive mb-4">{error}</p>
       <button onClick={fetchData} className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">重试</button>
     </div>
@@ -106,24 +125,36 @@ export default function BillingPage() {
 
   return (
     <>
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">{t.billingTitle}</h2>
         <p className="text-sm text-muted-foreground">{t.billingDesc}</p>
       </div>
 
+      {simulation && (
+        <div className="max-w-2xl mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-2 text-amber-900">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+          <p className="text-xs leading-relaxed">
+            当前为本地开发账本模拟，不连接支付机构、不生成正式发票，也不会自动扣款。Agent Run 预授权与结算仅用于开发环境验证。
+          </p>
+        </div>
+      )}
+
       {/* Balance cards */}
       <div className="grid grid-cols-2 gap-6 max-w-2xl mb-8">
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
+        <div className="bg-background rounded-xl shadow-sm p-6">
           <p className="text-xs text-muted-foreground mb-1">{t.availableCredits}</p>
           <p className="text-3xl font-bold font-mono text-foreground">
-            ¥{balance !== null ? balance.toFixed(2) : '--'}
+            ¥{available !== null ? available.toFixed(2) : '--'}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-2 font-mono">
+            账本 ¥{balance?.toFixed(2) ?? '--'} · 预授权占用 ¥{reserved.toFixed(2)}
           </p>
           <button onClick={handleAddCredits} className="bg-primary text-primary-foreground rounded-lg flex items-center gap-2 mt-4 px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
             <Plus size={16} /> {t.addCredits}
           </button>
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
+        <div className="bg-background rounded-xl shadow-sm p-6">
           <p className="text-xs text-muted-foreground mb-1">{t.creditsConsumed} ({t.last30DaysLabel})</p>
           <p className="text-3xl font-bold font-mono text-foreground">¥{consumed.toFixed(2)}</p>
           <button
@@ -136,7 +167,7 @@ export default function BillingPage() {
       </div>
 
       {/* Tabs */}
-      <div className="max-w-4xl">
+      <div className="w-full">
         <div className="flex items-center gap-1 border-b border-border/20 mb-6">
           {BILLING_TABS.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
@@ -153,9 +184,9 @@ export default function BillingPage() {
 
         {/* Plan tab */}
         {activeTab === 'plan' && (
-          <div className="space-y-6 max-w-2xl">
+          <div className="space-y-6 w-full">
             {/* Low balance alerts */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <h4 className="text-sm font-semibold text-foreground">余额不足提醒</h4>
@@ -192,82 +223,39 @@ export default function BillingPage() {
             </div>
 
             {/* Auto top-up */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold text-foreground">自动充值</h4>
-                    {topUpSaved && <span className="text-xs text-success/80 transition-opacity duration-500">已保存</span>}
-                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">自动充值</h4>
                   <p className="text-xs text-muted-foreground mt-0.5">当余额不足时自动添加额度</p>
                 </div>
-                <button onClick={() => {
-                  const next = !autoTopUp;
-                  setAutoTopUp(next);
-                  localStorage.setItem('icoder-billing-autotopup', JSON.stringify({ enabled: next, amount: parseInt(autoTopUpAmount) || 100 }));
-                  setTopUpSaved(true); setTimeout(() => setTopUpSaved(false), 2000);
-                }}
-                  className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${autoTopUp ? 'bg-primary' : 'bg-muted border border-border/20'}`}>
-                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${autoTopUp ? 'left-[18px]' : 'left-0.5'}`} />
+                <button disabled title="尚未接入支付机构"
+                  className="relative w-9 h-5 rounded-full shrink-0 bg-muted border border-border/20 opacity-50 cursor-not-allowed">
+                  <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm" />
                 </button>
               </div>
-              {autoTopUp && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">每次充值</span>
-                    <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">¥</span>
-                      <input type="number" value={autoTopUpAmount} onChange={e => setAutoTopUpAmount(e.target.value)}
-                        className="w-20 pl-5 pr-2 py-1.5 text-xs border border-border/20 rounded-lg bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
-                    </div>
-                    <button onClick={() => {
-                      localStorage.setItem('icoder-billing-autotopup', JSON.stringify({ enabled: autoTopUp, amount: parseInt(autoTopUpAmount) || 100 }));
-                      setTopUpSaved(true); setTimeout(() => setTopUpSaved(false), 2000);
-                    }}
-                      className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                      更新
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 border border-border/20">
-                    自动充值已启用。当余额低于告警阈值时将自动充值。每次扣款 <span className="text-foreground font-medium">¥{autoTopUpAmount}</span>。
-                  </p>
-                </div>
-              )}
+              <p className="text-xs text-amber-700">尚未接入真实支付机构；此功能不可用。</p>
             </div>
 
             {/* Payment methods */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-foreground">支付方式</h4>
-                <button onClick={() => setShowAddPayment(true)}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-border/20 hover:bg-accent transition-colors flex items-center gap-1">
+                <button disabled title="尚未接入支付机构"
+                  className="text-xs px-3 py-1.5 rounded-lg border border-border/20 flex items-center gap-1 opacity-50 cursor-not-allowed">
                   <Plus size={12} /> 添加支付方式
                 </button>
               </div>
-              {paymentMethods.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">暂无支付方式。添加后可启用自动充值。</p>
-              ) : (
-                <div className="space-y-2">
-                  {paymentMethods.map(pm => (
-                    <div key={pm.id} className="flex items-center justify-between p-3 border border-border/20 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <CreditCard size={16} className="text-muted-foreground" />
-                        <span className="text-sm text-foreground">{pm.type} ending in {pm.last4}</span>
-                        {pm.isDefault && <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">默认</span>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <p className="text-xs text-muted-foreground py-4 text-center">尚未接入支付方式管理。</p>
             </div>
           </div>
         )}
 
         {/* Billing History tab */}
         {activeTab === 'history' && (
-          <div className="max-w-2xl">
+          <div className="w-full">
             <h3 className="text-sm font-semibold text-foreground mb-3">{t.transactionHistory}</h3>
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+            <div className="bg-background rounded-xl shadow-sm overflow-hidden">
               {transactions.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground text-sm">暂无交易记录</div>
               ) : (
@@ -289,13 +277,55 @@ export default function BillingPage() {
                 ))
               )}
             </div>
+            <div className="mt-6 mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Agent Run 预授权与结算</h3>
+                {reconcileMessage && <p className="text-[11px] text-muted-foreground mt-1">{reconcileMessage}</p>}
+              </div>
+              {simulation && (
+                <button
+                  onClick={handleReconcileStale}
+                  disabled={reconciling}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-border/20 flex items-center gap-1.5 hover:bg-accent disabled:opacity-50"
+                  title="跳过仍处于活跃生命周期的 Run"
+                >
+                  <RefreshCw size={12} className={reconciling ? 'animate-spin' : ''} />
+                  协调陈旧预授权
+                </button>
+              )}
+            </div>
+            <div className="bg-background rounded-xl shadow-sm overflow-hidden">
+              {settlements.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">暂无结算记录</div>
+              ) : settlements.map((item: any) => (
+                <div key={item.run_id} className="p-4 border-b border-border/20 last:border-0 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-xs font-mono text-foreground truncate">{item.run_id}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      预授权 ¥{Number(item.reserved_amount).toFixed(6)} · 结算 ¥{Number(item.settled_amount).toFixed(6)}
+                    </p>
+                  </div>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${
+                    item.status === 'SETTLED'
+                      ? 'bg-green-100 text-green-700'
+                      : item.status === 'RELEASED'
+                      ? 'bg-slate-100 text-slate-700'
+                      : item.status === 'SETTLEMENT_FAILED'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Business info tab */}
         {activeTab === 'business' && (
-          <div className="max-w-2xl">
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+          <div className="w-full">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <h4 className="text-sm font-semibold text-foreground mb-4">企业信息</h4>
               <div className="space-y-4">
                 <div>
@@ -339,44 +369,6 @@ export default function BillingPage() {
         )}
       </div>
 
-      {/* Add Payment Method Modal */}
-      {showAddPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowAddPayment(false)}>
-          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border/20">
-              <h3 className="text-sm font-semibold text-foreground">添加支付方式</h3>
-              <button onClick={() => setShowAddPayment(false)} className="p-1 rounded hover:bg-accent"><CreditCard size={14} className="text-muted-foreground" /></button>
-            </div>
-            <div className="px-5 py-4 space-y-4">
-              <div>
-                <label className="text-xs font-medium text-foreground block mb-1">卡号</label>
-                <input placeholder="1234 5678 9012 3456" className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-medium text-foreground block mb-1">有效期</label>
-                  <input placeholder="MM/YY" className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-foreground block mb-1">安全码</label>
-                  <input placeholder="123" className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-foreground block mb-1">持卡人姓名</label>
-                <input placeholder="姓名" className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border/20 bg-muted/30">
-              <button onClick={() => setShowAddPayment(false)} className="text-xs px-3 py-1.5 rounded-lg border border-border/20 hover:bg-accent">取消</button>
-              <button onClick={() => {
-                setPaymentMethods(prev => [...prev, { id: `pm_${Date.now()}`, type: 'Visa', last4: '4242', isDefault: prev.length === 0 }]);
-                setShowAddPayment(false);
-              }} className="text-xs px-4 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">添加卡片</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
     </>
   );

@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-08-23T01:56:54.8465078+08:00",
+  "phase": "starlette-httpx2-testclient-zero-warning-gate",
+  "scope": "development-and-ci-test-transport-only",
+  "result": "passed",
+  "dependency_contract": {
+    "starlette": "1.3.1",
+    "testclient_backend": "httpx2==2.12.0",
+    "production_http_client": "httpx==0.27.2",
+    "httpx2_in_api_runtime_requirements": false,
+    "external_llm_used": false,
+    "native_medcoder_loaded": false
+  },
+  "verification": {
+    "strict_full_backend": {
+      "passed": 5002,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "warnings": 0,
+      "duration_seconds": 1340.93,
+      "warning_policy": [
+        "error::RuntimeWarning",
+        "error::DeprecationWarning",
+        "error::jwt.warnings.InsecureKeyLengthWarning"
+      ]
+    },
+    "testclient_compatibility_matrix": {
+      "files": 98,
+      "passed": 1050,
+      "skipped": 8,
+      "failed": 0,
+      "duration_seconds": 873.72
+    },
+    "runtime_and_preflight_unit_matrix": {
+      "passed": 10,
+      "failed": 0,
+      "duration_seconds": 5.32
+    },
+    "deployment_preflight": {
+      "passed": true,
+      "checks": 80,
+      "failed_checks": 0,
+      "new_check": "starlette_testclient_uses_pinned_httpx2_backend"
+    },
+    "agent_hub_runtime_matrix": {
+      "visible_agents": 26,
+      "launch_candidate_ready": 26,
+      "provider_registry_routes": 21,
+      "dedicated_routes": 5,
+      "legacy_default_routes": 0,
+      "not_ready": 0
+    },
+    "environment_integrity": {
+      "protected_database": "backend/data/icoder.db",
+      "database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "database_matches_baseline": true,
+      "protected_port_listener_count": 0,
+      "multiprocessing_spawn_process_count": 0,
+      "workspace_uvicorn_process_count": 0
+    }
+  },
+  "audit_notes": [
+    "An initial post-matrix pytest command named a removed test file and therefore collected no tests; the matrix generation itself succeeded.",
+    "The corrected current-tree unit command passed 10/10 and is the authoritative unit result.",
+    "The prior third-party StarletteDeprecationWarning is now absent under an error-on-deprecation full run."
+  ],
+  "artifacts": [
+    {
+      "path": "backend/requirements.txt",
+      "bytes": 403,
+      "sha256": "48baa5911f56f079a88660a54116e8c49d9e4f63d6dc2b90ecb14c245a96db71"
+    },
+    {
+      "path": "backend/scripts/corti_parity/validate_deployment_candidate.py",
+      "bytes": 94583,
+      "sha256": "63a9b590a4f763411db54970564cebf21772e1563654d5996d5c24114c54614b"
+    },
+    {
+      "path": "backend/tests/unit/corti_parity/test_deployment_candidate_preflight.py",
+      "bytes": 5237,
+      "sha256": "4152ebba83e1314e6c7e9f9f4a44d7b1d821a7b1c5102d752f9bce011a74d4c1"
+    },
+    {
+      "path": "backend/tests/unit/corti_parity/test_starlette_testclient_backend.py",
+      "bytes": 233,
+      "sha256": "27d73bcb907aae430d4de662cda6f19608c9a3117d244d7a26e30bf19370c01f"
+    },
+    {
+      "path": "reports/deployment/httpx2_testclient_phase_20260823/deployment_preflight.json",
+      "bytes": 6874,
+      "sha256": "a82e78a8bf47f5390d04d0b55d24c26e999fe890cb006ed476b0a15a39389b0e"
+    },
+    {
+      "path": "reports/agent_hub/httpx2_testclient_phase_20260823/runtime_matrix/agent_hub_runtime_matrix.json",
+      "bytes": 230658,
+      "sha256": "3705fda6421044837fe906fee970578e0c1bcace44d27be37d06a2aefbc2cbc4"
+    }
+  ],
+  "remaining_external_gates": [
+    "fresh secret real-provider replay across all visible agents",
+    "independent Corti/iCoDer same-case blinded clinical benchmark",
+    "China hospital ICD/DRG/DIP asset authority and HIS/EMR/PACS integration",
+    "production cloud build, SBOM, vulnerability scan, signing, KMS, HA, capacity, DR and SLA",
+    "legal, privacy, certification and independent clinical reviewer approval"
+  ]
+}

@@ -1,13 +1,14 @@
-"""DRG/DIP Compliance RuleSet — production rules with real grouper integration.
+"""Development-only DRG/DIP risk-review heuristics.
 
-Wires `app.services.drg_grouper.group_drg()` into rule validation. Each rule
-contributes actionable issues when coding affects DRG grouping or DIP scoring.
+Wires the local candidate heuristic into deterministic validation.  The rule
+pack is not an official grouper or payment engine.  It always requires human
+review and is barred from billing/settlement use by asset-governance policy.
 
 Rules:
   DRG001  Primary diagnosis present (required for DRG grouping)
   DRG002  Primary procedure present (for surgical DRG cases)
   DRG003  CC/MCC completeness from secondary diagnoses
-  DRG004  Gender consistency (CHS-DRG 1.1 error group YA1)
+  DRG004  Diagnosis/gender consistency risk (development heuristic)
   DIP001  Diagnosis completeness for DIP scoring
   DIP002  Procedure completeness for DIP scoring
   DIP003  Primary diagnosis-procedure consistency for DIP
@@ -24,49 +25,49 @@ DRG_DIP_RULES = {
         "name": "主诊断编码缺失",
         "severity": "critical",
         "category": "drg",
-        "description": "主诊断是 DRG 分组的入口，缺失将导致无法分组或归入错误组。",
+        "description": "主诊断缺失会阻止候选分组风险复核；最终分组须由获授权引擎完成。",
     },
     "DRG002": {
         "name": "主手术/操作编码缺失",
         "severity": "high",
         "category": "drg",
-        "description": "如为外科病例，主手术缺失将导致分组至内科组，权重显著降低。",
+        "description": "如为外科病例，主手术缺失会影响候选一致性复核；不得据此推断结算权重。",
     },
     "DRG003": {
         "name": "CC/MCC 诊断编码完整性",
         "severity": "medium",
         "category": "drg",
-        "description": "次要诊断(合并症/并发症)缺失将影响 DRG 权重计算与 CC/MCC 加成。",
+        "description": "次要诊断缺失可能影响候选 CC/MCC 风险提示；仅可依据病历证据补充编码。",
     },
     "DRG004": {
         "name": "性别与诊断编码一致性",
         "severity": "critical",
         "category": "drg",
-        "description": "CHS-DRG 1.1 错误组 YA1：主要诊断与患者性别不符将导致入组错误。",
+        "description": "非权威开发规则提示主要诊断与患者性别可能不一致，需人工核实。",
     },
     "DIP001": {
         "name": "诊断编码完整性",
         "severity": "low",
         "category": "dip",
-        "description": "DIP 分值计算依赖主要诊断与其他诊断的完整编码。",
+        "description": "诊断完整性会影响 DIP 风险复核；本规则包不计算官方 DIP 分值。",
     },
     "DIP002": {
         "name": "手术操作编码缺失",
         "severity": "medium",
         "category": "dip",
-        "description": "DIP 以「主要诊断 + 主要手术」为分值计算基础，手术缺失直接降低分值。",
+        "description": "手术缺失会影响 DIP 组合风险复核；本规则包不计算支付结果。",
     },
     "DIP003": {
         "name": "主诊断与主手术一致性",
         "severity": "high",
         "category": "dip",
-        "description": "DIP 分值对照表按主诊+主操组合计算，组合异常（如未编码）将归入低分值组。",
+        "description": "主诊与主操组合异常需人工复核；最终判断须使用获授权的地区规则。",
     },
 }
 
 
 class DRGDIPRuleSet(BaseRuleSet):
-    """DRG/DIP grouping and scoring rules with real grouper integration."""
+    """Non-authoritative DRG/DIP risk-review rules."""
 
     name = "drg_dip"
     rules = DRG_DIP_RULES
@@ -74,7 +75,9 @@ class DRGDIPRuleSet(BaseRuleSet):
     def validate(self, structured_output: dict, context: dict) -> RuleValidationResult:
         issues: list[RuleIssue] = []
         fired: list[str] = []
-        manual_review_required = False
+        # The bundled rule pack is explicitly unverified.  A clean heuristic
+        # result must never be promoted to an authoritative automatic pass.
+        manual_review_required = True
 
         # ── Extract input ──
         pd = structured_output.get("primary_diagnosis", {})
@@ -91,7 +94,7 @@ class DRGDIPRuleSet(BaseRuleSet):
         patient_gender = context.get("patient_gender", "") or context.get("gender", "")
         patient_age = context.get("patient_age") or context.get("age")
 
-        # ── Run real grouper (if available) ──
+        # ── Run development candidate heuristic (if available) ──
         grouper_result: dict = {}
         try:
             from app.services.drg_grouper import group_drg
@@ -115,8 +118,8 @@ class DRGDIPRuleSet(BaseRuleSet):
         else:
             issues.append(RuleIssue(
                 severity="info", rule_id="DRG001",
-                message=f"主诊断 {pd_code} 将用于 DRG 分组,预测入组 {grouper_result.get('drg', 'N/A')} ({grouper_result.get('drg_name', 'N/A')})。",
-                suggestion="如需调整主诊断,请确认 DRG 分组变化。",
+                message=f"主诊断 {pd_code} 的开发期候选组为 {grouper_result.get('drg', 'N/A')} ({grouper_result.get('drg_name', 'N/A')})，该结果非结算依据。",
+                suggestion="请使用获授权的本地区/医院分组器复核；不得为改变分组而调整缺乏病历证据的编码。",
                 category="drg",
             ))
 
@@ -146,14 +149,14 @@ class DRGDIPRuleSet(BaseRuleSet):
             issues.append(RuleIssue(
                 severity="medium", rule_id="DRG003",
                 message="无次要诊断编码。",
-                suggestion=f"主诊断 {pd_code} 常见合并症/并发症(如高血压、糖尿病、心衰等),请检查病历是否遗漏 CC/MCC 编码。",
+                suggestion=f"请仅依据病历证据核实主诊断 {pd_code} 是否遗漏合并症/并发症编码，不得为提高权重补码。",
                 category="drg",
             ))
         elif grouper_result.get("cc_level") == "不伴合并症/并发症" and _cc_likely(pd_code):
             issues.append(RuleIssue(
                 severity="low", rule_id="DRG003",
                 message="当前 DRG 分组为「不伴合并症/并发症」,但该主诊断常合并 CC/MCC。",
-                suggestion="请核实是否遗漏了合并症/并发症编码,完善可提升 DRG 权重。",
+                suggestion="请仅依据病历证据核实是否遗漏合并症/并发症编码；不得据此追求分组收益。",
                 category="drg",
             ))
 
@@ -167,7 +170,7 @@ class DRGDIPRuleSet(BaseRuleSet):
                     issues.append(RuleIssue(
                         severity="critical", rule_id="DRG004",
                         message=gender_check.get("message", "性别与诊断不一致"),
-                        suggestion="CHS-DRG 1.1 错误组 YA1:请核实患者性别或修正主诊断编码。",
+                        suggestion="请核实患者性别和主诊断编码；此提示来自非权威开发规则。",
                         category="drg",
                     ))
                     manual_review_required = True
@@ -182,7 +185,7 @@ class DRGDIPRuleSet(BaseRuleSet):
                 severity="low" if specificity >= 4 else "medium",
                 rule_id="DIP001",
                 message=f"主诊断 {pd_code} 特异性 {specificity} 位字符。",
-                suggestion="DIP 倾向于更特异的编码(≥4 位),如使用 .9 未特指编码会显著降低分值。" if specificity < 4 else "诊断编码特异性良好。",
+                suggestion="如病历证据支持，请选择更特异的编码；不得为分值目的推断未记录事实。" if specificity < 4 else "编码特异性通过开发期格式检查，仍需人工复核。",
                 category="dip",
             ))
 
@@ -192,7 +195,7 @@ class DRGDIPRuleSet(BaseRuleSet):
             issues.append(RuleIssue(
                 severity="medium", rule_id="DIP002",
                 message="未检测到主手术/操作编码。",
-                suggestion="DIP 以「主要诊断 + 主要手术」为分值计算基础,补充手术编码可显著提升分值。",
+                suggestion="如病历确有手术/操作，请依据原始记录补充编码；不得为分值目的补码。",
                 category="dip",
             ))
 
@@ -203,8 +206,8 @@ class DRGDIPRuleSet(BaseRuleSet):
             if grp_method == "surgical":
                 issues.append(RuleIssue(
                     severity="info", rule_id="DIP003",
-                    message=f"主诊 {pd_code} + 主操 {main_proc_code} 一致性已通过 grouper 验证,DRG: {grouper_result.get('drg', '')}。",
-                    suggestion="DIP 分值计算可基于此 DRG 组合进一步精算。",
+                    message=f"主诊 {pd_code} + 主操 {main_proc_code} 通过开发期启发式匹配，候选组: {grouper_result.get('drg', '')}；并非官方验证。",
+                    suggestion="请交由获授权的地区/医院引擎复核，不得使用本结果计算 DIP 分值。",
                     category="dip",
                 ))
             else:
@@ -220,20 +223,33 @@ class DRGDIPRuleSet(BaseRuleSet):
             issues.append(RuleIssue(
                 severity="medium", rule_id="DIP003",
                 message=f"主诊 {pd_code} + 主操 {main_proc_code} 未在 grouper 中匹配。",
-                suggestion="DIP 分值计算前需先确认 DRG 分组,可能编码有误。",
+                suggestion="请先由人工及获授权的地区/医院引擎确认编码组合与分组。",
                 category="dip",
             ))
 
         # ── Quality flags ──
+        governance = grouper_result.get("governance", {})
+        issues.append(RuleIssue(
+            severity="info",
+            rule_id="DRG_GOVERNANCE",
+            message="当前 DRG/DIP 规则包为未验证的开发期风险启发式，不能用于支付或结算。",
+            suggestion="必须人工复核，并使用获授权的本地区/医院规则包完成最终分组。",
+            category="governance",
+        ))
         quality_flags = {
             "grouper_coverage": grouper_result.get("coverage", False),
             "grouper_method": grouper_result.get("grouping_method", ""),
             "predicted_drg": grouper_result.get("drg", ""),
+            "candidate_only": True,
+            "billing_authoritative": False,
             "cc_level": grouper_result.get("cc_level", ""),
+            "rule_pack_id": governance.get("asset_id", ""),
+            "rule_pack_version": governance.get("version", ""),
+            "authority_status": governance.get("authority_status", "unknown"),
         }
 
         return RuleValidationResult(
-            passed=not manual_review_required,
+            passed=False,
             rule_set="drg_dip",
             total_rules=len(fired),
             rules_fired=fired,

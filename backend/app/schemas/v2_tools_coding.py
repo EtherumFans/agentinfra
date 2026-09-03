@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ─── Common shapes (shared between Phase 1.1 + Cycle 18) ────────────
@@ -160,9 +160,9 @@ def default_coding_system() -> str:
 #   - opcs4 (UK procedure)
 #   - ops (Germany procedure)
 #   - ccam (France procedure)
-# Per-spec invariant: the stub does not validate against a system allow-list
-# (unlike Phase 1.1's Chinese-only policy) — the canonical Corti endpoint
-# accepts any of these 15 values verbatim.
+# The canonical Corti-compatible endpoint accepts these 15 values verbatim;
+# its runtime projection still requires exact source evidence and a real,
+# non-degraded provider response.
 CORTI_COMMON_CODING_SYSTEMS: frozenset[str] = frozenset({
     "icd10cm-inpatient",
     "icd10cm-outpatient",
@@ -211,29 +211,72 @@ class CommonDocumentIDContext(BaseModel):
 class CommonAIContext(BaseModel):
     """Discriminated union: text OR documentId (mirrors Corti ``CommonAIContext``).
 
-    For the iCoDer stub, only ``text`` is meaningfully honored; ``documentId``
-    is accepted (per spec) but produces an empty ``codes[]`` response since
-    the stub does not look up referenced documents.
+    The selected variant must contain exactly its own non-empty value. This
+    prevents an ambiguous request from silently preferring one source over
+    another before evidence offsets are calculated.
     """
     type: str = Field(default="text", description="Either ``text`` or ``documentId``")
     text: Optional[str] = Field(default=None, description="Source text (when type=text)")
     documentId: Optional[str] = Field(default=None, description="Referenced document ID (when type=documentId)")
+
+    @model_validator(mode="after")
+    def _validate_variant(self) -> "CommonAIContext":
+        if self.type == "text":
+            if not (self.text or "").strip():
+                raise ValueError("text context requires a non-empty text value")
+            if self.documentId is not None:
+                raise ValueError("text context must not include documentId")
+            return self
+        if self.type == "documentId":
+            if not (self.documentId or "").strip():
+                raise ValueError("documentId context requires a non-empty documentId value")
+            if self.text is not None:
+                raise ValueError("documentId context must not include text")
+            return self
+        raise ValueError("context type must be either 'text' or 'documentId'")
 
 
 class CodesFilter(BaseModel):
     """Optional filter to restrict the set of codes the model can predict."""
     include: List[str] = Field(
         default_factory=list,
+        max_length=100,
         description="Codes or categories to include. When empty, the full set of codes for the requested systems is used.",
     )
     exclude: List[str] = Field(
         default_factory=list,
+        max_length=100,
         description="Codes or categories to subtract from the include set.",
     )
     expand: Optional[bool] = Field(
         default=True,
         description="When true (default), category codes are expanded to their leaf codes.",
     )
+
+    @field_validator("include", "exclude")
+    @classmethod
+    def _validate_filter_terms(cls, values: List[str]) -> List[str]:
+        normalized: List[str] = []
+        seen: set[str] = set()
+        for raw in values:
+            value = (raw or "").strip()
+            if not value:
+                raise ValueError("code filter entries must not be empty")
+            if len(value) > 64:
+                raise ValueError("code filter entries must be at most 64 characters")
+            if any(ord(char) < 32 or ord(char) == 127 for char in value):
+                raise ValueError("code filter entries must not contain control characters")
+            key = value.casefold()
+            if key not in seen:
+                seen.add(key)
+                normalized.append(value)
+        return normalized
+
+    @model_validator(mode="after")
+    def _combined_filter_size_is_bounded(self) -> "CodesFilter":
+        if len(self.include) + len(self.exclude) > 100:
+            raise ValueError("include and exclude may contain at most 100 entries combined")
+        return self
 
 
 class CodesGeneralPredictRequest(BaseModel):

@@ -13,6 +13,15 @@ class UserRole(str, enum.Enum):
     QC = "qc"  # 质控科
     CLINICIAN = "clinician"  # 临床医生
     IT = "it"  # 信息科
+    # Phase A1D.3 (A1C-B-020) — close 2 of 7 PARTIAL principal mappings.
+    # Predecessor state (A1C.4 §3.1): CDI 专员 was conflated with QC;
+    # 病案管理员 was conflated with DEPT_HEAD. Both get distinct enum
+    # values so RBAC role checks can match Corti-style hospital roles
+    # exactly. Migration 030 widens the column type from 7 to 9 allowed
+    # literals; no data backfill (existing rows keep their QC / DEPT_HEAD
+    # values; new rows opt into the new roles).
+    CDI_SPECIALIST = "cdi_specialist"  # CDI 专员
+    MEDICAL_RECORDS_ADMIN = "medical_records_admin"  # 病案管理员
 
 class User(Base, TimestampMixin):
     __tablename__ = "users"

@@ -1,0 +1,87 @@
+{
+  "schema_version": "icoder.stream-pcm-audio-events-phase/v1",
+  "date": "2026-08-24",
+  "status": "development_verified",
+  "corti_public_contract": {
+    "audio_configuration": "https://docs.corti.ai/stt/audio",
+    "transcribe_api": "https://docs.corti.ai/api-reference/transcribe",
+    "commands": "https://docs.corti.ai/stt/commands",
+    "transcript_text_handling": "https://docs.corti.ai/stt/best-practices-transcribe",
+    "pcm_range_supported_by_corti_but_not_fully_by_icoder": true,
+    "four_audio_event_shapes_matched": true
+  },
+  "governed_pcm_profile": {
+    "mime_type": "audio/pcm",
+    "rate": 16000,
+    "channels": 1,
+    "bits": 16,
+    "endian": "little",
+    "encoding": "sint",
+    "complete_frame_alignment_required": true,
+    "fixed_decoder_arguments": true,
+    "wrapped_as_wave_for_local_asr_adapter": true,
+    "other_pcm_profiles_fail_closed": true
+  },
+  "audio_events": {
+    "enabled_only_for_governed_pcm": true,
+    "events": [
+      "speechQualityIssueDetected",
+      "speechQualityIssueRecovered",
+      "longSilenceDetected",
+      "longSilenceRecovered"
+    ],
+    "deterministic_engineering_heuristic": true,
+    "clinical_claim": false,
+    "audit_payload_content_free": true
+  },
+  "tests": {
+    "backend_combined": {"passed": 255, "failed": 0},
+    "javascript_sdk": {"passed": 89, "failed": 0},
+    "python_sdk": {"passed": 93, "failed": 0},
+    "dotnet_net8": {"passed": 74, "failed": 0},
+    "dotnet_net10": {"passed": 74, "failed": 0},
+    "migration_and_schema": {"passed": 19, "failed": 0},
+    "release_validator": {"passed": 5, "failed": 0},
+    "deployment_preflight": {"passed": 89, "failed": 0}
+  },
+  "e2e": {
+    "three_sdk_pcm_and_malformed_media": "three_sdk_e2e_evidence.json",
+    "multiworker_recovery": "multiworker_e2e_evidence.json",
+    "single_worker_status": "passed",
+    "multiworker_status": "passed",
+    "pcm_decoder_reached": true,
+    "pcm_asr_adapter_reached": true,
+    "expected_stt_error_code": "STT_UNAVAILABLE",
+    "audio_event_count": 4,
+    "decoder_attempts": 5,
+    "decoder_valid": 4,
+    "decoder_invalid": 1,
+    "remaining_stream_leases": 0,
+    "real_patient_audio_used": false,
+    "real_stt_used": false,
+    "real_llm_used": false,
+    "clinical_payload_captured": false
+  },
+  "release_candidate": {
+    "version": "1.0.0-beta.35",
+    "artifact_count": 4,
+    "published": false,
+    "source_tree_state": "dirty",
+    "manifest": "C:\\codex-artifacts\\release-b35-stream-pcm-audio-events-final\\release-candidate-b35-stream-pcm-audio-events-final.json"
+  },
+  "docker": {
+    "cli_available_on_audit_host": false,
+    "image_built_or_scanned": false
+  },
+  "safety_audit": {
+    "protected_database_size_bytes": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_unchanged": true,
+    "alembic_head": "056",
+    "remaining_backend_or_decoder_processes": 0,
+    "remaining_phase_temp_directories": 0,
+    "llm_key_environment_present": false,
+    "secret_pattern_found_in_phase_scope": false
+  },
+  "external_gates_remain_open": true
+}

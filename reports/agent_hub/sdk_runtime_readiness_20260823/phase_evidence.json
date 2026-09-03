@@ -1,0 +1,95 @@
+{
+  "schema_version": "icoder.agent-hub-sdk-runtime-readiness-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_sdk_runtime_readiness_gate_passed",
+  "api_contract": {
+    "hub_schema_version": "1.3",
+    "response_model": "AgentHubListResponse",
+    "card_model": "AgentHubCardResponse",
+    "readiness_model": "AgentHubRuntimeReadiness",
+    "readiness_required_fields": 9,
+    "readiness_additional_properties": false,
+    "openapi_response_ref": "#/components/schemas/AgentHubListResponse",
+    "openapi_sha256": "d964062dadab08b22ab39226333447bca7b152f692c3765ff11df47101a6796e",
+    "openapi_check": "passed"
+  },
+  "sdk_contract": {
+    "javascript": {
+      "version": "1.0.0-beta.27",
+      "tests_passed": 51,
+      "tests_failed": 0,
+      "package": "packages/javascript/icoder-sdk-1.0.0-beta.27.tgz",
+      "package_bytes": 51025,
+      "package_sha256": "7704acca48f5790f9e0b62dcb6e397116620e8dec5717708446138bd3c772bae",
+      "npm_production_vulnerabilities": 0,
+      "junit": "javascript-sdk-junit.xml"
+    },
+    "python": {
+      "version": "1.0.0b27",
+      "tests_passed": 52,
+      "tests_failed": 0,
+      "package": "packages/python/icoder_sdk-1.0.0b27-py3-none-any.whl",
+      "package_bytes": 33687,
+      "package_sha256": "d068268561508ef5f3ed71668582dc668730be3f98e106fc5ad93c9a9ab7c8f4",
+      "wheel_zip_import_smoke": "passed",
+      "junit": "python-sdk-junit.xml"
+    },
+    "dotnet": {
+      "version": "1.0.0-beta.27",
+      "runtime_tests_executed": false,
+      "reason": "dotnet CLI is not installed on this Windows host",
+      "source_contract_updated": true,
+      "ci_tests_added": true,
+      "framework_contracts": ["net8.0", "net10.0"]
+    },
+    "fail_closed_invariant": "schema 1.3 responses that enable structurally or currently unavailable Agents are rejected",
+    "discovery_type_correction": "A2A v0.3 discovery cards are no longer typed as Agent Hub cards"
+  },
+  "tests": {
+    "hub_and_filter_contract": {
+      "passed": 26,
+      "failed": 0,
+      "junit": "hub-contract-junit.xml"
+    },
+    "expanded_hub_regression": {
+      "passed": 106,
+      "failed": 0,
+      "scope": "Hub, discovery unification, clone, filters, display projection, card metadata and Agent Run compatibility"
+    },
+    "offline_visible_agent_e2e": {
+      "passed": 52,
+      "failed": 0,
+      "junit": "offline-safety-e2e-junit.xml",
+      "capability_claim": "offline safety and orchestration only"
+    },
+    "deployment_preflight": {
+      "passed": 81,
+      "failed": 0,
+      "contract_tests_passed": 1,
+      "artifact": "preflight/deployment_preflight.json",
+      "artifact_sha256": "05c3927cde589478b6a04c94fa2b92dd2f512b414770d2ae1954caa6ce0a8cb1"
+    }
+  },
+  "protected_state": {
+    "development_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_ports_open": 0,
+    "python_or_uvicorn_processes": 0,
+    "credential_used": false,
+    "credential_lengths": {
+      "ICODER_CREDENTIAL_LLM": 0,
+      "DEEPSEEK_API_KEY": 0
+    },
+    "temporary_test_databases_remaining": [
+      "backend/data/test_sdk_readiness.db",
+      "backend/data/test_sdk_readiness_regression.db",
+      "backend/data/test_sdk_readiness_e2e.db"
+    ],
+    "temporary_cleanup_status": "test schemas dropped; known host policy prevents exact test database file deletion"
+  },
+  "limitations": [
+    "The .NET source and CI contracts were updated but could not be executed on this host.",
+    "No current 26-Agent real-provider semantic E2E was executed.",
+    "No continuous provider availability, latency, capacity or SLA was measured.",
+    "No production cloud, hospital, legal, regulatory, security certification or independent clinical review gate is satisfied by this phase."
+  ]
+}

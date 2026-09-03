@@ -166,17 +166,19 @@ class TestMedcoderEndToEnd:
         assert "心力衰竭" in retriever.queries
 
     def test_no_gateway_uses_mock_stages(self, mock_emr):
-        """No gateway → both stages fall back to deterministic mocks."""
+        """No gateway must fail closed without synthetic diagnoses."""
         adapter = HybridCodingAdapter(gateway=None, mode="medcoder", retriever=_StubRetriever())
         import asyncio
         out = asyncio.run(adapter.infer_async(
             [{"role": "user", "content": mock_emr}],
         ))
         assert out.mode == "medcoder"
-        assert len(out.extracted_diagnoses) == 1
-        # Mock Stage 1 gives "心力衰竭" + I50.900
-        edx = out.extracted_diagnoses[0]
-        assert edx.llm_initial_code == "I50.900"
+        assert out.extracted_diagnoses == []
+        assert out.review_conclusion == "FAIL"
+        assert out.manual_review_required is True
+        assert out.degraded_reason == "stage1_empty"
+        assert out.primary_diagnosis.code == ""
+        assert "Stage 1" in out.notes
 
     def test_evidence_span_attached(self, mock_emr, stub_extraction_response, stub_rerank_response):
         gw = _StubLLMGateway(responses=[stub_extraction_response, stub_rerank_response])

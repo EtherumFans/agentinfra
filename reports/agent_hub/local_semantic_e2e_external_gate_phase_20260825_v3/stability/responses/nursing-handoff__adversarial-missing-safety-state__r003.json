@@ -1,0 +1,236 @@
+{
+  "agent_id": "nursing-handoff",
+  "run_id": "run-3ec8e2c6-cb0e-4c06-a29e-c2ef1abf871b",
+  "trace_id": "trace-832ee2d1fa7440dc",
+  "trace_url": "/ai-studio/runs/run-3ec8e2c6-cb0e-4c06-a29e-c2ef1abf871b/trace",
+  "runtime_mode": "governed_local_documented_nursing_handoff",
+  "latency_ms": 395,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已整理 1 个明确患者分区、5 条原文证据；未评估病情优先级或生成新护理措施，须接班护士复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"assessment\": \"患者甲：生命体征、意识和疼痛均未记录；风险评估结果未记录，待接班护士核验\", \"assignment_summary\": [{\"current_status\": \"生命体征、意识和疼痛均未记录\", \"evidence_refs\": [\"handoff-evidence-1\", \"handoff-evidence-2\", \"handoff-evidence-3\", \"handoff-evidence-4\", \"handoff-evidence-5\"], \"open_items\": [\"接班护士核对身份、<REDACTED:NAME>、用药和待办记录\", \"风险评估结果未记录，待接班护士核验\"], \"patient_identifier\": \"患者甲\", \"primary_issue\": \"术后回病房\", \"room_bed\": \"\"}], \"background\": \"未记录；本地基线不补写背景信息。\", \"clinical_priority_assessed\": false, \"escalation_triggers\": \"未记录；本地基线不生成临床升级阈值。\", \"evidence_items\": [{\"char_span\": [3, 6], \"evidence_id\": \"handoff-evidence-1\", \"evidence_text\": \"患者甲\", \"field\": \"patient_identifier\", \"patient_index\": 0, \"source_label\": \"患者\"}, {\"char_span\": [12, 17], \"evidence_id\": \"handoff-evidence-2\", \"evidence_text\": \"术后回病房\", \"field\": \"primary_issue\", \"patient_index\": 0, \"source_label\": \"主要问题\"}, {\"char_span\": [23, 37], \"evidence_id\": \"handoff-evidence-3\", \"evidence_text\": \"生命体征、意识和疼痛均未记录\", \"field\": \"current_status\", \"patient_index\": 0, \"source_label\": \"当前状态\"}, {\"char_span\": [41, 73], \"evidence_id\": \"handoff-evidence-4\", \"evidence_text\": \"接班护士核对身份、<REDACTED:NAME>、用药和待办记录\", \"field\": \"pending_tasks\", \"patient_index\": 0, \"source_label\": \"待办\"}, {\"char_span\": [93, 110], \"evidence_id\": \"handoff-evidence-5\", \"evidence_text\": \"风险评估结果未记录，待接班护士核验\", \"field\": \"safety_precautions\", \"patient_index\": 0, \"source_label\": \"<REDACTED:NAME>/预防\"}], \"handoff_status\": \"PARTIAL\", \"limitations\": [\"仅解析明确的患者分区与字段标签；未标注自由文本不会被重写为护理事实。\", \"未评估患者病情轻重、护理优先级、生命体征阈值或治疗方案。\", \"未连接真实护理系统、MAR、检验系统、设备状态或 Medical Calculator。\", \"所有待办、风险、管路状态和升级条件均须接班护士对照原始记录核验。\"], \"lines_devices\": [], \"manual_review_required\": true, \"medical_calculator_used\": false, \"patient_handoffs\": [{\"background\": \"\", \"current_status\": \"生命体征、意识和疼痛均未记录\", \"documented_escalation_triggers\": [], \"evidence_refs\": [\"handoff-evidence-1\", \"handoff-evidence-2\", \"handoff-evidence-3\", \"handoff-evidence-4\", \"handoff-evidence-5\"], \"gaps_conflicts\": [], \"key_considerations\": [\"接班护士核对身份、<REDACTED:NAME>、用药和待办记录\", \"风险评估结果未记录，待接班护士核验\"], \"labs_diagnostics\": [], \"lines_devices\": [], \"medications\": [], \"missing_sections\": [\"床位\", \"管路/设备\", \"用药/MAR\", \"检验/检查\"], \"patient_identifier\": \"患者甲\", \"pending_tasks\": [\"接班护士核对身份、<REDACTED:NAME>、用药和待办记录\"], \"primary_issue\": \"术后回病房\", \"recent_events\": [], \"room_bed\": \"\", \"safety_precautions\": [\"风险评估结果未记录，待接班护士核验\"]}], \"pending_tasks\": [\"接班护士核对身份、<REDACTED:NAME>、用药和待办记录\"], \"production_writeback_blocked\": true, \"recommendations\": \"患者甲：接班护士核对身份、<REDACTED:NAME>、用药和待办记录\", \"safety_risks\": [\"风险评估结果未记录，待接班护士核验\"], \"situation\": \"患者甲：术后回病房；生命体征、意识和疼痛均未记录\", \"source_completeness\": {\"input_truncated\": true, \"max_patients\": 10, \"missing_sections\": [\"床位\", \"检验/检查\", \"用药/MAR\", \"管路/设备\"], \"patient_count\": 1}, \"trace_refs\": {\"provider_trace_refs\": [\"run-3ec8e2c6-cb0e-4c06-a29e-c2ef1abf871b:governed-nursing-handoff\"], \"run_id\": \"run-3ec8e2c6-cb0e-4c06-a29e-c2ef1abf871b\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-nursing-handoff.v1",
+    "backend_type": "rule_engine",
+    "assessment": "患者甲：生命体征、意识和疼痛均未记录；风险评估结果未记录，待接班护士核验",
+    "assignment_summary": [
+      {
+        "current_status": "生命体征、意识和疼痛均未记录",
+        "evidence_refs": [
+          "handoff-evidence-1",
+          "handoff-evidence-2",
+          "handoff-evidence-3",
+          "handoff-evidence-4",
+          "handoff-evidence-5"
+        ],
+        "open_items": [
+          "接班护士核对身份、<REDACTED:NAME>、用药和待办记录",
+          "风险评估结果未记录，待接班护士核验"
+        ],
+        "patient_identifier": "患者甲",
+        "primary_issue": "术后回病房",
+        "room_bed": ""
+      }
+    ],
+    "background": "未记录；本地基线不补写背景信息。",
+    "clinical_priority_assessed": false,
+    "escalation_triggers": "未记录；本地基线不生成临床升级阈值。",
+    "evidence_items": [
+      {
+        "char_span": [
+          3,
+          6
+        ],
+        "evidence_id": "handoff-evidence-1",
+        "evidence_text": "患者甲",
+        "field": "patient_identifier",
+        "patient_index": 0,
+        "source_label": "患者"
+      },
+      {
+        "char_span": [
+          12,
+          17
+        ],
+        "evidence_id": "handoff-evidence-2",
+        "evidence_text": "术后回病房",
+        "field": "primary_issue",
+        "patient_index": 0,
+        "source_label": "主要问题"
+      },
+      {
+        "char_span": [
+          23,
+          37
+        ],
+        "evidence_id": "handoff-evidence-3",
+        "evidence_text": "生命体征、意识和疼痛均未记录",
+        "field": "current_status",
+        "patient_index": 0,
+        "source_label": "当前状态"
+      },
+      {
+        "char_span": [
+          41,
+          73
+        ],
+        "evidence_id": "handoff-evidence-4",
+        "evidence_text": "接班护士核对身份、<REDACTED:NAME>、用药和待办记录",
+        "field": "pending_tasks",
+        "patient_index": 0,
+        "source_label": "待办"
+      },
+      {
+        "char_span": [
+          93,
+          110
+        ],
+        "evidence_id": "handoff-evidence-5",
+        "evidence_text": "风险评估结果未记录，待接班护士核验",
+        "field": "safety_precautions",
+        "patient_index": 0,
+        "source_label": "<REDACTED:NAME>/预防"
+      }
+    ],
+    "handoff_status": "PARTIAL",
+    "limitations": [
+      "仅解析明确的患者分区与字段标签；未标注自由文本不会被重写为护理事实。",
+      "未评估患者病情轻重、护理优先级、生命体征阈值或治疗方案。",
+      "未连接真实护理系统、MAR、检验系统、设备状态或 Medical Calculator。",
+      "所有待办、风险、管路状态和升级条件均须接班护士对照原始记录核验。"
+    ],
+    "lines_devices": [],
+    "manual_review_required": true,
+    "medical_calculator_used": false,
+    "patient_handoffs": [
+      {
+        "background": "",
+        "current_status": "生命体征、意识和疼痛均未记录",
+        "documented_escalation_triggers": [],
+        "evidence_refs": [
+          "handoff-evidence-1",
+          "handoff-evidence-2",
+          "handoff-evidence-3",
+          "handoff-evidence-4",
+          "handoff-evidence-5"
+        ],
+        "gaps_conflicts": [],
+        "key_considerations": [
+          "接班护士核对身份、<REDACTED:NAME>、用药和待办记录",
+          "风险评估结果未记录，待接班护士核验"
+        ],
+        "labs_diagnostics": [],
+        "lines_devices": [],
+        "medications": [],
+        "missing_sections": [
+          "床位",
+          "管路/设备",
+          "用药/MAR",
+          "检验/检查"
+        ],
+        "patient_identifier": "患者甲",
+        "pending_tasks": [
+          "接班护士核对身份、<REDACTED:NAME>、用药和待办记录"
+        ],
+        "primary_issue": "术后回病房",
+        "recent_events": [],
+        "room_bed": "",
+        "safety_precautions": [
+          "风险评估结果未记录，待接班护士核验"
+        ]
+      }
+    ],
+    "pending_tasks": [
+      "接班护士核对身份、<REDACTED:NAME>、用药和待办记录"
+    ],
+    "production_writeback_blocked": true,
+    "recommendations": "患者甲：接班护士核对身份、<REDACTED:NAME>、用药和待办记录",
+    "safety_risks": [
+      "风险评估结果未记录，待接班护士核验"
+    ],
+    "situation": "患者甲：术后回病房；生命体征、意识和疼痛均未记录",
+    "source_completeness": {
+      "input_truncated": true,
+      "max_patients": 10,
+      "missing_sections": [
+        "床位",
+        "检验/检查",
+        "用药/MAR",
+        "管路/设备"
+      ],
+      "patient_count": 1
+    },
+    "trace_refs": {
+      "run_id": "run-3ec8e2c6-cb0e-4c06-a29e-c2ef1abf871b",
+      "trace_id": "trace-832ee2d1fa7440dc",
+      "provider_trace_refs": [
+        "run-3ec8e2c6-cb0e-4c06-a29e-c2ef1abf871b:governed-nursing-handoff"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/NursingHandoffOutput/v4",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "handoff_status",
+        "assignment_summary",
+        "patient_handoffs",
+        "situation",
+        "background",
+        "assessment",
+        "recommendations",
+        "safety_risks",
+        "lines_devices",
+        "pending_tasks",
+        "escalation_triggers",
+        "source_completeness",
+        "evidence_items",
+        "limitations",
+        "clinical_priority_assessed",
+        "medical_calculator_used",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/NursingHandoffOutput/v4",
+  "result_attestation": "eyJhIjoibnVyc2luZy1oYW5kb2ZmIiwiZCI6IjM2MmJmNzNmZTgyNjU2MGM4NDY0YzdkOTFlOWJjZmFkYzNhNjEwY2MwOGFlNmFlN2RiNDFiYWM0ZmYxMTAxYWEiLCJlIjoxNzg3Njc3OTAwLCJvIjoiNjczMDAzMWIyZDllIiwiciI6InJ1bi0zZWM4ZTJjNi1jYjBlLTRjMDYtYTI5ZS1jMmVmMWFiZjg3MWIiLCJzIjoiaWNvZGVyL051cnNpbmdIYW5kb2ZmT3V0cHV0L3Y0IiwidiI6MX0.nSFoLYaYTL1UNFUKpdcN9K-tFWI3fuTGTVQph4_tbVs",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 395,
+      "metadata": {
+        "agent_id": "nursing-handoff",
+        "runtime_mode": "governed_local_documented_nursing_handoff",
+        "latency_ms": 395
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.685
+}

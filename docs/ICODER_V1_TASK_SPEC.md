@@ -1,5 +1,7 @@
 # iCoDer v1 Task Spec
 
+> **实现状态更新（2026-08-22）**：下文的 Phase 1/Phase 5 stub 描述是历史设计记录。当前独立 A2A v1.0 接口已经支持 `returnImmediately`，先持久化脱敏且加密的请求、Task 和 append-only 事件，再由带租约/心跳的本地数据库 worker 执行；支持 `GetTask`、`ListTasks`、提交态 `CancelTask`、`SubscribeToTask` 以及 HTTP `Last-Event-ID` 续传。进程启动会恢复 submitted 或租约过期的 working Task，优雅停机会释放本进程租约。已执行中的 Provider 调用因缺少可靠的中途取消合同而返回 `TASK_NOT_CANCELABLE`，不会伪报取消。当前验证边界是单服务进程；Redis/消息队列、多副本 exactly-once、云级故障注入和真实 Provider 长时任务仍是部署门禁。
+
 **作者**: iCoDer 架构组
 **日期**: 2026-06-20
 **状态**: Draft (待审, Phase 1 spec 之六, **Phase 1 收尾**)
@@ -9,8 +11,7 @@
 - `ICODER_V1_A2A_SPEC.md` (Draft 2026-06-20, §4.3 长任务 Task 响应 + §7.5 Task 端点 stub)
 - `ICODER_V1_ORCHESTRATOR_SPEC.md` (Draft, §4.1 状态机 failed 终态)
 - `ICODER_V1_CONTEXT_SPEC.md` (Draft, §4.2 Task ref 字段)
-**Phase 1 状态**: **大部分 stub** (A2A spec §7.5 已留 stub 端点)
-**Phase 5 状态**: 完整实现 (状态机 + cancel + 轮询 + 持久化)
+**当前状态**: A2A v0.3 兼容 Task 与独立 A2A v1.0 持久化异步 Task 已实现；下文阶段标签保留用于追溯原设计。
 
 ---
 
@@ -292,7 +293,7 @@ class TaskEvent(str, Enum):
 
 **步骤**:
 1. 服务端生成 `taskId = uuid4()`
-2. 服务端生成 `contextId = uuid4()` (若客户端没传, 即使传了也忽略)
+2. 首轮服务端生成 `contextId = uuid4()`；续轮只复用经租户、Agent、生命周期验证的服务端 ID
 3. 创建 Task 对象 (status.submitted, status.timestamp=now)
 4. 写 SQLite (INSERT INTO tasks ...)
 5. 写 M2aRecorder stage(`task_created`)

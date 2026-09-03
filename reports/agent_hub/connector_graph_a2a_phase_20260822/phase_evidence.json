@@ -1,0 +1,86 @@
+{
+  "phase": "agentic_v2_connector_graph_a2a_runtime",
+  "captured_at": "2026-08-22T01:25:00+08:00",
+  "network_llm_calls": 0,
+  "external_connector_calls": 0,
+  "browser_started": false,
+  "native_medcoder_started": false,
+  "implementation": {
+    "shared_pack_service": "app.services.agent_runtime_pack",
+    "graph_runner": "app.services.connector_graph.execute_connector_graph",
+    "a2a_provider_handler": "app.icoder.agent_runtime.provider_a2a_handler.ProviderA2AHandler",
+    "runtime_entries": [
+      "POST /api/icoder/agents/{agent_id}/v1/message:send",
+      "POST /api/v2/agentic/agents/{agent_id}/a2a",
+      "POST /api/v2/agentic/agents/{agent_id}/message:send",
+      "POST /api/v2/agentic/agents/{agent_id}/message:stream"
+    ],
+    "supported_agent_scope": "tenant-owned a2a-enabled generic Provider Agents plus existing official Provider Packs",
+    "excluded_dedicated_paths": [
+      "medical-coding-agent",
+      "clinical-documentation-improvement-agent",
+      "code-validation-agent",
+      "compliance-guardrail-agent",
+      "note-completeness-agent"
+    ],
+    "execution_mode": "sequential",
+    "exported_openapi_paths": 252
+  },
+  "runtime_contracts": [
+    "custom A2A Agent lookup requires agent_id, organization_id and a2a_enabled",
+    "v0.3 and v1 bindings share the same Provider handler and connector graph runner",
+    "dedicated medical Agent execution paths are not shadowed by dynamic DB fallback",
+    "required graph failure prevents Provider invocation and Agent output publication",
+    "v1 linked Tasks finalize as completed on success and failed on dispatch error",
+    "failed Tasks expose an empty artifacts array",
+    "v1 taskId is stored in connector execution audit through server-owned metadata",
+    "tenant-owned RunHistory is committed before A2A trace emission",
+    "A2A RunHistory reaches COMPLETED or FAILED and authorizes tenant trace reads",
+    "connector arguments and outputs remain absent from RunHistory and Run Trace",
+    "cross-tenant custom Agent lookup returns AGENT_NOT_FOUND without Provider invocation"
+  ],
+  "verification": {
+    "connector_graph_http_and_a2a_integration": {
+      "passed": 10,
+      "failed": 0
+    },
+    "new_a2a_graph_cases": {
+      "passed": 4,
+      "failed": 0
+    },
+    "a2a_protocol_and_provider_compatibility": {
+      "passed": 232,
+      "failed": 0,
+      "warnings": 7
+    },
+    "combined_a2a_connector_graph_ssrf_openapi_agent_run": {
+      "passed": 364,
+      "failed": 0,
+      "warnings": 62,
+      "warning_classes": [
+        "Starlette TestClient/httpx deprecation",
+        "datetime.utcnow deprecation"
+      ]
+    },
+    "openapi_check": "passed",
+    "python_compile": "passed",
+    "exposed_key_shape_scan_matches": 0
+  },
+  "not_yet_implemented": [
+    "returnImmediately asynchronous Task creation",
+    "SubscribeToTask durable event resume and cross-worker delivery",
+    "tenant-dynamic custom Agent Card discovery",
+    "connector graph wiring for dedicated Medical Coding, CDI, validation and compliance paths",
+    "conditional, parallel, looping or Planner-selected connector orchestration",
+    "Console connector graph editor and browser E2E",
+    "production MCP handshake and A2A transport",
+    "DNS-to-socket pinning and redirect-hop revalidation",
+    "Vault, KMS, Secret Manager and OAuth2 production adapters",
+    "durable cross-worker circuit state and distributed concurrency limits",
+    ".NET connector graph SDK resources",
+    "OpenInference export and task/message feedback",
+    "PostgreSQL, Redis, Docker Linux and controlled external-network evidence"
+  ],
+  "completion_claim": "synchronous generic Provider A2A connector graph is a local development launch candidate; full Corti Agentic v2 parity remains partial",
+  "reason": "All synchronous A2A bindings now execute the tenant-governed graph with durable Task, Run, Trace and connector audit evidence, but asynchronous orchestration, dedicated Agent paths, dynamic discovery and production transports remain incomplete."
+}

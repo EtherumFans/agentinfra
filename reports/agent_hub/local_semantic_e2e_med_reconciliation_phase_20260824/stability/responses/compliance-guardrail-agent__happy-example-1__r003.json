@@ -1,0 +1,118 @@
+{
+  "agent_id": "compliance-guardrail-agent",
+  "run_id": "run-5ed0a853-98a0-4f9f-a836-57f99e6a01a8",
+  "trace_id": "trace-467d0e777b14434e",
+  "trace_url": "/ai-studio/runs/run-5ed0a853-98a0-4f9f-a836-57f99e6a01a8/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 74,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "Compliance guardrail PASS: 1 issue(s).",
+  "result": {
+    "status": "pass",
+    "markdown": "{\"review_conclusion\": \"PASS\", \"issues_found\": [{\"severity\": \"medium\", \"rule_id\": \"R008\", \"message\": \"诊断 M80.900 缺少证据引用\", \"suggestion\": \"请从病历中引用证据文本\", \"category\": \"quality\"}], \"manual_review_required\": false, \"drg_suggestion\": \"主要诊断 M80.900 已就绪，无手术操作 — 按内科 DRG 组评估；如本次为手术病例，请补充手术操作 ICD-9-CM-3 编码\", \"reviewed_codes\": [{\"code\": \"M80.900\", \"code_system\": \"ICD-10-CN\", \"role\": \"primary_diagnosis\"}], \"compliance_checks\": {\"primary_dx_present\": true, \"no_upcoding_risk\": true, \"procedure_dx_consistency\": true, \"drg_readiness\": true}, \"rule_set\": \"medical_coding\", \"fired_rules\": [\"R001\", \"R002\", \"R003\", \"R004\", \"R005\", \"R006\", \"R007\", \"R008\", \"R009\", \"R010\", \"MC-R-M80-001\"], \"trace_refs\": {\"run_id\": \"run-5ed0a853-98a0-4f9f-a836-57f99e6a01a8\", \"agent_ref\": \"icoder/compliance-guardrail-agent@1.0.0\", \"rule_set\": \"medical_coding\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.rule-engine.v1",
+    "backend_type": "rule_engine",
+    "review_conclusion": "PASS",
+    "issues_found": [
+      {
+        "severity": "medium",
+        "rule_id": "R008",
+        "message": "诊断 M80.900 缺少证据引用",
+        "suggestion": "请从病历中引用证据文本",
+        "category": "quality"
+      }
+    ],
+    "manual_review_required": true,
+    "drg_suggestion": "主要诊断 M80.900 已就绪，无手术操作 — 按内科 DRG 组评估；如本次为手术病例，请补充手术操作 ICD-9-CM-3 编码",
+    "reviewed_codes": [
+      {
+        "code": "M80.900",
+        "code_system": "ICD-10-CN",
+        "role": "primary_diagnosis"
+      }
+    ],
+    "compliance_checks": {
+      "primary_dx_present": true,
+      "no_upcoding_risk": true,
+      "procedure_dx_consistency": true,
+      "drg_readiness": true
+    },
+    "rule_set": "medical_coding",
+    "fired_rules": [
+      "R001",
+      "R002",
+      "R003",
+      "R004",
+      "R005",
+      "R006",
+      "R007",
+      "R008",
+      "R009",
+      "R010",
+      "MC-R-M80-001"
+    ],
+    "trace_refs": {
+      "run_id": "run-5ed0a853-98a0-4f9f-a836-57f99e6a01a8",
+      "trace_id": "trace-467d0e777b14434e",
+      "provider_trace_refs": [
+        "run-5ed0a853-98a0-4f9f-a836-57f99e6a01a8"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/ComplianceGuardrailOutput/v4",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "issues_found",
+        "manual_review_required",
+        "drg_suggestion",
+        "reviewed_codes",
+        "compliance_checks",
+        "rule_set",
+        "trace_refs"
+      ],
+      "optional_fields": [
+        "fired_rules"
+      ],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ComplianceGuardrailOutput/v4",
+  "result_attestation": "eyJhIjoiY29tcGxpYW5jZS1ndWFyZHJhaWwtYWdlbnQiLCJkIjoiZmRhZGNiMzY0ZjMxM2MzN2NmOGY2NzMzMjkxYjU2MjA1Zjc0YmUyNDJiMWE3NmNiNDk2ZWM3YzY1NDAxNWZkNCIsImUiOjE3ODc2MjA1NzcsIm8iOiI3Njg0NmJkMjE4MjkiLCJyIjoicnVuLTVlZDBhODUzLTk4YTAtNGY5Zi1hODM2LTU3Zjk5ZTZhMDFhOCIsInMiOiJpY29kZXIvQ29tcGxpYW5jZUd1YXJkcmFpbE91dHB1dC92NCIsInYiOjF9.yNleIxTfU3JCiq1TXQg4v1opmUjN2r8qcZyhRcccKLk",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 74,
+      "metadata": {
+        "agent_id": "compliance-guardrail-agent",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 74
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.124
+}

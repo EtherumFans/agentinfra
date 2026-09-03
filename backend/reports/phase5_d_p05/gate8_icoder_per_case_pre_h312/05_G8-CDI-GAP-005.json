@@ -1,0 +1,230 @@
+{
+  "case_id": "CASE-8b8f5d4232ce",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-8b8f5d4232ce/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Acute exacerbation of COPD is documented but severity (e.g., mild, moderate, severe) is not specified.",
+      "why_it_matters": "Severity of exacerbation affects treatment intensity and coding specificity.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:慢阻肺急性加重"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-8b8f5d4232ce/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "Blood gas shows respiratory acidosis (pH 7.34, PaCO2 62) but the type of respiratory failure (acute, chronic, or acute-on-chronic) is not documented.",
+      "why_it_matters": "Type of respiratory failure is critical for coding and clinical management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "血气:pH 7.34, PaCO2 62, PaO2 55"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-8b8f5d4232ce/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "Hypoxemia (PaO2 55) is present but the need for supplemental oxygen or the specific oxygen requirements are not documented.",
+      "why_it_matters": "Oxygen therapy status is important for severity assessment and coding of respiratory failure.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "PaO2 55"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "慢性阻塞性肺疾病10年",
+      "咳嗽气促加重3天",
+      "血气: pH 7.34, PaCO2 62, PaO2 55",
+      "入院诊断: 慢阻肺急性加重"
+    ],
+    "encounter_metadata": {
+      "patient_age": "68",
+      "patient_sex": "男",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the clinician should specify the severity of the COPD exacerbation (e.g., mild, moderate, or severe) and clarify the type of respiratory failure as acute, chronic, or acute-on-chronic based on the blood gas findings. Additionally, document whether the hypoxemia requires supplemental oxygen and, if so, the specific flow rate or delivery method (e.g., 2 L/min via nasal cannula).",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2535,
+      "tokens": 286
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-79f3cc65591e",
+    "gap_identification": "run-44b075408eaf",
+    "expert_consultation": "run-c5149715dc14",
+    "query_generation": "run-49758f42d52b",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-22bcc76fcc69",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-e16fa8413cc2",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-4a5f38e2f747"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9f34d30f592e",
+    "gap_identification": "trace-6cb717e7d733",
+    "expert_consultation": "trace-6d2f27eec4d3",
+    "query_generation": "trace-b7b48c35ae17",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-9bb3c950ce04",
+    "semantic_necessity_gate": "trace-224646fb93fb",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-91c32cefc39c"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4619,
+      "prompt_tokens": 224,
+      "completion_tokens": 99,
+      "total_tokens": 323,
+      "run_id": "run-79f3cc65591e",
+      "trace_id": "trace-9f34d30f592e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4707,
+      "prompt_tokens": 334,
+      "completion_tokens": 401,
+      "total_tokens": 735,
+      "run_id": "run-44b075408eaf",
+      "trace_id": "trace-6cb717e7d733",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5210,
+      "prompt_tokens": 739,
+      "completion_tokens": 528,
+      "total_tokens": 1267,
+      "run_id": "run-49758f42d52b",
+      "trace_id": "trace-b7b48c35ae17",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2535,
+      "prompt_tokens": 200,
+      "completion_tokens": 86,
+      "total_tokens": 286,
+      "run_id": "run-07a64eacb61b",
+      "trace_id": "trace-941cd5cf2e81",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a0f76646b9e6",
+      "trace_id": "trace-f6ae762a5336",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0051d9b3cd2a",
+      "trace_id": "trace-25a950693546",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5a086999da79",
+      "trace_id": "trace-aac91561d614",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:21:43.354751Z"
+}

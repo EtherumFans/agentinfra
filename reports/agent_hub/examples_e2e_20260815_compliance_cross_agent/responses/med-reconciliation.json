@@ -1,0 +1,110 @@
+{
+  "agent_id": "med-reconciliation",
+  "run_id": "run-70d4588b-80e6-4791-8f6f-d60ac8be8049",
+  "trace_id": "trace-100f22cd95774f29",
+  "trace_url": "/ai-studio/runs/run-70d4588b-80e6-4791-8f6f-d60ac8be8049/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 5831,
+  "cost": {
+    "amount": 0.000191,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"home_medications\": [\n    {\n      \"drug_name\": \"二甲双胍\",\n      \"dose\": \"0.5g\",\n      \"frequency\": \"bid\",\n      \"route\": \"口服\"\n    }\n  ],\n  \"inpatient_medications\": [\n    {\n      \"drug_name\": \"二甲双胍\",\n      \"status\": \"暂停\",\n      \"reason\": \"造影检查\"\n    },\n    {\n      \"drug_name\": \"胰岛素\",\n      \"dose\": \"按血糖调整\",\n      \"frequency\": \"按需\",\n      \"route\": \"未明确\"\n    }\n  ],\n  \"discharge_medications\": [\n    {\n      \"drug_name\": \"二甲双胍\",\n      \"dose\": \"0.5g\",\n      \"frequency\": \"bid\",\n      \"route\": \"口服\"\n    }\n  ],\n  \"discrepancies\": [\n    {\n      \"type\": \"遗漏\",\n      \"description\": \"住院期间使用的胰岛素未列入出院医嘱，且未说明出院后是否继续使用或停用。\"\n    },\n    {\n      \"type\": \"恢复用药条件缺失\",\n      \"description\": \"二甲双胍在住院期间因造影暂停，出院医嘱直接恢复二甲双胍0.5g bid，但未说明恢复用药的前提条件（如肾功能评估结果）。\"\n    }\n  ],\n  \"interaction_risks\": [],\n  \"missing_rationale\": [\n    \"住院期间暂停二甲双胍的理由为造影检查，但出院恢复二甲双胍的依据（如肾功能检查结果）未在输入中提供。\",\n    \"住院期间使用胰岛素，但出院医嘱未包含胰岛素，且未说明停用胰岛素的原因或后续血糖管理方案。\"\n  ],\n  \"follow_up_items\": [\n    \"需医师确认：出院后是否继续使用胰岛素，若停用，需明确停用理由及血糖监测计划。\",\n    \"需医师确认：恢复二甲双胍前是否已评估肾功能，并确认无禁忌。\"\n  ],\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "home_medications": [
+      {
+        "drug_name": "二甲双胍",
+        "dose": "0.5g",
+        "frequency": "bid",
+        "route": "口服"
+      }
+    ],
+    "inpatient_medications": [
+      {
+        "drug_name": "二甲双胍",
+        "status": "暂停",
+        "reason": "造影检查"
+      },
+      {
+        "drug_name": "胰岛素",
+        "dose": "按血糖调整",
+        "frequency": "按需",
+        "route": "未明确"
+      }
+    ],
+    "discharge_medications": [
+      {
+        "drug_name": "二甲双胍",
+        "dose": "0.5g",
+        "frequency": "bid",
+        "route": "口服"
+      }
+    ],
+    "discrepancies": [
+      {
+        "type": "遗漏",
+        "description": "住院期间使用的胰岛素未列入出院医嘱，且未说明出院后是否继续使用或停用。"
+      },
+      {
+        "type": "恢复用药条件缺失",
+        "description": "二甲双胍在住院期间因造影暂停，出院医嘱直接恢复二甲双胍0.5g bid，但未说明恢复用药的前提条件（如肾功能评估结果）。"
+      }
+    ],
+    "interaction_risks": [],
+    "missing_rationale": [
+      "住院期间暂停二甲双胍的理由为造影检查，但出院恢复二甲双胍的依据（如肾功能检查结果）未在输入中提供。",
+      "住院期间使用胰岛素，但出院医嘱未包含胰岛素，且未说明停用胰岛素的原因或后续血糖管理方案。"
+    ],
+    "follow_up_items": [
+      "需医师确认：出院后是否继续使用胰岛素，若停用，需明确停用理由及血糖监测计划。",
+      "需医师确认：恢复二甲双胍前是否已评估肾功能，并确认无禁忌。"
+    ],
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/MedicationReconciliationOutput/v1",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "home_medications",
+        "inpatient_medications",
+        "discharge_medications",
+        "discrepancies",
+        "interaction_risks",
+        "missing_rationale",
+        "follow_up_items",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 5831,
+      "metadata": {
+        "agent_id": "med-reconciliation",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 5831
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 6.51
+}

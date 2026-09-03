@@ -46,29 +46,96 @@ services:
   backend:
     build: ./backend
     container_name: icoder-backend
+    command:
+      - sh
+      - -c
+      - python -m alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
     environment:
       # Deployment mode: local (本地开发,所有 cloud-only vars optional)
       - ICODER_DEPLOYMENT_MODE=local
       - APP_ENV=local
-      - DEBUG=true
+      - DEBUG=${DEBUG:-false}
+      - ICODER_DATABASE_SQL_ECHO=${ICODER_DATABASE_SQL_ECHO:-false}
+      - ICODER_STREAM_LEASE_SECONDS=${ICODER_STREAM_LEASE_SECONDS:-30}
+      - ICODER_STREAM_MEDIA_VALIDATION_MODE=decoder
+      - ICODER_STREAM_MEDIA_DECODER_PATH=/usr/bin/ffmpeg
+      - ICODER_STREAM_MEDIA_DECODER_TIMEOUT_SECONDS=3
+      - ICODER_STREAM_MEDIA_DECODER_MAX_CONCURRENCY=2
+      - ICODER_STREAM_MEDIA_DECODER_QUEUE_TIMEOUT_SECONDS=0.5
+      - ICODER_TRANSCRIPTS_MEDIA_DECODER_PATH=/usr/bin/ffmpeg
+      - ICODER_TRANSCRIPTS_MEDIA_PROBE_PATH=/usr/bin/ffprobe
+      - ICODER_TRANSCRIPTS_MEDIA_DECODER_TIMEOUT_SECONDS=120
+      - ICODER_TRANSCRIPTS_MEDIA_PROBE_TIMEOUT_SECONDS=10
+      - ICODER_TRANSCRIPTS_MEDIA_DECODER_MAX_CONCURRENCY=2
+      - ICODER_TRANSCRIPTS_MEDIA_DECODER_QUEUE_TIMEOUT_SECONDS=1
+      - ICODER_TRANSCRIPTS_MAX_DURATION_SECONDS=7200
       # Database — cloud production 必须用 managed Postgres + DATABASE_URL env
       - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://icoder:${DB_PASSWORD:-icoder_dev}@db:5432/icoder}
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY}
+      # Exercise durable, cross-process RunTrace in the PostgreSQL-backed
+      # local stack. Local mode intentionally remains best-effort on DB loss.
+      - RUNTRACE_STORE=${RUNTRACE_STORE:-db}
+      - RUNTRACE_FAIL_CLOSED=${RUNTRACE_FAIL_CLOSED:-0}
+      - ICODER_RUN_TRACE_EVENTS_TTL_DAYS=${ICODER_RUN_TRACE_EVENTS_TTL_DAYS:-90}
+      - ICODER_RUN_HISTORY_TTL_DAYS=${ICODER_RUN_HISTORY_TTL_DAYS:-90}
+      # Local mode may auto-generate the application secret. Set these in the
+      # shell/secret store when testing encrypted persistence or webhooks.
+      - ICODER_SECRET_KEY=${ICODER_SECRET_KEY:-}
+      - ICODER_METRICS_BEARER_TOKEN=${ICODER_METRICS_BEARER_TOKEN:-}
+      - ICODER_PHI_ENCRYPTION_KEY=${ICODER_PHI_ENCRYPTION_KEY:-}
+      # Invitation delivery is manual by default in local development. To
+      # exercise the durable webhook outbox, set mode=webhook, a Fernet key,
+      # local fixture URL/token, and an exact JSON email-domain allowlist.
+      - ICODER_INVITE_DELIVERY_MODE=${ICODER_INVITE_DELIVERY_MODE:-manual}
+      - ICODER_INVITE_WEBHOOK_URL=${ICODER_INVITE_WEBHOOK_URL:-}
+      - ICODER_INVITE_WEBHOOK_BEARER_TOKEN=${ICODER_INVITE_WEBHOOK_BEARER_TOKEN:-}
+      - ICODER_INVITE_ALLOWED_EMAIL_DOMAINS=${ICODER_INVITE_ALLOWED_EMAIL_DOMAINS:-[]}
+      - ICODER_INVITE_MAX_ATTEMPTS=${ICODER_INVITE_MAX_ATTEMPTS:-5}
+      - ICODER_INVITE_RETRY_BASE_SECONDS=${ICODER_INVITE_RETRY_BASE_SECONDS:-30}
+      - ICODER_INVITE_CLAIM_TIMEOUT_SECONDS=${ICODER_INVITE_CLAIM_TIMEOUT_SECONDS:-120}
+      - ICODER_INVITE_WEBHOOK_TIMEOUT_SECONDS=${ICODER_INVITE_WEBHOOK_TIMEOUT_SECONDS:-10}
       # CORS — cloud 必须列所有前端域名;local 默认可豁免
       - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","http://localhost"]
       # LLM
       - LLM_PROVIDER=${LLM_PROVIDER:-deepseek}
       - LLM_MODEL=${LLM_MODEL:-deepseek-chat}
-      - LLM_API_KEY=${LLM_API_KEY:-}
+      # CredentialVault is the only supported LLM credential ingress.
+      - ICODER_CREDENTIAL_LLM=${ICODER_CREDENTIAL_LLM:-}
+      # Explicit local/CI degraded mode; cloud fail-closed validation rejects
+      # this deployment mode and still requires a managed credential.
+      - ICODER_ALLOW_DEGRADED_NO_KEY=${ICODER_ALLOW_DEGRADED_NO_KEY:-1}
+      - ICODER_REGISTRY_DIR=/app/data/.icoder
       - LLM_BASE_URL=${LLM_BASE_URL:-https://api.deepseek.com/v1}
+      # Optional isolated Linux BGE/FAISS worker. The base stack intentionally
+      # leaves this URL empty. Use docker-compose.medcoder.yml to activate and
+      # health-order both services; never install native ML packages here.
+      - MEDCODER_RETRIEVER_URL=${MEDCODER_RETRIEVER_URL:-}
+      - MEDCODER_RETRIEVER_TOKEN=${MEDCODER_RETRIEVER_TOKEN:-}
+      - MEDCODER_RETRIEVER_ALLOW_HTTP=${MEDCODER_RETRIEVER_ALLOW_HTTP:-0}
       # Local dev auto-seed admin/admin123 (cloud production 强制 false)
       - SEED_ON_STARTUP=true
       # PHI redaction 在 cloud 默认 edge;local 默认 disabled (除非显式 env)
-      - ICODER_PHI_REDACTION_MODE=${ICODER_PHI_REDACTION_MODE:-disabled}
+      - ICODER_PHI_REDACTION_MODE=${ICODER_PHI_REDACTION_MODE:-edge}
       - ICODER_AUDIT_SINK=local
+      # Governed Connector runtime. Local mode permits public HTTPS hosts after
+      # DNS/SSRF socket pinning; set an exact list to simulate CN/cloud egress.
+      - ICODER_CONNECTOR_EGRESS_ALLOWLIST=${ICODER_CONNECTOR_EGRESS_ALLOWLIST:-}
+      - ICODER_CONNECTOR_ALLOW_PHI=${ICODER_CONNECTOR_ALLOW_PHI:-0}
+      - ICODER_CONNECTOR_PHI_EGRESS_ALLOWLIST=${ICODER_CONNECTOR_PHI_EGRESS_ALLOWLIST:-}
+      - ICODER_NCBI_CONTACT_EMAIL=${ICODER_NCBI_CONTACT_EMAIL:-}
+      - ICODER_DRUGBANK_GATEWAY_URL=${ICODER_DRUGBANK_GATEWAY_URL:-}
+      - ICODER_CREDENTIAL_DRUGBANK=${ICODER_CREDENTIAL_DRUGBANK:-}
+      - ICODER_POSOS_GATEWAY_URL=${ICODER_POSOS_GATEWAY_URL:-}
+      - ICODER_CREDENTIAL_POSOS=${ICODER_CREDENTIAL_POSOS:-}
+      - ICODER_WEB_SEARCH_GATEWAY_URL=${ICODER_WEB_SEARCH_GATEWAY_URL:-}
+      - ICODER_CREDENTIAL_WEB_SEARCH=${ICODER_CREDENTIAL_WEB_SEARCH:-}
+      - ICODER_WEB_SEARCH_PROVIDER_OPT_IN=${ICODER_WEB_SEARCH_PROVIDER_OPT_IN:-false}
+      - ICODER_WEB_SEARCH_TENANT_OPT_IN_ORGANIZATIONS=${ICODER_WEB_SEARCH_TENANT_OPT_IN_ORGANIZATIONS:-}
+      - ICODER_MEMORY_SEMANTIC_URL=${ICODER_MEMORY_SEMANTIC_URL:-}
+      - ICODER_CREDENTIAL_MEMORY_SEMANTIC=${ICODER_CREDENTIAL_MEMORY_SEMANTIC:-}
+      - ICODER_MEMORY_SEMANTIC_REQUIRED=${ICODER_MEMORY_SEMANTIC_REQUIRED:-false}
     volumes:
       - ./.data/icoder:/app/data
     depends_on:
@@ -84,14 +151,41 @@ services:
       retries: 3
       start_period: 15s
 
+  medcoder-retriever:
+    profiles: ["ml"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.ml
+    container_name: icoder-medcoder-retriever
+    environment:
+      - MEDCODER_INDEX_DIR=/app/data/medcoder
+      - MEDCODER_INDEX_VERSION=${MEDCODER_INDEX_VERSION:-cn-catalog-2026-06-26-bge-m3-5617a9f6}
+      - MEDCODER_RETRIEVER_TOKEN=${MEDCODER_RETRIEVER_TOKEN:-}
+      - MEDCODER_WORKER_QUEUE_TIMEOUT_SECONDS=${MEDCODER_WORKER_QUEUE_TIMEOUT_SECONDS:-5}
+      - MEDCODER_WORKER_WARMUP=${MEDCODER_WORKER_WARMUP:-1}
+      - MEDCODER_BGE_DTYPE=${MEDCODER_BGE_DTYPE:-float16}
+      - MEDCODER_BGE_DEVICE=${MEDCODER_BGE_DEVICE:-cpu}
+    volumes:
+      - ./backend/data/medcoder:/app/data/medcoder:ro
+    expose:
+      - "8100"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/readyz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
   frontend:
     build: ./frontend
     container_name: icoder-frontend
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./certs:/etc/nginx/certs:ro
+      # Local/CI deliberately serves HTTP. Production image configuration
+      # remains TLS-only in frontend/nginx.conf.
+      - ./frontend/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       backend:
         condition: service_healthy

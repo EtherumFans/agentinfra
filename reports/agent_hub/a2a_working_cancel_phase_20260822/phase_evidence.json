@@ -1,0 +1,40 @@
+{
+  "schema_version": "icoder.a2a-working-cancel-phase-evidence/v1",
+  "generated_at": "2026-08-22T10:56:00+08:00",
+  "result": "passed_with_external_provider_abort_gate_open",
+  "capability": {
+    "local_working_task_cancel": true,
+    "dispatch_coroutine_stopped_before_terminal_commit": true,
+    "lease_released": true,
+    "late_result_persistence_blocked": true,
+    "event_sequence": ["submitted", "working", "canceled"],
+    "cross_process_or_external_provider_abort_claimed": false
+  },
+  "tests": {
+    "focused_runtime_and_endpoints": {"passed": 47, "failed": 0},
+    "focused_regression_after_audit_fix": {"passed": 21, "failed": 0},
+    "full_a2a_integration_plus_preflight_test": {"passed": 95, "failed": 0},
+    "deployment_preflight": {"passed": 58, "failed": 0},
+    "agent_hub_runtime_matrix": {
+      "hub_visible_agents": 26,
+      "launch_candidate_ready": 26,
+      "visible_not_ready": 0
+    }
+  },
+  "audit_privacy": {
+    "free_form_error_reason_persisted": false,
+    "normalized_reason_code_only": true
+  },
+  "artifacts": {
+    "runtime_matrix": "reports/agent_hub/a2a_working_cancel_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.json",
+    "runtime_matrix_sha256": "81b51d8d1004c40fbbb1132ce9ed5561c57ef1cbe5f5c20fae8db485703105a7",
+    "deployment_preflight": "reports/agent_hub/a2a_working_cancel_phase_20260822/deployment_preflight/deployment_preflight.json",
+    "deployment_preflight_sha256": "2dd9ce792b73281749a0a2605d03d70ddf476a825d2e6f1171ff2b0f733e6386",
+    "summary": "docs/corti_parity/ICODER_A2A_WORKING_TASK_CANCELLATION_PHASE_SUMMARY_2026-08-22.md"
+  },
+  "limitations": [
+    "Cancellation is proven only for a Task owned by the same in-process runtime.",
+    "A synchronous worker thread or upstream Provider may already have performed computation or incurred cost.",
+    "Cross-process cancellation and physical Provider abort remain production adapter gates."
+  ]
+}

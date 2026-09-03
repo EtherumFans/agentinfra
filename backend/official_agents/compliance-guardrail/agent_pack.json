@@ -1,63 +1,405 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/compliance-guardrail@1.0.0",
+  "agent_ref": "icoder/compliance-guardrail-agent@1.0.0",
   "manifest": {
-    "name": "合规护栏",
+    "name": "合规护栏智能体",
     "version": "1.0.0",
-    "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
-    "category": "医保",
+    "description": "iCoDer Compliance Guardrail Agent。在提交医保结算清单前, 按 MedicalCodingRuleSet + 合规护栏启发式 (主诊断非空 / no upcoding / 手术-诊断一致 / DRG 就绪) 评估编码集。规则主路径 (确定性) + LLM 解释路径 (生成自然语言 review_suggestions)。Runnable launch candidate: production_ready=false, human_review=required。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Shield",
-    "maturity": "metadata-only",
+    "tags": [
+      "compliance",
+      "guardrail",
+      "rule-engine",
+      "llm-explainer",
+      "drg-readiness",
+      "no-upcoding",
+      "corti-style"
+    ],
+    "maturity": "runnable",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "评估编码集的医保合规性。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"issues_found\":[],\"manual_review_required\":false,\"drg_suggestion\":\"\"}",
-  "experts": [],
-  "tools": [
-    "guard_input",
-    "guard_output",
-    "rank_evidence",
-    "calibrate_confidence",
-    "analyze_drg_impact"
-  ],
-  "permissions": {
-    "key": "compliance-guardrail",
-    "name": "合规护栏权限",
-    "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
-    "tools": {
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      },
-      "rank_evidence": {
-        "allowed": true
-      },
-      "calibrate_confidence": {
-        "allowed": true
-      },
-      "analyze_drg_impact": {
-        "allowed": true
-      }
+  "backend_provider": "icoder.rule-engine.v1",
+  "backend_config": {
+    "rules": {
+      "rule_set": "medical_coding",
+      "guardrails": [
+        "CG-001",
+        "CG-002",
+        "CG-003",
+        "CG-004"
+      ]
+    },
+    "llm_explainer": {
+      "model": "deepseek-chat",
+      "purpose": "生成 review_suggestions 自然语言",
+      "trigger": "issues_found non-empty 或 review_conclusion == FAIL"
     }
   },
+  "system_prompt": "你是 iCoDer Compliance Guardrail Agent。职责：\n1. 接收编码集 + 可选 EMR 文本\n2. 跑 MedicalCodingRuleSet (R001-R010 + MC-R-M80-001)\n3. 跑合规护栏检查：\n   - CG-001 主诊断非空\n   - CG-002 no upcoding (骨质疏松+椎体骨折 → 应优先 M80.x 而非 M48.x)\n   - CG-003 手术-诊断一致 (有手术必有诊断)\n   - CG-004 DRG 就绪 (主诊断 + 至少 1 个有效手术 for surgical cases)\n4. 输出 review_conclusion + issues_found + drg_suggestion + compliance_checks + reviewed_codes；reviewed_codes 必须逐项记录本次规则实际审查的编码、编码体系和角色，不得新增输入中不存在的编码\n\n硬约束：\n- 不调用 LLM — 纯规则 + 启发式\n- 不修改编码集 — 只评估\n- 不写回医保结算\n- 所有合规风险必须显式输出，即使 PASS",
+  "experts": [
+    {
+      "expert_id": "rule-engine",
+      "name": "Rule Engine",
+      "role": "primary",
+      "description": "compliance_services.RuleEngine + MedicalCodingRuleSet + 合规护栏启发式"
+    }
+  ],
+  "tools": [
+    {
+      "name": "evaluate_compliance",
+      "type": "mcp",
+      "stage": "compliance",
+      "description": "运行 MedicalCodingRuleSet + 合规护栏启发式，输出 review_conclusion + issues_found + drg_suggestion + compliance_checks + reviewed_codes",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "coding_set": {
+            "type": "object"
+          },
+          "encounter_text": {
+            "type": "string"
+          }
+        }
+      },
+      "output_schema": {
+        "$ref": "icoder/ComplianceGuardrailOutput/v4"
+      }
+    }
+  ],
+  "model": {
+    "primary": "none",
+    "fallback": "none",
+    "temperature": 0.0,
+    "max_tokens": 0,
+    "json_mode": true
+  },
+  "non_goals": [
+    "不调用 LLM — 纯规则 + 启发式",
+    "不修改编码集 — 只评估合规性",
+    "不写回医保结算 / EMR / HIS",
+    "不分配 DRG 分组 — 仅输出 drg_suggestion 提示",
+    "不输出 F1 / 模型效果指标"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/ComplianceGuardrailOutput/v4",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "review_conclusion",
+      "issues_found",
+      "manual_review_required",
+      "drg_suggestion",
+      "reviewed_codes",
+      "compliance_checks",
+      "rule_set",
+      "trace_refs"
+    ],
+    "optional_fields": [
+      "fired_rules"
+    ],
+    "field_definitions": {
+      "review_conclusion": "PASS | WARNING | FAIL",
+      "issues_found": "list[RuleIssue] — 规则 + 合规护栏 issues 合并",
+      "manual_review_required": "bool",
+      "drg_suggestion": "str — DRG 就绪提示",
+      "reviewed_codes": "list[ReviewedCode] — 本次规则实际审查的诊断和手术操作编码",
+      "compliance_checks": "{primary_dx_present, no_upcoding_risk, procedure_dx_consistency, drg_readiness}",
+      "rule_set": "str — medical_coding",
+      "trace_refs": "TraceRefs — run_id / agent_ref / rule_set"
+    },
+    "field_types": {
+      "review_conclusion": "string",
+      "issues_found": "array",
+      "manual_review_required": "boolean",
+      "drg_suggestion": "string",
+      "reviewed_codes": "array",
+      "compliance_checks": "object",
+      "rule_set": "string",
+      "trace_refs": "object",
+      "fired_rules": "array"
+    },
+    "field_schemas": {
+      "review_conclusion": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "issues_found": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "rule_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "severity": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "suggestion": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "category",
+            "message",
+            "rule_id",
+            "severity",
+            "suggestion"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "drg_suggestion": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "reviewed_codes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "code_system": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "ICD-10-CN",
+                "ICD-9-CM-3"
+              ]
+            },
+            "role": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "primary_diagnosis",
+                "secondary_diagnosis",
+                "procedure"
+              ]
+            }
+          },
+          "required": [
+            "code",
+            "code_system",
+            "role"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "uniqueItems": true
+      },
+      "compliance_checks": {
+        "type": "object",
+        "properties": {
+          "drg_readiness": {
+            "type": "boolean"
+          },
+          "no_upcoding_risk": {
+            "type": "boolean"
+          },
+          "primary_dx_present": {
+            "type": "boolean"
+          },
+          "procedure_dx_consistency": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "drg_readiness",
+          "no_upcoding_risk",
+          "primary_dx_present",
+          "procedure_dx_consistency"
+        ],
+        "additionalProperties": false
+      },
+      "rule_set": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "agent_ref": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "rule_set": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      },
+      "fired_rules": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
+      }
+    },
+    "cross_agent_relations": [
+      {
+        "id": "reviewed_codes_match_code_validation",
+        "local_path": "reviewed_codes",
+        "local_item_path": "code",
+        "upstream_agent_id": "code-validation-agent",
+        "upstream_path": "validated_codes",
+        "upstream_item_path": "code",
+        "operator": "local_items_subset_upstream_items",
+        "normalization": "medical_code",
+        "required": false
+      }
+    ]
+  },
+  "permissions": {
+    "key": "compliance-guardrail-default",
+    "name": "合规护栏智能体 默认权限",
+    "description": "允许运行规则引擎 + 合规护栏检查。禁止写回，禁止 DRG 自动分组。",
+    "tools": {
+      "evaluate_compliance": "allowed",
+      "writeback": "blocked",
+      "drg_auto_assign": "blocked"
+    },
+    "production_writeback_blocked": true,
+    "no_upcoding": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": true,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "compliance_services.rule_engine",
+      "compliance_services.medical_coding_rules",
+      "official_agents.code_validation.agent"
+    ]
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-v4"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": true,
+    "supports_mcp_tools": true
   },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/compliance-guardrail-agent/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/compliance-guardrail-agent@1.0.0"
+  },
+  "default_runtime_mode": "rule_engine",
+  "available_runtime_modes": [
+    "rule_engine",
+    "a2a_pure_llm"
+  ],
+  "example_inputs": [
+    {
+      "title": "T12 骨折编码集 — upcoding 风险",
+      "input_text": "患者男性,78岁,MRI 显示 T12 椎体压缩性骨折。既往骨质疏松病史 5 年。",
+      "extra": {
+        "codes": [
+          "M80.900"
+        ]
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "review_conclusion": "PASS",
+      "issues_found": [
+        {
+          "severity": "medium",
+          "rule_id": "R008",
+          "message": "诊断 M80.900 缺少证据引用",
+          "suggestion": "请从病历中引用证据文本",
+          "category": "quality"
+        }
+      ],
+      "manual_review_required": true,
+      "drg_suggestion": "主要诊断 M80.900 已就绪，无手术操作 — 按内科 DRG 组评估；如本次为手术病例，请补充手术操作 ICD-9-CM-3 编码",
+      "reviewed_codes": [
+        {
+          "code": "M80.900",
+          "code_system": "ICD-10-CN",
+          "role": "primary_diagnosis"
+        }
+      ],
+      "compliance_checks": {
+        "primary_dx_present": true,
+        "no_upcoding_risk": true,
+        "procedure_dx_consistency": true,
+        "drg_readiness": true
+      },
+      "rule_set": "medical_coding",
+      "trace_refs": {
+        "run_id": "sample-run",
+        "agent_ref": "icoder/compliance-guardrail-agent@1.0.0",
+        "rule_set": "medical_coding"
+      },
+      "fired_rules": [
+        "R001",
+        "R002",
+        "R003",
+        "R004",
+        "R005",
+        "R006",
+        "R007",
+        "R008",
+        "R009",
+        "R010",
+        "MC-R-M80-001"
+      ]
+    }
+  ],
+  "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": "9a90e59246320ac0125ac884ee854c2da1598532978e5109098011ee3ac96a33"
+    "sha256": "cac7ea0ada4f0842179353576b050e370b59bd5d7ff9cae217f17c5aac22d786"
   }
 }

@@ -1,4 +1,5 @@
 # iCoDer - Auth API Router (Multi-Tenant)
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -7,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.organization import Organization, OrganizationMember, OrgRole
 from app.schemas.user import (
     UserCreate, UserLogin, UserResponse, UserMeResponse,
@@ -20,8 +21,10 @@ from app.middleware.auth import (
     decode_token, get_current_user, get_current_organization,
 )
 from app.middleware.audit import log_action
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 
 def _slugify(name: str) -> str:
@@ -35,14 +38,24 @@ def _slugify(name: str) -> str:
 
 async def _get_user_orgs(db: AsyncSession, user_id: str) -> list[OrgInfo]:
     """Get all organizations for a user with membership info."""
-    result = await db.execute(
-        select(Organization, OrganizationMember).join(
-            OrganizationMember, OrganizationMember.organization_id == Organization.id
-        ).where(OrganizationMember.user_id == user_id)
-    )
-    rows = result.all()
     orgs = []
-    for org, member in rows:
+    organizations = (
+        await db.execute(
+            select(Organization).where(Organization.is_active.is_(True))
+        )
+    ).scalars().all()
+    for org in organizations:
+        await bind_tenant_to_transaction(db, org.id)
+        member = (
+            await db.execute(
+                select(OrganizationMember).where(
+                    OrganizationMember.organization_id == org.id,
+                    OrganizationMember.user_id == user_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if member is None:
+            continue
         orgs.append(OrgInfo(
             id=org.id,
             name=org.name,
@@ -56,6 +69,34 @@ async def _get_user_orgs(db: AsyncSession, user_id: str) -> list[OrgInfo]:
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(data: UserCreate, request: Request, db: AsyncSession = Depends(get_db)):
+    # Public sign-up creates an organization owner, but never a privileged
+    # platform principal. Elevated clinical/platform roles require an
+    # authenticated administrative assignment flow.
+    if data.role != UserRole.CODER:
+        try:
+            from app.services.system_audit import system_audit
+
+            await system_audit(
+                db,
+                action="auth.register.denied.role_escalation",
+                resource_type="user_registration",
+                details={"requested_role": data.role.value},
+                status="failure",
+                ip_address=request.client.host if request.client else None,
+                user_agent=request.headers.get("user-agent"),
+            )
+            await db.commit()
+        except Exception as audit_error:  # pragma: no cover - defensive
+            await db.rollback()
+            logger.error("registration role-escalation audit failed: %s", audit_error)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": "SELF_ASSIGNED_ROLE_FORBIDDEN",
+                "message": "Public registration cannot assign a privileged role.",
+            },
+        )
+
     # Check uniqueness
     existing = await db.execute(select(User).where(
         (User.username == data.username) | (User.email == data.email)
@@ -68,28 +109,38 @@ async def register(data: UserCreate, request: Request, db: AsyncSession = Depend
         email=data.email,
         hashed_password=hash_password(data.password),
         full_name=data.full_name,
-        role=data.role,
+        role=UserRole.CODER,
         department=data.department,
     )
     db.add(user)
     await db.flush()
 
     # Auto-create organization for the new user
-    org_name = data.organization_name or f"{data.full_name}'s Organization"
-    base_slug = _slugify(org_name)
+    base_org_name = (data.organization_name or f"{data.full_name}'s Organization")[:256]
+    org_name = base_org_name
+    base_slug = _slugify(base_org_name)
     slug = base_slug
-    # Ensure unique slug
+    # Both columns are database-unique. Different users can legitimately
+    # choose the same display name, so advance one shared deterministic suffix
+    # until the name/slug pair is available instead of surfacing a 500.
     counter = 1
     while True:
-        existing_slug = await db.execute(select(Organization).where(Organization.slug == slug))
-        if not existing_slug.scalar_one_or_none():
+        existing_org = await db.execute(
+            select(Organization.id).where(
+                (Organization.name == org_name) | (Organization.slug == slug)
+            )
+        )
+        if existing_org.scalar_one_or_none() is None:
             break
-        slug = f"{base_slug}-{counter}"
+        suffix = f"-{counter}"
+        org_name = f"{base_org_name[:256 - len(suffix)]}{suffix}"
+        slug = f"{base_slug[:64 - len(suffix)]}{suffix}"
         counter += 1
 
     org = Organization(name=org_name, slug=slug, plan="free")
     db.add(org)
     await db.flush()
+    await bind_tenant_to_transaction(db, org.id)
 
     # Creator becomes owner
     member = OrganizationMember(
@@ -102,7 +153,8 @@ async def register(data: UserCreate, request: Request, db: AsyncSession = Depend
 
     await log_action(db, user.id, user.username, "user.register", "user", user.id,
                      ip_address=request.client.host if request.client else None,
-                     details={"org_id": org.id, "org_name": org.name})
+                     details={"org_id": org.id, "org_name": org.name},
+                     organization_id=org.id)
 
     orgs = [OrgInfo(id=org.id, name=org.name, slug=org.slug, plan=org.plan,
                     role="owner", is_default=True)]
@@ -160,9 +212,12 @@ async def login(data: UserLogin, request: Request, db: AsyncSession = Depends(ge
     if not default_org_id and orgs:
         default_org_id = orgs[0].id
 
+    if default_org_id:
+        await bind_tenant_to_transaction(db, default_org_id)
     await log_action(db, user.id, user.username, "user.login", "user", user.id,
                      ip_address=request.client.host if request.client else None,
-                     details={"org_count": len(orgs), "current_org_id": default_org_id})
+                     details={"org_count": len(orgs), "current_org_id": default_org_id},
+                     organization_id=default_org_id or None)
 
     access_token = create_access_token(user.id, user.username, user.role.value, default_org_id, token_version=user.token_version)
     refresh_token = create_refresh_token(user.id, default_org_id, token_version=user.token_version)
@@ -188,6 +243,8 @@ async def refresh_token(data: TokenRefresh, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found or inactive")
+    if user.token_version != payload.get("token_version", 0):
+        raise HTTPException(status_code=401, detail="Refresh token revoked. Please re-authenticate.")
 
     orgs = await _get_user_orgs(db, user.id)
     # Verify org_id still valid
@@ -212,6 +269,7 @@ async def switch_org(data: SwitchOrgRequest, request: Request,
                      db: AsyncSession = Depends(get_db)):
     """Switch to a different organization. Returns new JWT with new org_id."""
     # Verify membership
+    await bind_tenant_to_transaction(db, data.org_id)
     result = await db.execute(
         select(OrganizationMember).where(
             OrganizationMember.organization_id == data.org_id,
@@ -229,13 +287,15 @@ async def switch_org(data: SwitchOrgRequest, request: Request,
         raise HTTPException(status_code=400, detail="Organization not found or suspended")
 
     orgs = await _get_user_orgs(db, current_user.id)
+    await bind_tenant_to_transaction(db, data.org_id)
 
     await log_action(db, current_user.id, current_user.username, "org.switch", "organization",
                      data.org_id, details={"org_name": org.name},
                      ip_address=request.client.host if request.client else None)
 
     access_token = create_access_token(current_user.id, current_user.username,
-                                       current_user.role.value, org.id)
+                                       current_user.role.value, org.id,
+                                       token_version=current_user.token_version)
     refresh_token = create_refresh_token(current_user.id, org.id, token_version=current_user.token_version)
 
     return TokenResponse(
@@ -290,12 +350,9 @@ async def forgot_password(data: ForgotPasswordRequest, request: Request,
         )
         db.add(reset)
 
-        # In production: send email with reset link
-        # For now: log the token (dev mode) and return it in response
-        import logging
-        logging.getLogger(__name__).info(
-            f"Password reset for {user.username}: token={raw_token}"
-        )
+        # Delivery belongs to the configured out-of-band email provider. The
+        # raw reset credential is never returned or written to application logs.
+        logger.info("password reset credential created for out-of-band delivery")
 
     return {"message": "If the email exists, a reset link has been sent."}
 
@@ -350,6 +407,10 @@ async def change_password(
 
     current_user.hashed_password = hash_password(data.new_password)
 
+    # A password change is a security-boundary event. Existing access,
+    # refresh, and user-owned OAuth tokens must not survive it.
+    await _revoke_user_tokens(db, current_user.id, "password_change")
+
     await log_action(db, current_user.id, current_user.username, "user.password_change",
                      "user", current_user.id,
                      ip_address=request.client.host if request.client else None)
@@ -385,15 +446,11 @@ async def _revoke_user_tokens(db: AsyncSession, user_id: str, reason: str = "log
         user.token_version += 1
         logger.info(f"User {user.username} token_version incremented to {user.token_version} (reason: {reason})")
     # Also revoke OAuth tokens
-    from app.models.oauth import OAuthToken
+    from app.models.oauth import OAuthClient, OAuthToken
     oauth_result = await db.execute(
-        select(OAuthToken).where(
-            OAuthToken.client_id.in_(
-                select(OAuthToken.client_id).where(
-                    OAuthToken.client_id.like(f"%_{user_id}")
-                )
-            )
-        )
+        select(OAuthToken)
+        .join(OAuthClient, OAuthClient.client_id == OAuthToken.client_id)
+        .where(OAuthClient.owner_id == user_id, OAuthToken.is_revoked.is_(False))
     )
     tokens = oauth_result.scalars().all()
     for t in tokens:

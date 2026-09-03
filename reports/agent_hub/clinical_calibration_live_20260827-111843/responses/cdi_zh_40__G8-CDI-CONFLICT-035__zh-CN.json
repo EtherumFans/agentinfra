@@ -1,0 +1,211 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-c55219ab-acfd-4406-8514-a4ca687ada14",
+  "trace_id": "trace-10d9661036b34626",
+  "trace_url": "/ai-studio/runs/run-c55219ab-acfd-4406-8514-a4ca687ada14/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 10952,
+  "cost": {
+    "amount": 0.00076006,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "原发性高血压",
+        "2型糖尿病",
+        "慢性肾病",
+        "高脂血症",
+        "用药:二甲双胍, 缬沙坦, 胰岛素"
+      ],
+      "encounter_metadata": {
+        "patient_age": "58岁",
+        "patient_sex": "男性",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "慢性肾病未明确分期或病因",
+        "why_it_matters": "慢性肾病需要明确分期（如CKD 3期）和病因（如糖尿病肾病），以准确编码和指导治疗。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "慢性肾病",
+          "char_start": 65,
+          "char_end": 69,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "高脂血症未明确类型或严重程度",
+        "why_it_matters": "高脂血症需明确具体类型（如高胆固醇血症、高甘油三酯血症）及严重程度，以影响编码和用药。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "高脂血症",
+          "char_start": 71,
+          "char_end": 75,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "出院诊断与入院诊断不一致，且未提及慢性肾病和高脂血症",
+        "why_it_matters": "出院诊断应反映住院期间所有已治疗的疾病，遗漏慢性肾病和高脂血症可能导致编码不完整。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "出院诊断:高血压, 糖尿病",
+          "char_start": 76,
+          "char_end": 89,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 5,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "contradiction",
+        "description": "出院诊断与入院诊断及病程记录不一致，遗漏慢性肾病和高脂血症"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "For accurate coding, the chart must specify the stage of chronic kidney disease (e.g., based on eGFR) and its underlying etiology (e.g., diabetic nephropathy vs. hypertensive nephrosclerosis), as well as the type of hyperlipidemia (e.g., pure hypercholesterolemia vs. mixed) and severity (e.g., LDL level). Additionally, the discharge summary must reconcile the admission and progress notes by explicitly documenting chronic kidney disease and hyperlipidemia as active diagnoses, including their current status and management, to ensure the final coded conditions reflect the full clinical picture.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1804,
+        "tokens": 274,
+        "run_id": "run-26bea66a1416",
+        "trace_id": "trace-daffaa926de6"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1e1215f5bed3",
+        "trace_id": "trace-2d26d1274de6"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-6aafde4dac64",
+        "trace_id": "trace-c8e6e10df582"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f285ef72079c",
+        "trace_id": "trace-a9cb9d2cc6b7"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-c55219ab-acfd-4406-8514-a4ca687ada14",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ae4504be1dc8",
+        "gap_identification": "trace-bd17e955d9f9",
+        "expert_consultation": "trace-17ca8e3ec99e",
+        "query_generation": "trace-51fd2493d615",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-8fcc5c4d61ce",
+        "semantic_necessity_gate": "trace-6df71afa7c8a",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-c5ce3af79f4d"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-d5edddca9b1a",
+        "gap_identification": "run-7a841cf5428f",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-ef844599cecb",
+        "query_generation": "run-fd8372b758fc",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=慢性肾病和高脂血症缺乏具体分期、病因或类型，且出院诊断不完整，需要澄清才能准确编码。",
+        "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-f1b4ed9868c5",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-a113a22e6ef9",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-4b39ee1af4d2"
+      },
+      "trace_id": "trace-10d9661036b34626"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI5MzAyM2IzMTEwMTk4NWZmZjBiMWM1OTE3MTg5Yzk4MTE2YWNjYjE1MDc0MzBlM2Y0MGMxMWY4NmI2M2NhMGY5IiwiZSI6MTc4Nzg4NzU4MCwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tYzU1MjE5YWItYWNmZC00NDA2LTg1MTQtYTRjYTY4N2FkYTE0IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.zhLcggw6UACOGvTfsasFstDUoxuuk_SmShB1-ZKElj8",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 11.171
+}

@@ -1,0 +1,110 @@
+{
+  "schema_version": "icoder.transcripts-multichannel-phase-evidence/v1",
+  "generated_date": "2026-08-25",
+  "status": "passed",
+  "scope": "prerecorded aligned stereo 16 kHz 16-bit PCM WAV splitting and participant attribution across sync, async and recovery paths",
+  "safety": {
+    "temporary_database": true,
+    "protected_database_written": false,
+    "real_llm_used": false,
+    "real_stt_used": false,
+    "patient_audio_used": false,
+    "native_models_loaded_by_final_validation": false,
+    "release_published": false
+  },
+  "tests": {
+    "backend_full": {
+      "passed": 5586,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "seconds": 1797.542,
+      "unhandled_thread_warning_is_error": true
+    },
+    "stt_focused": {"passed": 44, "failed": 0},
+    "stt_expanded": {"passed": 141, "failed": 0},
+    "streams_cleanup_warning_as_error": {"passed": 40, "failed": 0},
+    "streams_cleanup_repeated_collection": {"passed": 200, "failed": 0},
+    "javascript_sdk": {"passed": 95, "failed": 0},
+    "python_sdk": {"passed": 101, "failed": 0},
+    "dotnet_net8": {"passed": 82, "failed": 0},
+    "dotnet_net10": {"passed": 82, "failed": 0},
+    "deployment_preflight": {"passed": 100, "failed": 0},
+    "final_validator_and_openapi_regression": {"passed": 13, "failed": 0},
+    "loopback_e2e": {
+      "status": "passed",
+      "real_uvicorn": true,
+      "synthetic_asr_boundary": true,
+      "synthetic_audio_only": true,
+      "prerecorded_stereo_pcm_split_without_crosstalk": true,
+      "prerecorded_multichannel_attribution_sync_async": true
+    }
+  },
+  "openapi": {
+    "bytes": 877158,
+    "paths": 271,
+    "schemas": 299,
+    "sha256": "2c4763c073a6ffafaec6c52e433af7903bb4aa9146c32c32e26307b2e6371d57"
+  },
+  "source_hashes": {
+    "backend/app/services/stt_service.py": "4bb2efae218a4adfe9836fed1d2992d663f9943207cde0fa98b6fa99672bcbc8",
+    "backend/app/services/stt_artifact_repository.py": "0e489c9f53750500b29fb2277aee8bc33859804260935053c23eddaaf7f71a6c",
+    "backend/app/api/v2_tools_stt.py": "edfb1b580a918302a3c857b38613b9c6afe56596019dfbbda33fa4b670c464cd",
+    "backend/app/services/stt_jobs.py": "780a663500ad3e7437ad418e5e3905c28ed010da87e851817fb11aeb66ebf41b",
+    "backend/scripts/transcripts_dictation_e2e_app.py": "f33f6c4a36cccf21308feb94e754a739c92499fa83f7f2a12701a9353780de60",
+    "backend/scripts/transcripts_dictation_e2e_client.py": "d41b6a11827ca1250129d4ae1aa50a9215b5c739a38a620dfc3f5e9778bfb454",
+    "backend/tests/unit/app/services/test_stt_inference_telemetry.py": "42b7f7d8280244efcf7396a5b9c9e2643db09d50507475b693f5a0d88df55c8c",
+    "backend/tests/unit/app/services/test_stt_artifact_repository.py": "6bdd292b4b66f424d23d5f3a49ba9d3e97050800bd957180458b67f8d0209ce0",
+    "backend/tests/test_api/test_v2_stt_create_transcript_consistency.py": "2b4914b4dcc9889980cb59a376d2fc47c22ec1023fcfa679a65e061ae5d9b5d3",
+    "backend/tests/unit/app/services/test_stt_jobs.py": "de287729767ef89739f8f07d0316b5dc586c59e1cff2d50037b4d385959d4756",
+    "backend/tests/test_api/test_v2_streams_consistency.py": "3cdb84b6d38473e1f19f9e48142619f233ec50ec44bee996b586b21f81892918",
+    "backend/scripts/corti_parity/validate_deployment_candidate.py": "762276c41cf187b42e5ddd7274daa508b8db16a1dc8d91ac7291801adbbd2b42",
+    "backend/tests/unit/corti_parity/test_deployment_candidate_preflight.py": "d64d64c4ffd10bbac8bde25de37a3408e937276cd3d6d067307951c0ba8cfe50",
+    "packages/icoder-sdk/src/resources/speech-to-text.ts": "432b952d52c105dfa1b6347824fc70cc4e0f540becbfc63b09e9feff8ba9a26b",
+    "packages/icoder-python/icoder_sdk/resources/speech_to_text.py": "0ea2ee30b8d22dd96cdf32100caad1e9e6f58d08f0df0c5f079aa65be51036ae",
+    "packages/icoder-dotnet/src/Icoder.Sdk/SpeechToTextResource.cs": "7f7d8d492cdd9bbc7e1fad3010cead0ef9bad7b79a4ab5c263793b0f6243b774",
+    "packages/icoder-dotnet/src/Icoder.Sdk/Models.cs": "a5692a6f7c0a81d7a03299ba929163dc926a0c0877bee5e67d0552ce3a20725e"
+  },
+  "evidence_hashes": {
+    "reports/transcripts_multichannel_phase_20260825/full_backend_final_junit.xml": "0f142b9c3c5ae1b8b2cc987892ecc91934dd559f72e42a40b8ac807556a57caf",
+    "reports/transcripts_multichannel_phase_20260825/loopback_e2e.json": "fc5f4bac64dbb3e5bc1787f57250c2849012c8059945813ecd539a97e0572079",
+    "reports/transcripts_multichannel_phase_20260825/preflight/deployment_preflight.json": "2a76783aa1fd2a8c430d9920091a20283e6afe9e220f4f841cdf107ed4344a31",
+    "reports/transcripts_multichannel_phase_20260825/release_candidate_validation.json": "62954e8df0db4ecfbce9da0e761414608666272692eff839d0bc8c8704b0c94f"
+  },
+  "release_artifacts": {
+    "icoder-sdk-1.0.0-beta.41.tgz": {"bytes": 73794, "sha256": "c03ccf332f1f6b7ffa8805c255b39e9e1b18a517df11776bc3d4b3caa9bac6b7"},
+    "icoder_sdk-1.0.0b41-py3-none-any.whl": {"bytes": 58194, "sha256": "a964df2d397390c4784290cd4c2cfcbb56c8dc308388c69b885ba15c61df8d5f"},
+    "icoder_sdk-1.0.0b41.tar.gz": {"bytes": 82716, "sha256": "b30d2f76e8940d01782879bec6bd766d66931bbe3043a27103385b675a8a8f8e"},
+    "iCoDer.Sdk.1.0.0-beta.41.nupkg": {"bytes": 423382, "sha256": "b72adfda199b1ec9071637264012b392fff494af71917f30ba0c7bf9fd8f5e62"},
+    "iCoDer.Sdk.1.0.0-beta.41.snupkg": {"bytes": 90511, "sha256": "97893aeb7fd7e64bad3e01c4070f498306e968b62ea062b8345c32614e6c3d08"},
+    "release-candidate-b41-transcripts-multichannel.json": {"bytes": 1819, "sha256": "e3ed77e282588f268fe0e3f2a4cb32bb554088548a4c934466a138e672208477"}
+  },
+  "validated_boundary": {
+    "container": "WAV",
+    "codec": "PCM uncompressed",
+    "channels": 2,
+    "sample_rate_hz": 16000,
+    "sample_width_bits": 16,
+    "participant_channels": [0, 1],
+    "speaker_id": -1,
+    "timestamps": "whole-channel 0-to-file-duration",
+    "utterance_level_segmentation": false,
+    "diarization": false
+  },
+  "environment_stability": {
+    "system_python_native_crash_observed": true,
+    "fault_module": "pyarrow/arrow.dll",
+    "windows_exception_code": "0xc0000005",
+    "read_or_write_direction_determined": false,
+    "final_validation_runtime": "bundled isolated Python without native STT/MedCoder",
+    "final_full_suite_unhandled_thread_warnings": 0
+  },
+  "open_gaps": [
+    "encoded or compressed multichannel prerecorded formats beyond PCM WAV",
+    "mono speaker diarization and participant inference",
+    "utterance-level segmentation and accurate per-utterance timestamps",
+    "real Chinese clinical ASR quality for multichannel audio",
+    "same-audio Corti head-to-head quality, latency, cost and capacity",
+    "production Linux/PostgreSQL multi-replica, observability, security and hospital acceptance"
+  ]
+}

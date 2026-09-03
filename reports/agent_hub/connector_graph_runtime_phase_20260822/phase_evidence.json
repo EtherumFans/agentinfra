@@ -1,0 +1,77 @@
+{
+  "phase": "agentic_v2_connector_graph_runtime",
+  "captured_at": "2026-08-22T00:55:00+08:00",
+  "network_llm_calls": 0,
+  "external_connector_calls": 0,
+  "browser_started": false,
+  "native_medcoder_started": false,
+  "implementation": {
+    "graph_schema": "app.schemas.connector_graph",
+    "graph_runner": "app.services.connector_graph.execute_connector_graph",
+    "runtime_entry": "POST /api/v1/agents/{agent_id}/run (generic provider branch)",
+    "configuration_path": "/api/v2/agentic/agents/{agent_id}/connector-graph",
+    "configuration_methods": ["GET", "PUT", "DELETE"],
+    "execution_mode": "sequential",
+    "max_nodes": 16,
+    "max_aggregate_output_bytes": 262144,
+    "openapi_total_paths": 252,
+    "openapi_connector_resource_and_graph_paths": 4
+  },
+  "runtime_contracts": [
+    "custom DB Agent fallback requires both agent_id and organization_id",
+    "graph mutations require owner or admin and optimistic revision matching",
+    "graph dependencies must form a bounded DAG",
+    "every graph connector must belong to the same organization and source Agent",
+    "enabled graph connectors and declared operations are validated at write and execution time",
+    "only administrator-selected safe input keys and optional redacted text reach a connector",
+    "connector output is recursively PHI-redacted and prompt-injection scanned before reuse",
+    "required node failure prevents provider invocation and result publication",
+    "optional node failure is represented by a stable error code and never fabricated as success",
+    "raw connector arguments and outputs are absent from execution audit and Run Trace",
+    "provider receives connector output only as an explicitly untrusted server-governed data block",
+    "no direct public connector execution endpoint exists"
+  ],
+  "verification": {
+    "graph_schema_http_runtime_e2e": {
+      "passed": 10,
+      "failed": 0
+    },
+    "connector_resource_executor_graph_specialized": {
+      "passed": 48,
+      "failed": 0
+    },
+    "combined_a2a_connector_graph_ssrf_openapi_agent_run": {
+      "passed": 214,
+      "failed": 0,
+      "warnings": 53,
+      "warning_classes": [
+        "Starlette TestClient/httpx deprecation",
+        "datetime.utcnow deprecation"
+      ]
+    },
+    "javascript_sdk": {
+      "passed": 32,
+      "failed": 0
+    },
+    "python_sdk": {
+      "passed": 39,
+      "failed": 0
+    },
+    "openapi_check": "passed",
+    "python_compile": "passed",
+    "exposed_key_shape_scan_matches": 0
+  },
+  "not_yet_implemented": [
+    "conditional or parallel Planner-selected connector orchestration",
+    "connector graph wiring for Medical Coding, CDI, direct A2A and asynchronous Task continuation",
+    "Console connector graph editor and browser E2E",
+    "production MCP handshake and A2A transport",
+    "DNS-to-socket pinning and redirect-hop revalidation",
+    "Vault, KMS, Secret Manager and OAuth2 production adapters",
+    "durable cross-worker circuit state and distributed concurrency limits",
+    ".NET connector graph SDK resources",
+    "PostgreSQL, Redis, Docker Linux and controlled external-network evidence"
+  ],
+  "completion_claim": "generic Provider Agent Run connector graph is a local development launch candidate; full Corti connector parity remains partial",
+  "reason": "The deterministic tenant-governed graph is runnable, audited and fail-closed in local E2E, but production transports, dynamic Planner behavior and all runtime entry points are not complete."
+}

@@ -1,6 +1,6 @@
-// iCoDer — Tickets Portal page (Corti parity)
+// iCoDer - Tickets Portal page
 //
-// Corti /tickets IA: external Zendesk-style portal with org selector + All/
+// /tickets IA: external Zendesk-style portal with org selector + All/
 // Created by me + Search + Filter + table + empty state. iCoDer implements
 // the same conceptual workflow in-app (no external help-desk infra needed).
 //
@@ -17,6 +17,7 @@ import {
   Loader2, Plus, Search, X, Trash2, MessageSquare, ChevronDown,
   AlertCircle,
 } from 'lucide-react';
+
 import { ticketsApi } from '../services/api';
 import { useT } from '../i18n';
 
@@ -49,7 +50,7 @@ const PRIORITY_KEY: Record<string, string> = {
 };
 
 function formatDate(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   try {
     return new Date(iso).toLocaleString(undefined, {
       year: 'numeric', month: 'short', day: '2-digit',
@@ -125,7 +126,7 @@ export default function TicketsPage() {
   useEffect(() => { setPage(1); }, [search, status, priority, scope]);
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
@@ -163,7 +164,7 @@ export default function TicketsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search..."
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border/20 bg-background text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
         <select
@@ -190,7 +191,7 @@ export default function TicketsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+      <div className="bg-background rounded-xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
@@ -351,7 +352,7 @@ function NewTicketModal({ onClose, onCreated }: { onClose: () => void; onCreated
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-background rounded-xl shadow-2xl ring-1 ring-border/20 w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-background rounded-xl shadow-2xl shadow-sm w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="px-5 py-4 border-b border-border/20 flex items-center justify-between">
           <h3 className="text-base font-semibold text-foreground">{t.ticketsNewTicket}</h3>
           <button onClick={onClose} className="p-1 rounded-md hover:bg-accent text-muted-foreground">

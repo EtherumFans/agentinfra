@@ -1,0 +1,203 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/surgical-registry@1.0.0",
+  "manifest": {
+    "name": "外科质控登记智能体",
+    "version": "1.0.0",
+    "description": "从手术记录/日志自动提取数据填入外科质量登记数据库。",
+    "category": "quality",
+    "category_display": "Clinical Evidence and Research / 临床循证",
+    "icon": "ClipboardList",
+    "tags": [
+      "corti-parity",
+      "china-surgical-quality"
+    ],
+    "maturity": "runnable",
+    "production_ready": false,
+    "hidden_from_hub": false,
+    "use_case": "clinical_evidence",
+    "human_review": "required"
+  },
+  "system_prompt": "你是中国医院外科质控登记智能体。只能从输入明确提供的手术记录、麻醉记录和出院记录提取登记字段，所有非空字段必须能回指原文；不得推断患者身份、手术日期、术者、术式分级、适应证、合并症、麻醉细节、并发症或结局。原文明示的麻醉方式（例如“全麻”）属于直接事实，必须填写 anesthesia；原文明示的阴性并发症事实（例如“无胆管损伤”）也属于已记录证据，必须填写 complications，不得当作缺失。missing_fields 必须且只能列出完全没有来源事实的字段；非空字段不得同时出现在 missing_fields。每个非空登记字段都必须在 evidence_spans 的同名键中提供可在输入原文逐字找到的引用。未提供字段写入 missing_fields，不得把缺失写成阴性。登记员审核前不得入库，manual_review_required 必须为 true。只输出一个严格 JSON 对象，键名必须逐字使用 procedure、indications、comorbidities、operative_details、anesthesia、outcomes、complications、evidence_spans、missing_fields、manual_review_required，不得包装在 fields 中或翻译键名。默认使用简体中文填写值。",
+  "backend_provider": "icoder.governed-surgical-registry.v1",
+  "backend_config": {
+    "extraction_policy": "explicit-source-facts-only",
+    "policy_version": "1.0.0"
+  },
+  "experts": [],
+  "tools": [],
+  "permissions": {
+    "key": "surgical-registry",
+    "name": "外科质控登记智能体 权限",
+    "description": "从手术记录/日志自动提取数据填入外科质量登记数据库。",
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/SurgicalRegistryOutput/v4",
+    "required_fields": [
+      "procedure",
+      "indications",
+      "comorbidities",
+      "operative_details",
+      "anesthesia",
+      "outcomes",
+      "complications",
+      "evidence_spans",
+      "missing_fields",
+      "manual_review_required"
+    ],
+    "field_types": {
+      "procedure": "string",
+      "indications": "string",
+      "comorbidities": "string",
+      "operative_details": "string",
+      "anesthesia": "string",
+      "outcomes": "string",
+      "complications": "string",
+      "evidence_spans": "object",
+      "missing_fields": "array",
+      "manual_review_required": "boolean"
+    },
+    "field_schemas": {
+      "procedure": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "indications": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "comorbidities": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "operative_details": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "anesthesia": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "outcomes": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "complications": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "evidence_spans": {
+        "type": "object",
+        "properties": {
+          "procedure": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "indications": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "comorbidities": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "operative_details": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "anesthesia": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "outcomes": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "complications": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "missing_fields": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      }
+    }
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.backends.governed_surgical_registry_provider"
+    ]
+  },
+  "non_goals": [
+    "不替代编码员 / 临床医生最终决策",
+    "不自动写回 EMR/HIS"
+  ],
+  "human_review_required_when": [
+    "all registry records before database submission",
+    "a required field lacks direct source evidence or needs local registry mapping"
+  ],
+  "example_inputs": [
+    {
+      "title": "腹腔镜胆囊切除质控登记",
+      "input_text": "手术记录：全麻下行腹腔镜胆囊切除术，术中见胆囊壁增厚并与网膜粘连，无胆管损伤，估计出血20ml。请提取登记字段并标出缺失项。",
+      "extra": {
+        "registry": "hospital_surgical_quality"
+      }
+    }
+  ],
+  "metadata": {
+    "created_at": "2026-07-11",
+    "author": "iCoDer",
+    "corti_match": "surgical-registry-intelligence-agent",
+    "audit_note": "Governed local lexical baseline. Unified Agent Run and A2A routes extract only explicit source facts with exact quotes; no external LLM or network is required, all registry submissions remain write-blocked pending reviewer validation."
+  },
+  "built_by": "icoder",
+  "example_outputs": [
+    {
+      "procedure": "腹腔镜胆囊切除术",
+      "indications": "",
+      "comorbidities": "",
+      "operative_details": "术中见胆囊壁增厚并与网膜粘连，无胆管损伤，估计出血20ml",
+      "anesthesia": "全麻",
+      "outcomes": "",
+      "complications": "未见胆管损伤",
+      "evidence_spans": {
+        "procedure": "行腹腔镜胆囊切除术",
+        "anesthesia": "全麻下",
+        "operative_details": "术中见胆囊壁增厚并与网膜粘连，无胆管损伤，估计出血20ml",
+        "complications": "无胆管损伤"
+      },
+      "missing_fields": [
+        "indications",
+        "comorbidities",
+        "outcomes"
+      ],
+      "manual_review_required": true
+    }
+  ],
+  "integrity": {
+    "sha256": "9a148ffa9261af5ab5ac0a610f6582ea3759ad5b1feefbf101ad97898e01b620"
+  }
+}

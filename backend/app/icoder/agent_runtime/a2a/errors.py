@@ -45,17 +45,26 @@ class A2AErrorCode:
     INVALID_PARAMS = "INVALID_PARAMS"
     INTERNAL_ERROR = "INTERNAL_ERROR"
     AGENT_NOT_FOUND = "AGENT_NOT_FOUND"
+    AGENT_NOT_PUBLISHED = "AGENT_NOT_PUBLISHED"
     CONTEXT_INVALID = "CONTEXT_INVALID"
+    CONTEXT_NOT_FOUND = "CONTEXT_NOT_FOUND"
     TASK_NOT_FOUND = "TASK_NOT_FOUND"
     TASK_NOT_CANCELABLE = "TASK_NOT_CANCELABLE"
     UNSUPPORTED_OPERATION = "UNSUPPORTED_OPERATION"
     PHI_REDACTION_FAILED = "PHI_REDACTION_FAILED"
+    INPUT_SAFETY_BLOCKED = "INPUT_SAFETY_BLOCKED"
     PRODUCTION_WRITEBACK_BLOCKED = "PRODUCTION_WRITEBACK_BLOCKED"
     AUTH_REQUIRED = "AUTH_REQUIRED"
     RATE_LIMITED = "RATE_LIMITED"
     PLANNING_FAILED = "PLANNING_FAILED"
     EXPERT_FAILED = "EXPERT_FAILED"
     AGGREGATION_FAILED = "AGGREGATION_FAILED"
+    CONNECTOR_GRAPH_FAILED = "CONNECTOR_GRAPH_FAILED"
+    # A1B-AE.5 — Corti public §9 mcp-authentication error codes (4 exhaustive)
+    MCP_AUTH_DUPLICATE_NAME = "mcp_auth_duplicate_name"
+    MCP_AUTH_MISSING_NAME = "mcp_auth_missing_name"
+    MCP_AUTH_MISSING_TOKEN = "mcp_auth_missing_token"
+    MCP_AUTH_MISSING_CREDENTIALS = "mcp_auth_missing_credentials"
 
 
 # Phase 1: AUTH_REQUIRED and RATE_LIMITED are reserved but not raised.
@@ -65,17 +74,25 @@ ALL_A2A_ERROR_CODES: Final[tuple[str, ...]] = (
     A2AErrorCode.INVALID_PARAMS,
     A2AErrorCode.INTERNAL_ERROR,
     A2AErrorCode.AGENT_NOT_FOUND,
+    A2AErrorCode.AGENT_NOT_PUBLISHED,
     A2AErrorCode.CONTEXT_INVALID,
+    A2AErrorCode.CONTEXT_NOT_FOUND,
     A2AErrorCode.TASK_NOT_FOUND,
     A2AErrorCode.TASK_NOT_CANCELABLE,
     A2AErrorCode.UNSUPPORTED_OPERATION,
     A2AErrorCode.PHI_REDACTION_FAILED,
+    A2AErrorCode.INPUT_SAFETY_BLOCKED,
     A2AErrorCode.PRODUCTION_WRITEBACK_BLOCKED,
     A2AErrorCode.AUTH_REQUIRED,
     A2AErrorCode.RATE_LIMITED,
     A2AErrorCode.PLANNING_FAILED,
     A2AErrorCode.EXPERT_FAILED,
     A2AErrorCode.AGGREGATION_FAILED,
+    A2AErrorCode.CONNECTOR_GRAPH_FAILED,
+    A2AErrorCode.MCP_AUTH_DUPLICATE_NAME,
+    A2AErrorCode.MCP_AUTH_MISSING_NAME,
+    A2AErrorCode.MCP_AUTH_MISSING_TOKEN,
+    A2AErrorCode.MCP_AUTH_MISSING_CREDENTIALS,
 )
 
 
@@ -94,17 +111,26 @@ _HTTP_STATUS_BY_CODE: Final[dict[str, int]] = {
     A2AErrorCode.INVALID_PARAMS: 400,
     A2AErrorCode.INTERNAL_ERROR: 500,
     A2AErrorCode.AGENT_NOT_FOUND: 404,
+    A2AErrorCode.AGENT_NOT_PUBLISHED: 409,
     A2AErrorCode.CONTEXT_INVALID: 400,
+    A2AErrorCode.CONTEXT_NOT_FOUND: 404,
     A2AErrorCode.TASK_NOT_FOUND: 404,
     A2AErrorCode.TASK_NOT_CANCELABLE: 409,
     A2AErrorCode.UNSUPPORTED_OPERATION: 501,
     A2AErrorCode.PHI_REDACTION_FAILED: 500,
+    A2AErrorCode.INPUT_SAFETY_BLOCKED: 400,
     A2AErrorCode.PRODUCTION_WRITEBACK_BLOCKED: 403,
     A2AErrorCode.AUTH_REQUIRED: 401,
     A2AErrorCode.RATE_LIMITED: 429,
     A2AErrorCode.PLANNING_FAILED: 500,
     A2AErrorCode.EXPERT_FAILED: 502,
     A2AErrorCode.AGGREGATION_FAILED: 500,
+    A2AErrorCode.CONNECTOR_GRAPH_FAILED: 503,
+    # A1B-AE.5 — MCP auth errors are client-side (4xx)
+    A2AErrorCode.MCP_AUTH_DUPLICATE_NAME: 400,
+    A2AErrorCode.MCP_AUTH_MISSING_NAME: 400,
+    A2AErrorCode.MCP_AUTH_MISSING_TOKEN: 400,
+    A2AErrorCode.MCP_AUTH_MISSING_CREDENTIALS: 400,
 }
 
 # Mapping: A2A business code → JSON-RPC standard code (data wrapper).
@@ -114,17 +140,26 @@ _JSONRPC_CODE_BY_A2A: Final[dict[str, int]] = {
     A2AErrorCode.INVALID_PARAMS: JSON_RPC_INVALID_PARAMS,
     A2AErrorCode.INTERNAL_ERROR: JSON_RPC_INTERNAL_ERROR,
     A2AErrorCode.AGENT_NOT_FOUND: JSON_RPC_METHOD_NOT_FOUND,
+    A2AErrorCode.AGENT_NOT_PUBLISHED: JSON_RPC_INVALID_REQUEST,
     A2AErrorCode.CONTEXT_INVALID: JSON_RPC_INVALID_REQUEST,
+    A2AErrorCode.CONTEXT_NOT_FOUND: JSON_RPC_METHOD_NOT_FOUND,
     A2AErrorCode.TASK_NOT_FOUND: JSON_RPC_METHOD_NOT_FOUND,
     A2AErrorCode.TASK_NOT_CANCELABLE: JSON_RPC_INVALID_REQUEST,
     A2AErrorCode.UNSUPPORTED_OPERATION: JSON_RPC_METHOD_NOT_FOUND,
     A2AErrorCode.PHI_REDACTION_FAILED: JSON_RPC_INTERNAL_ERROR,
+    A2AErrorCode.INPUT_SAFETY_BLOCKED: JSON_RPC_INVALID_REQUEST,
     A2AErrorCode.PRODUCTION_WRITEBACK_BLOCKED: JSON_RPC_INVALID_REQUEST,
     A2AErrorCode.AUTH_REQUIRED: JSON_RPC_INVALID_REQUEST,
     A2AErrorCode.RATE_LIMITED: JSON_RPC_INVALID_REQUEST,
     A2AErrorCode.PLANNING_FAILED: JSON_RPC_INTERNAL_ERROR,
     A2AErrorCode.EXPERT_FAILED: JSON_RPC_INTERNAL_ERROR,
     A2AErrorCode.AGGREGATION_FAILED: JSON_RPC_INTERNAL_ERROR,
+    A2AErrorCode.CONNECTOR_GRAPH_FAILED: JSON_RPC_INTERNAL_ERROR,
+    # A1B-AE.5 — MCP auth errors are param-level validation failures
+    A2AErrorCode.MCP_AUTH_DUPLICATE_NAME: JSON_RPC_INVALID_PARAMS,
+    A2AErrorCode.MCP_AUTH_MISSING_NAME: JSON_RPC_INVALID_PARAMS,
+    A2AErrorCode.MCP_AUTH_MISSING_TOKEN: JSON_RPC_INVALID_PARAMS,
+    A2AErrorCode.MCP_AUTH_MISSING_CREDENTIALS: JSON_RPC_INVALID_PARAMS,
 }
 
 # Human-readable message (short) for each A2A business code.
@@ -134,17 +169,26 @@ _MESSAGE_BY_CODE: Final[dict[str, str]] = {
     A2AErrorCode.INVALID_PARAMS: "Invalid params",
     A2AErrorCode.INTERNAL_ERROR: "Internal error",
     A2AErrorCode.AGENT_NOT_FOUND: "Agent not found",
+    A2AErrorCode.AGENT_NOT_PUBLISHED: "Agent not published",
     A2AErrorCode.CONTEXT_INVALID: "Context invalid",
+    A2AErrorCode.CONTEXT_NOT_FOUND: "Context not found",
     A2AErrorCode.TASK_NOT_FOUND: "Task not found",
     A2AErrorCode.TASK_NOT_CANCELABLE: "Task not cancelable",
     A2AErrorCode.UNSUPPORTED_OPERATION: "Unsupported operation",
     A2AErrorCode.PHI_REDACTION_FAILED: "PHI redaction failed",
+    A2AErrorCode.INPUT_SAFETY_BLOCKED: "Input blocked by safety policy",
     A2AErrorCode.PRODUCTION_WRITEBACK_BLOCKED: "Production writeback blocked",
     A2AErrorCode.AUTH_REQUIRED: "Authorization required",
     A2AErrorCode.RATE_LIMITED: "Rate limited",
     A2AErrorCode.PLANNING_FAILED: "Planning failed",
     A2AErrorCode.EXPERT_FAILED: "Expert failed",
     A2AErrorCode.AGGREGATION_FAILED: "Aggregation failed",
+    A2AErrorCode.CONNECTOR_GRAPH_FAILED: "Connector graph execution failed",
+    # A1B-AE.5 — Corti public §9 mcp-authentication error messages
+    A2AErrorCode.MCP_AUTH_DUPLICATE_NAME: "Duplicate MCP auth name in message",
+    A2AErrorCode.MCP_AUTH_MISSING_NAME: "MCP auth DataPart missing mcp_name",
+    A2AErrorCode.MCP_AUTH_MISSING_TOKEN: "MCP auth DataPart missing token",
+    A2AErrorCode.MCP_AUTH_MISSING_CREDENTIALS: "MCP auth DataPart missing client_id/client_secret",
 }
 
 
@@ -255,6 +299,11 @@ def context_invalid(details: str = "", **kw: Any) -> A2AError:
     return A2AError(code=A2AErrorCode.CONTEXT_INVALID, details=details, **kw)
 
 
+def context_not_found(context_id: str = "", **kw: Any) -> A2AError:
+    details = f"context {context_id!r} not found" if context_id else ""
+    return A2AError(code=A2AErrorCode.CONTEXT_NOT_FOUND, details=details, **kw)
+
+
 def task_not_found(task_id: str = "", **kw: Any) -> A2AError:
     details = f"task {task_id!r} not found" if task_id else ""
     return A2AError(code=A2AErrorCode.TASK_NOT_FOUND, details=details, **kw)
@@ -277,10 +326,38 @@ def phi_redaction_failed(details: str = "", **kw: Any) -> A2AError:
     return A2AError(code=A2AErrorCode.PHI_REDACTION_FAILED, details=details, **kw)
 
 
+def input_safety_blocked(details: str = "", **kw: Any) -> A2AError:
+    return A2AError(code=A2AErrorCode.INPUT_SAFETY_BLOCKED, details=details, **kw)
+
+
 def production_writeback_blocked(details: str = "", **kw: Any) -> A2AError:
     return A2AError(
         code=A2AErrorCode.PRODUCTION_WRITEBACK_BLOCKED, details=details, **kw
     )
+
+
+# A1B-AE.5 — Corti public §9 mcp-authentication error factories
+def mcp_auth_duplicate_name(name: str = "", **kw: Any) -> A2AError:
+    details = f"duplicate mcp_name {name!r} in auth DataParts" if name else ""
+    return A2AError(code=A2AErrorCode.MCP_AUTH_DUPLICATE_NAME, details=details, **kw)
+
+
+def mcp_auth_missing_name(**kw: Any) -> A2AError:
+    return A2AError(code=A2AErrorCode.MCP_AUTH_MISSING_NAME, **kw)
+
+
+def mcp_auth_missing_token(name: str = "", **kw: Any) -> A2AError:
+    details = f"auth DataPart for mcp_name={name!r} missing token" if name else ""
+    return A2AError(code=A2AErrorCode.MCP_AUTH_MISSING_TOKEN, details=details, **kw)
+
+
+def mcp_auth_missing_credentials(name: str = "", **kw: Any) -> A2AError:
+    details = (
+        f"auth DataPart for mcp_name={name!r} missing client_id/client_secret"
+        if name
+        else ""
+    )
+    return A2AError(code=A2AErrorCode.MCP_AUTH_MISSING_CREDENTIALS, details=details, **kw)
 
 
 __all__ = [
@@ -295,10 +372,15 @@ __all__ = [
     "agent_not_found",
     "context_invalid",
     "internal_error",
+    "input_safety_blocked",
     "invalid_params",
     "invalid_request",
     "make_error",
     "method_not_found",
+    "mcp_auth_duplicate_name",
+    "mcp_auth_missing_name",
+    "mcp_auth_missing_token",
+    "mcp_auth_missing_credentials",
     "phi_redaction_failed",
     "production_writeback_blocked",
     "task_not_cancelable",

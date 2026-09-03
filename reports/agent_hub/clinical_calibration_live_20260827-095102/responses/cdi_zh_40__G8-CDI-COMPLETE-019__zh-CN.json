@@ -1,0 +1,161 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-719be242-1b6b-43f0-a39a-c37001c081e7",
+  "trace_id": "trace-23ddb037fd094fd7",
+  "trace_url": "/ai-studio/runs/run-719be242-1b6b-43f0-a39a-c37001c081e7/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 3060,
+  "cost": {
+    "amount": 0.0002478,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "65岁男性",
+        "高血压病史10年",
+        "服用缬沙坦80mg每日一次",
+        "血压132/82 mmHg",
+        "超声心动图显示左室射血分数65%，室壁运动正常，无左室肥厚",
+        "心电图显示窦性心律",
+        "诊断：原发性高血压1级（控制良好）",
+        "无靶器官损害"
+      ],
+      "encounter_metadata": {
+        "patient_age": "65岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": false
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "no coding-relevant gaps survived earlier gates",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-d70237af20c5",
+        "trace_id": "trace-18bbe8321c90"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-14a7a1f2402b",
+        "trace_id": "trace-2f95591f9a81"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f7c2388140aa",
+        "trace_id": "trace-9cbf2be452a5"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-bf0756c9ce49",
+        "trace_id": "trace-ac354b6dd6f9"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-719be242-1b6b-43f0-a39a-c37001c081e7",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ece226c0e74a",
+        "gap_identification": "trace-2f00ca25af5c",
+        "expert_consultation": "trace-b5ed4bf03cb0",
+        "query_generation": "",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-7badc065540a",
+        "semantic_necessity_gate": "trace-7e08a0685c89",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-8d57cc743e74"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-a7d84eeae937",
+        "gap_identification": "run-9b98e5b0621d",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-fdf07f14abf8",
+        "query_generation": "",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents essential details for hypertension: grade, control status, t",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-f779f4fac1be",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-9552cf6467fe",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-cd704b720e49"
+      },
+      "trace_id": "trace-23ddb037fd094fd7"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI5YjNmMWNhYjNjMDJmYzhlMDc4YjA3M2RhZmI3YjU4M2NlOWRiYzk2NzYyMDFkYWE3ZjdiY2QyMmUyMDU5NDE4IiwiZSI6MTc4Nzg4MjE4OCwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tNzE5YmUyNDItMWI2Yi00M2YwLWEzOWEtYzM3MDAxYzA4MWU3IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0._Q-oIMrCgNyrGqECpojnz1nNjXNAI-BJaPhLHQP0ZYo",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 3.17
+}

@@ -1,0 +1,182 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-04173310-360b-4c23-8081-7ecd1d377ea2",
+  "trace_id": "trace-cfb8ecd2d887497a",
+  "trace_url": "/ai-studio/runs/run-04173310-360b-4c23-8081-7ecd1d377ea2/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 5953,
+  "cost": {
+    "amount": 0.0,
+    "currency": "internal_credit"
+  },
+  "summary": "根据MRI结果，T12椎体压缩性骨折对应S22.000x003，但需进一步明确病因和是否合并其他损伤。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "S22.000x003",
+        "description": "胸椎压缩性骨折",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "MRI 显示 T12 椎体压缩性骨折",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "RULE-001",
+          "message": "病历信息有限，仅提供影像学结果，未明确骨折的具体类型（如创伤性、病理性）及外因，可能影响编码选择。",
+          "suggestion": "建议补充骨折的病因（如外伤、骨质疏松等）及是否伴有脊髓损伤，以确定更精确的编码。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "WARNING",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "根据MRI结果，T12椎体压缩性骨折对应S22.000x003，但需进一步明确病因和是否合并其他损伤。"
+    },
+    "trace_refs": {
+      "run_id": "run-04173310-360b-4c23-8081-7ecd1d377ea2",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-cfb8ecd2d887497a"
+    },
+    "codes": [
+      {
+        "code": "S22.000x003",
+        "system": "ICD-10-CN",
+        "display": "胸椎压缩性骨折",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "MRI 显示 T12 椎体压缩性骨折",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "evidence": [
+    {
+      "code": "S22.000x003",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "MRI 显示 T12 椎体压缩性骨折",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1786589740.265654,
+      "duration_ms": 1,
+      "metadata": {
+        "text_len": 28,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1786589740.266154,
+      "duration_ms": 1,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1786589740.2707865,
+      "duration_ms": 6,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1786589746.213127,
+      "duration_ms": 5951,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1786589746.213127,
+      "duration_ms": 5952,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1786589746.213127,
+      "duration_ms": 5953,
+      "metadata": {
+        "code_count": 1
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1786589746.213127,
+      "duration_ms": 5953,
+      "metadata": {
+        "latency_ms": 5953,
+        "code_count": 1
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 6.45
+}

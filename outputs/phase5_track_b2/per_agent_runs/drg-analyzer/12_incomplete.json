@@ -1,0 +1,57 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-0be04fd4-1e45-4794-8d71-6476ed9ba008",
+  "trace_id": "trace-3e5b32cb04b74bd2",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7207,
+  "cost": {
+    "amount": 0.000209,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "complete",
+    "markdown": "```json\n{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"诊断仅记录为「腹痛待查」，未对腹部超声提示的「肝区回声增粗」进行进一步诊断编码，可能遗漏重要并发症/合并症（如肝病相关诊断）。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议根据超声结果补充编码，如 K76.900（肝病，未特指）或 Z03.300（可疑肝病观察），以反映实际病情并避免低补偿风险。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"主诊断「腹痛待查」与超声发现的「肝区回声增粗」不一致，未体现诊断与检查结果的关联，可能导致分组不准确。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"medium\",\n      \"suggestion\": \"复核超声结果，考虑将主诊断更新为更具体的肝病相关编码（如 K76.900），并保留腹痛作为症状编码。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N/A\",\n      \"evidence_text\": \"病历中未记录任何并发症或合并症（如年龄、性别、既往史、实验室检查等），可能遗漏影响 DRG 分组的次要诊断。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"low\",\n      \"suggestion\": \"补充完整病历信息，包括患者基本信息、既往病史及实验室检查结果，以识别潜在并发症。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在 2 处主要风险：1）主诊断「腹痛待查」未反映超声发现的肝区异常，可能导致 downcoding 或分组不准确；2）病历信息严重不足，无法评估完整编码方案。建议补充病历细节，并根据超声结果调整诊断编码，避免低补偿或拒付风险。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "```json\n{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"诊断仅记录为「腹痛待查」，未对腹部超声提示的「肝区回声增粗」进行进一步诊断编码，可能遗漏重要并发症/合并症（如肝病相关诊断）。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议根据超声结果补充编码，如 K76.900（肝病，未特指）或 Z03.300（可疑肝病观察），以反映实际病情并避免低补偿风险。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"主诊断「腹痛待查」与超声发现的「肝区回声增粗」不一致，未体现诊断与检查结果的关联，可能导致分组不准确。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"medium\",\n      \"suggestion\": \"复核超声结果，考虑将主诊断更新为更具体的肝病相关编码（如 K76.900），并保留腹痛作为症状编码。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N/A\",\n      \"evidence_text\": \"病历中未记录任何并发症或合并症（如年龄、性别、既往史、实验室检查等），可能遗漏影响 DRG 分组的次要诊断。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"low\",\n      \"suggestion\": \"补充完整病历信息，包括患者基本信息、既往病史及实验室检查结果，以识别潜在并发症。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在 2 处主要风险：1）主诊断「腹痛待查」未反映超声发现的肝区异常，可能导致 downcoding 或分组不准确；2）病历信息严重不足，无法评估完整编码方案。建议补充病历细节，并根据超声结果调整诊断编码，避免低补偿或拒付风险。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}\n```",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 462,
+        "output_tokens": 517
+      },
+      "cost_usd": 0.000209,
+      "latency_ms": 7207
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7207,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 7207
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (98 chars) + codes (0)",
+  "_gold_codes": [],
+  "_client_wall_ms": 7364,
+  "_fixture": "fixtures/phase5_track_b2/12_incomplete_documentation.json",
+  "_tag": "12_incomplete",
+  "_ts": "2026-07-11T14:36:51"
+}

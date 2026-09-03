@@ -1,67 +1,1637 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/denial-appeals@1.0.0",
+  "agent_ref": "icoder/denial-appeals@1.1.0",
   "manifest": {
-    "name": "拒付申诉",
-    "version": "1.0.0",
-    "description": "生成有循证依据的医保拒付申诉回复。",
-    "category": "医保",
+    "name": "拒付申诉智能体",
+    "name_en": "Denial Appeals Agent",
+    "version": "1.1.0",
+    "description": "仅从明确标注的拒付、结算、病历及用户提供政策字段装配可追溯的申诉草案或更正清单，始终要求人工复核。",
+    "category": "medical-insurance",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "FileWarning",
-    "maturity": "metadata-only",
+    "tags": [
+      "denial-appeals",
+      "china-localized",
+      "exact-span-evidence",
+      "draft-only",
+      "human-review-required"
+    ],
+    "maturity": "runnable",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是医保拒付申诉专家。根据拒付原因和病历证据生成有循证依据的申诉回复。",
+  "system_prompt": "你是中国医疗场景的拒付申诉证据装配智能体。只复制输入中具有明确字段标题的拒付通知、结算信息、病历摘录、已提交材料、授权/资格信息以及用户提供且带版本信息的支付方政策，生成固定格式的人工复核草案或更正清单。不得自动分类拒付、推断根因、判断病历支持性、医疗必要性、待遇资格、支付范围或政策适用性；不得校验或修改编码、金额、修饰符、单位；不得补造事实、条款、引用或申诉论点；不得调用外部工具；不得自动提交或写回。每项复制事实必须绑定输入中的精确字符跨度。",
+  "backend_provider": "icoder.governed-denial-appeals.v1",
+  "backend_config": {
+    "runtime_mode": "governed_local_documented_denial_appeal",
+    "network_enabled": false,
+    "llm_enabled": false,
+    "submission_enabled": false,
+    "writeback_enabled": false
+  },
   "experts": [],
-  "tools": [
-    "extract_evidence",
-    "verify_evidence",
-    "rank_evidence",
-    "analyze_drg_impact",
-    "guard_input",
-    "guard_output"
-  ],
+  "tools": [],
   "permissions": {
     "key": "denial-appeals",
-    "name": "拒付申诉权限",
-    "description": "生成有循证依据的医保拒付申诉回复。",
-    "tools": {
-      "extract_evidence": {
-        "allowed": true
+    "name": "拒付申诉智能体默认权限",
+    "description": "只读装配人工复核草案，不访问外部政策、编码或提交服务。",
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/DenialAppealOutput/v3",
+    "required_fields": [
+      "appeal_status",
+      "denial_snapshot",
+      "patient_information",
+      "provider_information",
+      "payer_information",
+      "denied_claim_lines",
+      "denied_diagnoses",
+      "denied_procedures",
+      "denied_items",
+      "clinical_documentation",
+      "submitted_documents",
+      "prior_authorization_information",
+      "eligibility_information",
+      "provided_policy",
+      "documented_resolution_path",
+      "requested_resolution",
+      "documented_corrections",
+      "missing_required_fields",
+      "missing_supporting_items",
+      "missing_policy_items",
+      "denial_classification_status",
+      "resolution_path_status",
+      "policy_evaluation_status",
+      "appeal_letter_draft",
+      "corrected_claim_checklist",
+      "evidence_items",
+      "limitations",
+      "draft_generation_status",
+      "clinical_support_assessed",
+      "medical_necessity_assessed",
+      "benefit_eligibility_determined",
+      "denial_root_cause_inferred",
+      "payer_policy_lookup_performed",
+      "medical_coding_validation_performed",
+      "external_knowledge_used",
+      "production_submission_blocked",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "optional_fields": [],
+    "field_types": {
+      "appeal_status": "string",
+      "denial_snapshot": "object",
+      "patient_information": "object",
+      "provider_information": "object",
+      "payer_information": "object",
+      "denied_claim_lines": "array",
+      "denied_diagnoses": "array",
+      "denied_procedures": "array",
+      "denied_items": "array",
+      "clinical_documentation": "array",
+      "submitted_documents": "array",
+      "prior_authorization_information": "array",
+      "eligibility_information": "array",
+      "provided_policy": "object",
+      "documented_resolution_path": "object",
+      "requested_resolution": "object",
+      "documented_corrections": "array",
+      "missing_required_fields": "array",
+      "missing_supporting_items": "array",
+      "missing_policy_items": "array",
+      "denial_classification_status": "string",
+      "resolution_path_status": "string",
+      "policy_evaluation_status": "string",
+      "appeal_letter_draft": "string",
+      "corrected_claim_checklist": "array",
+      "evidence_items": "array",
+      "limitations": "array",
+      "draft_generation_status": "string",
+      "clinical_support_assessed": "boolean",
+      "medical_necessity_assessed": "boolean",
+      "benefit_eligibility_determined": "boolean",
+      "denial_root_cause_inferred": "boolean",
+      "payer_policy_lookup_performed": "boolean",
+      "medical_coding_validation_performed": "boolean",
+      "external_knowledge_used": "boolean",
+      "production_submission_blocked": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "appeal_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "INPUT_REQUIRED",
+          "PATH_REVIEW_REQUIRED",
+          "POLICY_REQUIRED",
+          "READY_FOR_REVIEW"
+        ]
       },
-      "verify_evidence": {
-        "allowed": true
+      "denial_snapshot": {
+        "type": "object",
+        "properties": {
+          "appeal_deadline": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "appeal_level": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "claim_id": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "currency": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "denial_date": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "denial_notice_id": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "denial_reason_code": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "denial_reason_description": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "denied_amount": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "documented_denial_category": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "service_date": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "submission_channel": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "appeal_deadline",
+          "appeal_level",
+          "claim_id",
+          "currency",
+          "denial_date",
+          "denial_notice_id",
+          "denial_reason_code",
+          "denial_reason_description",
+          "denied_amount",
+          "documented_denial_category",
+          "service_date",
+          "submission_channel"
+        ],
+        "additionalProperties": false
       },
-      "rank_evidence": {
-        "allowed": true
+      "patient_information": {
+        "type": "object",
+        "properties": {
+          "member_id": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "name": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "member_id",
+          "name"
+        ],
+        "additionalProperties": false
       },
-      "analyze_drg_impact": {
-        "allowed": true
+      "provider_information": {
+        "type": "object",
+        "properties": {
+          "contact": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "facility": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "name": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "provider_identifier": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "contact",
+          "facility",
+          "name",
+          "provider_identifier"
+        ],
+        "additionalProperties": false
       },
-      "guard_input": {
-        "allowed": true
+      "payer_information": {
+        "type": "object",
+        "properties": {
+          "managing_agency": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "payer_name": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "payer_type": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "plan_name": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "region": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "managing_agency",
+          "payer_name",
+          "payer_type",
+          "plan_name",
+          "region"
+        ],
+        "additionalProperties": false
       },
-      "guard_output": {
-        "allowed": true
+      "denied_claim_lines": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "denied_diagnoses": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "denied_procedures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "denied_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "clinical_documentation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "submitted_documents": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "prior_authorization_information": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "eligibility_information": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "provided_policy": {
+        "type": "object",
+        "properties": {
+          "effective_date": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "policy_identifier": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "documented_text": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "evidence_ref": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "documented_text",
+                "evidence_ref"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 80,
+            "minItems": 0
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "effective_date",
+          "policy_identifier",
+          "requirements",
+          "source",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "documented_resolution_path": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "requested_resolution": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "documented_corrections": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "missing_required_fields": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "missing_supporting_items": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "missing_policy_items": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 10,
+        "minItems": 0
+      },
+      "denial_classification_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "DOCUMENTED_ONLY_NO_INFERENCE"
+      },
+      "resolution_path_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "RESOLUTION_PATH_NOT_PROVIDED",
+          "DOCUMENTED_PATH_ONLY"
+        ]
+      },
+      "policy_evaluation_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "POLICY_NOT_PROVIDED",
+          "DOCUMENTED_POLICY_INCOMPLETE",
+          "DOCUMENTED_POLICY_ONLY"
+        ]
+      },
+      "appeal_letter_draft": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "corrected_claim_checklist": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "claim_id",
+                "denial_notice_id",
+                "denial_date",
+                "service_date",
+                "denial_reason_code",
+                "denial_reason_description",
+                "documented_denial_category",
+                "denied_amount",
+                "currency",
+                "appeal_deadline",
+                "appeal_level",
+                "submission_channel",
+                "patient_name",
+                "member_id",
+                "provider_name",
+                "provider_identifier",
+                "facility",
+                "provider_contact",
+                "payer_name",
+                "plan_name",
+                "payer_type",
+                "payer_region",
+                "managing_agency",
+                "denied_claim_lines",
+                "denied_diagnoses",
+                "denied_procedures",
+                "denied_items",
+                "clinical_documentation",
+                "submitted_documents",
+                "prior_authorization_information",
+                "eligibility_information",
+                "payer_requirements",
+                "policy_identifier",
+                "policy_version",
+                "policy_effective_date",
+                "policy_source",
+                "resolution_path",
+                "requested_resolution",
+                "documented_corrections"
+              ]
+            },
+            "source_label": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "evidence_text",
+            "field",
+            "source_label"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 9,
+        "minItems": 8
+      },
+      "draft_generation_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY"
+      },
+      "clinical_support_assessed": {
+        "type": "boolean",
+        "const": false
+      },
+      "medical_necessity_assessed": {
+        "type": "boolean",
+        "const": false
+      },
+      "benefit_eligibility_determined": {
+        "type": "boolean",
+        "const": false
+      },
+      "denial_root_cause_inferred": {
+        "type": "boolean",
+        "const": false
+      },
+      "payer_policy_lookup_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "medical_coding_validation_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "external_knowledge_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_submission_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
       }
-    }
-  },
-  "requirements": {
-    "min_runtime_version": "1.0.0"
-  },
-  "llm_capabilities": {
-    "required_models": [
+    },
+    "field_relations": [
       {
-        "name": "deepseek-v4"
+        "id": "input_required_has_no_denial_output",
+        "when": [
+          {
+            "path": "appeal_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "appeal_letter_draft",
+            "operator": "empty"
+          },
+          {
+            "path": "corrected_claim_checklist",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "path_review_required_has_no_denial_output",
+        "when": [
+          {
+            "path": "appeal_status",
+            "operator": "equals",
+            "value": "PATH_REVIEW_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "appeal_letter_draft",
+            "operator": "empty"
+          },
+          {
+            "path": "corrected_claim_checklist",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "ready_denial_output_has_complete_core_input",
+        "when": [
+          {
+            "path": "appeal_status",
+            "operator": "equals",
+            "value": "READY_FOR_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "missing_required_fields",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          },
+          {
+            "path": "documented_resolution_path.documented_text",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "governed_denial_review_never_claims_external_authority",
+        "when": [
+          {
+            "path": "draft_generation_status",
+            "operator": "equals",
+            "value": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "denial_classification_status",
+            "operator": "equals",
+            "value": "DOCUMENTED_ONLY_NO_INFERENCE"
+          },
+          {
+            "path": "clinical_support_assessed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "medical_necessity_assessed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "benefit_eligibility_determined",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "denial_root_cause_inferred",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "payer_policy_lookup_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "medical_coding_validation_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "external_knowledge_used",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "governed_denial_review_never_crosses_delivery_boundary",
+        "when": [
+          {
+            "path": "draft_generation_status",
+            "operator": "equals",
+            "value": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "production_submission_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
       }
     ],
-    "supports_tool_calling": false,
-    "supports_json_mode": true
+    "evidence_bindings": [
+      {
+        "id": "denial_appeal_evidence_matches_input",
+        "for_each": "evidence_items",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ]
   },
-  "code": {},
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": []
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": false,
+    "supports_mcp_tools": false
+  },
+  "non_goals": [
+    "不自动分类拒付或推断根因",
+    "不判断病历支持性、医疗必要性、待遇资格、支付范围或政策适用性",
+    "不检索支付方政策、循证资料或编码规则",
+    "不校验、建议或修改诊断、手术、项目、修饰符、单位或金额",
+    "不替代临床、编码、医保/商保、合规或法务审核",
+    "不自动提交申诉、更正结算或写回业务系统"
+  ],
+  "human_review_required_when": [
+    "all generated appeal drafts and corrected-claim checklists",
+    "denial reason, claim line, documentation, resolution path, payer policy, region, version, or effective date is missing or conflicting",
+    "before any payer communication, claim correction, submission, or source-system writeback"
+  ],
+  "example_inputs": [
+    {
+      "title": "医保拒付申诉草案",
+      "input_text": "结算单号：TEST-CLAIM-001\n拒付通知编号：TEST-DENIAL-001\n拒付日期：2026-08-01\n服务日期：2026-07-20\n拒付代码：TEST-DENIAL-CODE\n拒付原因：支付方通知记录需要补充指定材料\n拒付类别：缺少材料（用户已记录）\n拒付金额：1200.00\n币种：CNY\n申诉截止日期：2026-09-01\n申诉层级：一级申诉\n申诉渠道：示例线上渠道\n患者姓名：赵某\n参保人编号：TEST-MEMBER-001\n经治医师：陈医生\n医师执业编号：TEST-PHYSICIAN-001\n医疗机构：示例医院\n申诉方联系方式：TEST-CONTACT\n支付方：示例市医保\n支付类型：基本医疗保险\n统筹区：示例市\n经办机构：示例医保经办机构\n拒付明细：行1：示例项目，金额1200.00\n拟申诉诊断：示例已报诊断 TEST-DX\n拟申诉手术：示例已报手术 TEST-PROC\n拟申诉项目：示例项目 TEST-ITEM\n病历证据：病历原文记录示例服务已实施；病历原文记录示例检查结果\n已提交材料：病历首页；示例检查报告\n既往授权信息：授权编号 TEST-AUTH-001\n待遇资格信息：服务日期待遇状态由用户记录为有效\n支付方要求：需提供病历首页；需提供示例检查报告\n支付政策编号：TEST-POLICY-001\n支付政策版本：2026.1\n政策生效日期：2026-07-01\n政策来源：用户提供的示例政策节选\n处理路径：申诉并附临床文档\n请求事项：请求人工复核该拒付记录",
+      "extra": {
+        "payer": "基本医疗保险",
+        "submission_mode": "draft_only"
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "appeal_status": "READY_FOR_REVIEW",
+      "denial_snapshot": {
+        "claim_id": {
+          "documented_text": "TEST-CLAIM-001",
+          "evidence_ref": "denial-appeals-evidence-1"
+        },
+        "denial_notice_id": {
+          "documented_text": "TEST-DENIAL-001",
+          "evidence_ref": "denial-appeals-evidence-2"
+        },
+        "denial_date": {
+          "documented_text": "2026-08-01",
+          "evidence_ref": "denial-appeals-evidence-3"
+        },
+        "service_date": {
+          "documented_text": "2026-07-20",
+          "evidence_ref": "denial-appeals-evidence-4"
+        },
+        "denial_reason_code": {
+          "documented_text": "TEST-DENIAL-CODE",
+          "evidence_ref": "denial-appeals-evidence-5"
+        },
+        "denial_reason_description": {
+          "documented_text": "支付方通知记录需要补充指定材料",
+          "evidence_ref": "denial-appeals-evidence-6"
+        },
+        "documented_denial_category": {
+          "documented_text": "缺少材料（用户已记录）",
+          "evidence_ref": "denial-appeals-evidence-7"
+        },
+        "denied_amount": {
+          "documented_text": "1200.00",
+          "evidence_ref": "denial-appeals-evidence-8"
+        },
+        "currency": {
+          "documented_text": "CNY",
+          "evidence_ref": "denial-appeals-evidence-9"
+        },
+        "appeal_deadline": {
+          "documented_text": "2026-09-01",
+          "evidence_ref": "denial-appeals-evidence-10"
+        },
+        "appeal_level": {
+          "documented_text": "一级申诉",
+          "evidence_ref": "denial-appeals-evidence-11"
+        },
+        "submission_channel": {
+          "documented_text": "示例线上渠道",
+          "evidence_ref": "denial-appeals-evidence-12"
+        }
+      },
+      "patient_information": {
+        "name": {
+          "documented_text": "赵某",
+          "evidence_ref": "denial-appeals-evidence-13"
+        },
+        "member_id": {
+          "documented_text": "TEST-MEMBER-001",
+          "evidence_ref": "denial-appeals-evidence-14"
+        }
+      },
+      "provider_information": {
+        "name": {
+          "documented_text": "陈医生",
+          "evidence_ref": "denial-appeals-evidence-15"
+        },
+        "provider_identifier": {
+          "documented_text": "TEST-PHYSICIAN-001",
+          "evidence_ref": "denial-appeals-evidence-16"
+        },
+        "facility": {
+          "documented_text": "示例医院",
+          "evidence_ref": "denial-appeals-evidence-17"
+        },
+        "contact": {
+          "documented_text": "TEST-CONTACT",
+          "evidence_ref": "denial-appeals-evidence-18"
+        }
+      },
+      "payer_information": {
+        "payer_name": {
+          "documented_text": "示例市医保",
+          "evidence_ref": "denial-appeals-evidence-19"
+        },
+        "plan_name": {
+          "documented_text": "",
+          "evidence_ref": ""
+        },
+        "payer_type": {
+          "documented_text": "基本医疗保险",
+          "evidence_ref": "denial-appeals-evidence-20"
+        },
+        "region": {
+          "documented_text": "示例市",
+          "evidence_ref": "denial-appeals-evidence-21"
+        },
+        "managing_agency": {
+          "documented_text": "示例医保经办机构",
+          "evidence_ref": "denial-appeals-evidence-22"
+        }
+      },
+      "denied_claim_lines": [
+        {
+          "documented_text": "行1：示例项目，金额1200.00",
+          "evidence_ref": "denial-appeals-evidence-23"
+        }
+      ],
+      "denied_diagnoses": [
+        {
+          "documented_text": "示例已报诊断 TEST-DX",
+          "evidence_ref": "denial-appeals-evidence-24"
+        }
+      ],
+      "denied_procedures": [
+        {
+          "documented_text": "示例已报手术 TEST-PROC",
+          "evidence_ref": "denial-appeals-evidence-25"
+        }
+      ],
+      "denied_items": [
+        {
+          "documented_text": "示例项目 TEST-ITEM",
+          "evidence_ref": "denial-appeals-evidence-26"
+        }
+      ],
+      "clinical_documentation": [
+        {
+          "documented_text": "病历原文记录示例服务已实施",
+          "evidence_ref": "denial-appeals-evidence-27"
+        },
+        {
+          "documented_text": "病历原文记录示例检查结果",
+          "evidence_ref": "denial-appeals-evidence-28"
+        }
+      ],
+      "submitted_documents": [
+        {
+          "documented_text": "病历首页",
+          "evidence_ref": "denial-appeals-evidence-29"
+        }
+      ],
+      "prior_authorization_information": [
+        {
+          "documented_text": "授权编号 TEST-AUTH-001",
+          "evidence_ref": "denial-appeals-evidence-31"
+        }
+      ],
+      "eligibility_information": [
+        {
+          "documented_text": "服务日期待遇状态由用户记录为有效",
+          "evidence_ref": "denial-appeals-evidence-32"
+        }
+      ],
+      "provided_policy": {
+        "requirements": [
+          {
+            "documented_text": "需提供病历首页",
+            "evidence_ref": "denial-appeals-evidence-33"
+          }
+        ],
+        "policy_identifier": {
+          "documented_text": "TEST-POLICY-001",
+          "evidence_ref": "denial-appeals-evidence-35"
+        },
+        "version": {
+          "documented_text": "2026.1",
+          "evidence_ref": "denial-appeals-evidence-36"
+        },
+        "effective_date": {
+          "documented_text": "2026-07-01",
+          "evidence_ref": "denial-appeals-evidence-37"
+        },
+        "source": {
+          "documented_text": "用户提供的示例政策节选",
+          "evidence_ref": "denial-appeals-evidence-38"
+        }
+      },
+      "documented_resolution_path": {
+        "documented_text": "申诉并附临床文档",
+        "evidence_ref": "denial-appeals-evidence-39"
+      },
+      "requested_resolution": {
+        "documented_text": "请求人工复核该拒付记录",
+        "evidence_ref": "denial-appeals-evidence-40"
+      },
+      "documented_corrections": [],
+      "missing_required_fields": [],
+      "missing_supporting_items": [],
+      "missing_policy_items": [],
+      "denial_classification_status": "DOCUMENTED_ONLY_NO_INFERENCE",
+      "resolution_path_status": "DOCUMENTED_PATH_ONLY",
+      "policy_evaluation_status": "DOCUMENTED_POLICY_ONLY",
+      "appeal_letter_draft": "## 拒付申诉草案（人工复核）\n仅逐字装配已提供材料，请求人工复核。禁止自动提交或写回，提交前必须人工复核。",
+      "corrected_claim_checklist": [],
+      "evidence_items": [
+        {
+          "evidence_id": "denial-appeals-evidence-1",
+          "field": "claim_id",
+          "source_label": "结算单号",
+          "evidence_text": "TEST-CLAIM-001",
+          "char_span": [
+            5,
+            19
+          ]
+        }
+      ],
+      "limitations": [
+        "仅解析明确的中英文拒付、结算、病历和政策字段标题；未标注自由叙事不会被自动总结。",
+        "拒付类别和处理路径仅呈现用户明确提供的内容；未自动分类拒付、推断根因或选择处理路径。",
+        "仅逐字装配已提供事实；未判断病历是否支持编码、服务、医疗必要性、待遇资格或支付范围。",
+        "未调用支付方网站、医保/商保政策、NCCI、编码目录、PubMed、指南或其他外部知识。",
+        "未校验 ICD、CPT/HCPCS、ICD-9-CM-3、医保项目、药品、耗材、修饰符、单位或金额。",
+        "未新增诊断、服务、日期、编码、授权、资格、政策条款、缺失材料或申诉论点。",
+        "未连接真实 HIS/EMR、EOB/ERA、医保/商保结算、传真、邮件或申诉提交接口。",
+        "草案和清单禁止自动提交或写回，必须由临床、编码、医保/商保及合规人员逐项复核。"
+      ],
+      "draft_generation_status": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY",
+      "clinical_support_assessed": false,
+      "medical_necessity_assessed": false,
+      "benefit_eligibility_determined": false,
+      "denial_root_cause_inferred": false,
+      "payer_policy_lookup_performed": false,
+      "medical_coding_validation_performed": false,
+      "external_knowledge_used": false,
+      "production_submission_blocked": true,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "sample-denial-appeals",
+        "provider_trace_refs": [
+          "sample-denial-appeals:governed-denial-appeals"
+        ]
+      }
+    }
+  ],
+  "built_by": "icoder",
   "integrity": {
-    "sha256": ""
+    "sha256": "c708c2b485d098906bf412298e2c8f82e18a97ff9c5e57f7ca1c74e17b59d8c0"
   }
 }

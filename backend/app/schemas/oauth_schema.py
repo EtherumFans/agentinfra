@@ -31,6 +31,6 @@ class OAuthTokenResponse(BaseModel):
 
 class OAuthClientCreateRequest(BaseModel):
     client_name: str
-    grant_types: list[str] = Field(default_factory=lambda: ["authorization_code", "client_credentials", "refresh_token"])
+    grant_types: list[str] = Field(default_factory=lambda: ["client_credentials"])
     redirect_uris: list[str] = Field(default_factory=list)
     scopes: list[str] = Field(default_factory=lambda: ["api:read", "api:write"])

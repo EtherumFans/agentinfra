@@ -1,0 +1,59 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-4558ffef-5758-42f4-81d4-487ec320b4cd",
+  "trace_id": "trace-44fb5db426ae4b64",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7556,
+  "cost": {
+    "amount": 0.00026,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"K40.900\",\n      \"evidence_text\": \"入院诊断和病程记录护士笔误为左侧腹股沟斜疝，但术中记录明确为右侧腹股沟斜疝，且出院诊断为右侧腹股沟斜疝。编码K40.900未指定侧别，但病历中侧别信息存在矛盾，可能引发医保审核质疑。\",\n      \"char_span\": [0, 200],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议编码员与主治医师确认最终侧别，并修正编码为K40.901（右侧腹股沟斜疝）或K40.902（左侧腹股沟斜疝），确保与出院诊断一致。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"K59.000\",\n      \"evidence_text\": \"患者有慢性便秘5年，出院诊断中已列出，但编码集中未包含此并发症/合并症。慢性便秘作为合并症可能影响DRG分组权重，遗漏可能导致downcoding风险。\",\n      \"char_span\": [200, 400],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充编码K59.000（慢性便秘），以完整反映患者合并症，避免因遗漏导致DRG分组偏低。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"K40.900\",\n      \"evidence_text\": \"术中记录发现右侧腹股沟斜疝，但入院诊断和护士记录为左侧，编码K40.900未区分侧别。若实际为右侧，应使用更特异的编码（K40.901），否则可能因编码不精确导致DRG分组权重降低。\",\n      \"char_span\": [400, 600],\n      \"severity\": \"medium\",\n      \"suggestion\": \"根据术中记录和出院诊断，将主诊断编码修正为K40.901（右侧腹股沟斜疝），以提高编码精确性。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在1处不一致风险：K40.900未指定侧别，但病历中侧别信息矛盾（入院诊断左侧，术中及出院诊断右侧），需与医师确认后修正。另遗漏慢性便秘（K59.000）作为合并症，建议补充编码以避免downcoding。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"K40.900\",\n      \"evidence_text\": \"入院诊断和病程记录护士笔误为左侧腹股沟斜疝，但术中记录明确为右侧腹股沟斜疝，且出院诊断为右侧腹股沟斜疝。编码K40.900未指定侧别，但病历中侧别信息存在矛盾，可能引发医保审核质疑。\",\n      \"char_span\": [0, 200],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议编码员与主治医师确认最终侧别，并修正编码为K40.901（右侧腹股沟斜疝）或K40.902（左侧腹股沟斜疝），确保与出院诊断一致。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"K59.000\",\n      \"evidence_text\": \"患者有慢性便秘5年，出院诊断中已列出，但编码集中未包含此并发症/合并症。慢性便秘作为合并症可能影响DRG分组权重，遗漏可能导致downcoding风险。\",\n      \"char_span\": [200, 400],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充编码K59.000（慢性便秘），以完整反映患者合并症，避免因遗漏导致DRG分组偏低。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"K40.900\",\n      \"evidence_text\": \"术中记录发现右侧腹股沟斜疝，但入院诊断和护士记录为左侧，编码K40.900未区分侧别。若实际为右侧，应使用更特异的编码（K40.901），否则可能因编码不精确导致DRG分组权重降低。\",\n      \"char_span\": [400, 600],\n      \"severity\": \"medium\",\n      \"suggestion\": \"根据术中记录和出院诊断，将主诊断编码修正为K40.901（右侧腹股沟斜疝），以提高编码精确性。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在1处不一致风险：K40.900未指定侧别，但病历中侧别信息矛盾（入院诊断左侧，术中及出院诊断右侧），需与医师确认后修正。另遗漏慢性便秘（K59.000）作为合并症，建议补充编码以避免downcoding。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 703,
+        "output_tokens": 576
+      },
+      "cost_usd": 0.00026,
+      "latency_ms": 7556
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7556,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 7556
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (403 chars) + codes (1)",
+  "_gold_codes": [
+    "K40.900"
+  ],
+  "_client_wall_ms": 7773,
+  "_fixture": "fixtures/phase5_track_b2/11_conflicting_documentation.json",
+  "_tag": "11_conflict",
+  "_ts": "2026-07-11T14:36:43"
+}

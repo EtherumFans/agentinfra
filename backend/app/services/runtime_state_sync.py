@@ -93,6 +93,7 @@ class RuntimeStateSync:
         self,
         rt_state: CaseState,
         review_id: str,
+        organization_id: str,
         db,  # AsyncSession
     ) -> bool:
         """Sync Runtime state → CodingReview.human_review_status.
@@ -113,7 +114,8 @@ class RuntimeStateSync:
         # Find review by review_id
         result = await db.execute(
             _select(CodingReview).where(
-                (CodingReview.review_id == review_id) | (CodingReview.id == review_id)
+                ((CodingReview.review_id == review_id) | (CodingReview.id == review_id)),
+                CodingReview.organization_id == organization_id,
             )
         )
         review = result.scalar_one_or_none()
@@ -134,6 +136,7 @@ class RuntimeStateSync:
         self,
         rt_state: CaseState,
         review_id: str,
+        organization_id: str,
         db,  # AsyncSession
     ) -> int:
         """Sync Runtime state → all CodeCandidate.status in a review.
@@ -151,7 +154,8 @@ class RuntimeStateSync:
 
         result = await db.execute(
             _select(CodingReview).where(
-                (CodingReview.review_id == review_id) | (CodingReview.id == review_id)
+                ((CodingReview.review_id == review_id) | (CodingReview.id == review_id)),
+                CodingReview.organization_id == organization_id,
             )
         )
         review = result.scalar_one_or_none()
@@ -159,7 +163,10 @@ class RuntimeStateSync:
             return 0
 
         result = await db.execute(
-            _select(CodeCandidate).where(CodeCandidate.review_id == review.id)
+            _select(CodeCandidate).where(
+                CodeCandidate.review_id == review.id,
+                CodeCandidate.organization_id == organization_id,
+            )
         )
         candidates = result.scalars().all()
 
@@ -181,14 +188,19 @@ class RuntimeStateSync:
         self,
         rt_state: CaseState,
         review_id: str,
+        organization_id: str,
         db,  # AsyncSession
     ) -> dict:
         """Full sync: review status + candidate statuses.
 
         Returns summary dict.
         """
-        review_synced = await self.sync_review_status(rt_state, review_id, db)
-        candidate_count = await self.sync_candidate_statuses(rt_state, review_id, db)
+        review_synced = await self.sync_review_status(
+            rt_state, review_id, organization_id, db,
+        )
+        candidate_count = await self.sync_candidate_statuses(
+            rt_state, review_id, organization_id, db,
+        )
         return {
             "review_synced": review_synced,
             "candidates_updated": candidate_count,

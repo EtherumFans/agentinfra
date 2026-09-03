@@ -1,7 +1,7 @@
 """Test MCP Client + Wrapper"""
 import pytest
 from app.services.mcp_client import mcp_client
-from app.services.mcp_wrapper import mcp_wrapper
+from app.services.mcp_wrapper import McpSSRFBlocked, mcp_wrapper
 
 
 @pytest.mark.asyncio
@@ -14,8 +14,15 @@ async def test_mcp_client_unknown_service():
 async def test_mcp_client_pubmed_search():
     result = await mcp_client.call("pubmed", "search", {"query": "ICD-10 coding", "max_results": 2})
     assert result["source"] == "PubMed"
-    assert "results" in result
-    assert isinstance(result["results"], list)
+    # This suite must also be deterministic in restricted/offline development
+    # environments.  A reachable PubMed endpoint returns structured results;
+    # an unreachable endpoint must report an explicit error, never fabricated
+    # citations or an ambiguous success-shaped empty list.
+    if "error" in result:
+        assert result["error"]
+        assert "results" not in result
+    else:
+        assert isinstance(result["results"], list)
 
 
 def test_mcp_wrapper_tools_to_openai_format():
@@ -35,5 +42,8 @@ def test_mcp_wrapper_tools_to_openai_empty():
 
 @pytest.mark.asyncio
 async def test_mcp_wrapper_discover_tools_invalid_url():
-    tools = await mcp_wrapper.discover_tools("http://localhost:99999/nonexistent")
-    assert tools == []  # gracefully handles unreachable servers
+    # Loopback targets are rejected before any connection attempt.  Returning
+    # [] here would make a security rejection indistinguishable from a healthy
+    # MCP server with no tools.
+    with pytest.raises(McpSSRFBlocked):
+        await mcp_wrapper.discover_tools("http://localhost:99999/nonexistent")

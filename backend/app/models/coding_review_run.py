@@ -50,6 +50,7 @@ from sqlalchemy import text as _sa_text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.services.phi_encryption import EncryptedPHIJSON, EncryptedPHIText
 
 
 def _new_run_id() -> str:
@@ -80,8 +81,8 @@ class CodingReviewRun(Base):
     )
 
     # Tenant + ownership
-    organization_id: Mapped[Optional[str]] = mapped_column(
-        String(12), ForeignKey("organizations.id"), nullable=True, index=True,
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
     )
     created_by_user_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
@@ -121,29 +122,26 @@ class CodingReviewRun(Base):
         Boolean, nullable=False, default=False,
         server_default=_sa_text("0"),
     )
-    reason: Mapped[str] = mapped_column(
-        String(512), nullable=False, default="",
-        server_default="",
-    )
+    reason: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False, default="")
 
     # Encoded payloads — JSON for forward-compatible schema evolution
-    primary_diagnosis: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    secondary_diagnoses: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    procedures: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    high_risk_coding_points: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    evidence_chain: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    risk_route: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
-    safety_gate: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
-    drg_route: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    pipeline_stages_observed: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    pipeline_stage_meta: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    primary_diagnosis: Mapped[Optional[dict]] = mapped_column(EncryptedPHIJSON(), nullable=True)
+    secondary_diagnoses: Mapped[list] = mapped_column(EncryptedPHIJSON(), nullable=False, default=list)
+    procedures: Mapped[list] = mapped_column(EncryptedPHIJSON(), nullable=False, default=list)
+    high_risk_coding_points: Mapped[list] = mapped_column(EncryptedPHIJSON(), nullable=False, default=list)
+    evidence_chain: Mapped[list] = mapped_column(EncryptedPHIJSON(), nullable=False, default=list)
+    risk_route: Mapped[dict] = mapped_column(EncryptedPHIJSON(), nullable=False, default=dict)
+    safety_gate: Mapped[dict] = mapped_column(EncryptedPHIJSON(), nullable=False, default=dict)
+    drg_route: Mapped[Optional[dict]] = mapped_column(EncryptedPHIJSON(), nullable=True)
+    pipeline_stages_observed: Mapped[list] = mapped_column(EncryptedPHIJSON(), nullable=False, default=list)
+    pipeline_stage_meta: Mapped[Optional[dict]] = mapped_column(EncryptedPHIJSON(), nullable=True)
 
     # Human-review records — bounded JSON list (1 row per review action)
-    human_review_records: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    human_review_records: Mapped[list] = mapped_column(EncryptedPHIJSON(), nullable=False, default=list)
 
     # Encounter text (raw) + redacted copy used for export
-    encounter_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    encounter_text_redacted: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    encounter_text: Mapped[Optional[str]] = mapped_column(EncryptedPHIText(), nullable=True)
+    encounter_text_redacted: Mapped[Optional[str]] = mapped_column(EncryptedPHIText(), nullable=True)
 
     # Version metadata — populated from data/versions.json (Commit 8)
     model_version: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)

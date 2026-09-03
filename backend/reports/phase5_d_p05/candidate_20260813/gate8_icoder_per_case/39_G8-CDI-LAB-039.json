@@ -1,0 +1,305 @@
+{
+  "case_id": "CASE-9c67142850d5",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-9c67142850d5/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "OGTT results are documented but the diagnostic criteria for GDM are not explicitly stated, and the diagnosis lacks specification of whether it is A1 or A2 (diet-controlled vs. requiring medication).",
+      "why_it_matters": "Coding requires specificity of GDM type (e.g., diet-controlled vs. insulin-controlled) and the diagnostic criteria used to establish the diagnosis.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(<REDAC",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-9c67142850d5/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify the clinical significance or planned workup for the abnormal OGTT results beyond diet and exercise.",
+      "why_it_matters": "Abnormal lab values require clinical correlation and a plan for monitoring to ensure appropriate management and coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(饮食控制)。饮食运动控制。建议监测血糖。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-9c67142850d5/Q-001",
+      "gap_id": "CASE-9c67142850d5/GAP-001",
+      "topic": "GDM classification (A1 vs A2)",
+      "reason": "The OGTT results are documented and the diagnosis of gestational diabetes is made, but the chart does not specify whether the GDM is class A1 (diet-controlled) or A2 (requiring medication). This distinction affects management and monitoring.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病",
+        "char_start": 36,
+        "char_end": 77,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病",
+          "char_start": 36,
+          "char_end": 77,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据OGTT结果和当前管理计划，该患者的妊娠糖尿病应归类为以下哪种？",
+      "response_options": [
+        "A. A1型（仅需饮食运动控制）",
+        "B. A2型（需要药物治疗）",
+        "C. 尚未明确分类",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-9c67142850d5/GAP-002",
+      "topic": "Planned workup for abnormal OGTT",
+      "reason": "The chart documents abnormal OGTT results and recommends diet/exercise and glucose monitoring, but does not specify the clinical significance of the abnormal values or any further planned workup (e.g., additional testing, specialist referral).",
+      "query_text": "针对该患者的异常OGTT结果，除了饮食运动控制和血糖监测外，是否计划进行其他检查或转诊？",
+      "response_options": [
+        "A. 是，计划进一步检查（如糖化血红蛋白、胎儿超声等）",
+        "B. 是，计划转诊至内分泌科或营养科",
+        "C. 否，仅饮食运动控制和血糖监测",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病",
+          "char_start": 36,
+          "char_end": 77,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "建议监测血糖",
+          "char_start": 103,
+          "char_end": 109,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 35岁, 孕28<REDACTED:NAME>。无糖路症状。75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(<REDACTED:NAME>常)。饮食运动控制。建议监测血糖。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，35岁，孕28周",
+      "无糖尿病症状",
+      "75g OGTT: 0h 4.5 mmol/L, 1h 9.2 mmol/L, 2h 7.8 mmol/L",
+      "诊断：妊娠糖尿病（饮食控制）",
+      "饮食运动控制",
+      "建议监测血糖"
+    ],
+    "encounter_metadata": {
+      "patient_age": "35岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "The diagnosis '妊娠糖尿病(饮食控制)' uses '饮食控制' which may be ambiguous as to whether it is a treatment plan or a subtype specification."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinician must explicitly document the diagnostic criteria used for GDM (e.g., IADPSG/WHO thresholds) and clearly classify the subtype as A1 (diet-controlled) or A2 (requiring medication), as this distinction affects management and coding specificity. Additionally, specify the planned clinical workup—such as frequency of glucose monitoring, target glycemic ranges, and follow-up testing (e.g., postpartum OGTT)—to reflect the full scope of care and justify the diagnosis beyond the documented diet and exercise plan.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3537,
+      "tokens": 303
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "I do not have live PubMed access, so I cannot retrieve or verify specific PMIDs here. Based on established guidelines (e.g., IADPSG/WHO 2013), your OGTT values meet the diagnostic threshold for GDM (1h ≥10.0, 2h ≥8.5—your 1h 9.2 and 2h 7.8 are actually below these cutoffs; only fasting ≥5.1 is met if 4.5 is fasting, so this may not meet standard criteria). The chart lacks A1/A2 classification and explicit diagnostic criteria, which is a critical gap—please confirm the reference standard used and document whether insulin or oral agents are needed, as this determines maternal-fetal risk stratification and follow-up intensity.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2591,
+      "tokens": 366
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-ef8368c11123",
+    "gap_identification": "run-a8a1151bd2dc",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=1",
+    "expert_consultation": "run-afa42e2e0658",
+    "query_generation": "run-96aa87565d9f",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents an abnormal OGTT and a diagnosis of GDM, but lacks explicit ",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-4dd46bd8505a",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-6449d803aef0",
+    "query_compliance_gate": ";passed=1;blocked=1",
+    "specialist_trace_emit": "run-fc72dcbd676a"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-8c810380df83",
+    "gap_identification": "trace-1d1a551a2f0e",
+    "expert_consultation": "trace-e530beda62e9",
+    "query_generation": "trace-3e243f303fdc",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d0b3ca9c1da4",
+    "semantic_necessity_gate": "trace-afc58480c624",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-007f9cb6488d"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2307,
+      "prompt_tokens": 244,
+      "completion_tokens": 125,
+      "total_tokens": 369,
+      "run_id": "run-ef8368c11123",
+      "trace_id": "trace-8c810380df83",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5868,
+      "prompt_tokens": 1093,
+      "completion_tokens": 537,
+      "total_tokens": 1630,
+      "run_id": "run-a8a1151bd2dc",
+      "trace_id": "trace-1d1a551a2f0e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5527,
+      "prompt_tokens": 1285,
+      "completion_tokens": 578,
+      "total_tokens": 1863,
+      "run_id": "run-96aa87565d9f",
+      "trace_id": "trace-3e243f303fdc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3537,
+      "prompt_tokens": 193,
+      "completion_tokens": 110,
+      "total_tokens": 303,
+      "run_id": "run-6d4f0c6a36d0",
+      "trace_id": "trace-062d9ec72e2f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2591,
+      "prompt_tokens": 207,
+      "completion_tokens": 159,
+      "total_tokens": 366,
+      "run_id": "run-e5728c545f53",
+      "trace_id": "trace-79c5aa60d8dc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-7c3c39c7118f",
+      "trace_id": "trace-3a8057dc7b91",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-25456adbd816",
+      "trace_id": "trace-fc5533cd1c6d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T16:51:05.514427Z"
+}

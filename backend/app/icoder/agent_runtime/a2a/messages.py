@@ -1,8 +1,7 @@
 """A2A Message + Task (SPEC §3 / §4.2 / §4.3).
 
 **Message** is what short, blocking runs return. **Task** is for long-
-running, async work — Phase 1 stub only (the type is defined so the
-union type-checks; no Task instances are created in Phase 1).
+running, async work and is persisted by the task state-machine routes.
 """
 
 from __future__ import annotations
@@ -24,9 +23,9 @@ class A2AMessage(BaseModel):
     """A2A v0.3 Message (SPEC §4.2).
 
     ``kind: "message"`` discriminates from Task in result envelopes.
-    ``contextId`` and ``messageId`` are server-generated UUID v4
-    per Q4 (strict isolation). Inbound ``contextId`` is ignored —
-    see :func:`parse_message`.
+    ``messageId`` is server-generated for responses. A first request omits
+    ``contextId`` and the server creates it; later requests may reuse that
+    server-issued ID after tenant/agent/lifecycle validation by the route.
     """
 
     model_config = ConfigDict(extra="allow")
@@ -40,7 +39,7 @@ class A2AMessage(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Task (stub for Phase 5)
+# Task
 # ---------------------------------------------------------------------------
 
 
@@ -53,11 +52,11 @@ class A2ATaskStatus(BaseModel):
 
 
 class A2ATask(BaseModel):
-    """A2A v0.3 Task (SPEC §4.3) — Phase 1 STUB.
+    """A2A v0.3 Task (SPEC §4.3).
 
-    Defined for the schema; Phase 1 routes never instantiate it (the
-    Orchestrator returns Messages directly). Phase 5 will add the full
-    state machine.
+    Synchronous message sends return Messages directly; persisted
+    asynchronous task rows use this wire shape and the transitions in
+    :mod:`.task_state`.
     """
 
     model_config = ConfigDict(extra="allow")
@@ -82,7 +81,7 @@ def parse_message(obj: Any) -> dict[str, Any]:
     - ``role``: validated against {"user", "agent", "orchestrator"}
     - ``parts``: validated list of TextPart/DataPart dicts
     - ``messageId``: optional client-supplied; preserved if present
-    - ``contextId``: dropped (Q4 server-side generation)
+    - ``contextId``: optional server-issued continuation identifier
     - ``metadata``: passed through
 
     Raises :class:`A2AError` (INVALID_REQUEST / INVALID_PARAMS) on failure.
@@ -113,8 +112,12 @@ def parse_message(obj: Any) -> dict[str, Any]:
             a2a_code=A2AErrorCode.INVALID_PARAMS,
         )
 
-    # contextId: Q4 — strictly ignored. Inbound handler generates UUID v4.
-    # We do not raise if the client sent one; we just discard it.
+    context_id = obj.get("contextId")
+    if context_id is not None and not isinstance(context_id, str):
+        raise _invalid(
+            "message.contextId must be a string",
+            a2a_code=A2AErrorCode.INVALID_PARAMS,
+        )
 
     metadata = obj.get("metadata") or {}
     if not isinstance(metadata, dict):
@@ -127,6 +130,7 @@ def parse_message(obj: Any) -> dict[str, Any]:
         "role": role,
         "parts": [p.model_dump() for p in parsed_parts],
         "messageId": message_id or "",
+        "contextId": context_id or "",
         "metadata": metadata,
     }
 

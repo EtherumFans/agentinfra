@@ -1,0 +1,65 @@
+{
+  "fixture_id": "09_complex_comorbidity",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "老年医学科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者男性,75岁,因「反复胸闷、气促 3 年,加重伴双下肢水肿 1 周」入院。3 年前活动后胸闷气促,曾诊断「冠心病 劳力性心绞痛」,2019 年行 LAD PCI 术(植入 DES 1 枚)。1 周前受凉后胸闷气促加重,夜间端坐呼吸,双下肢凹陷性水肿。既往:2 型糖尿病 20 年(胰岛素 + 二甲双胍,HbA1c 8.2%);高血压病 25 年(氨氯地平 + 缬沙坦);冠心病 PCI 术后 7 年;慢性肾脏病 3 期(eGFR 45);腔隙性脑梗死 3 年。否认结核、肝炎。否认药物过敏。吸烟 30 年(已戒 10 年),偶饮酒。查体:T 36.5℃,P 92 次/分,R 22 次/分,BP 165/95mmHg。颈静脉怒张,双肺底湿啰音,心界左下扩大,心率 92 次/分,律齐,A2>P2,心尖部 SM 2/6。腹软,肝肋下 2cm,移动性浊音(-),双下肢凹陷性水肿 II°。辅助检查:NT-proBNP 4500 pg/mL;cTnT 0.05 ng/mL;Cr 158 μmol/L,BUN 12 mmol/L;血钾 5.2 mmol/L;HbA1c 8.2%。心脏超声:EF 38%,左房、左室扩大,二尖瓣反流(中-重度)。入院诊断:慢性心力衰竭急性加重(NYHA IV 级);冠心病 PCI 术后;2 型糖尿病;高血压病 3 级(很高危);慢性肾脏病 3 期;腔隙性脑梗死后遗症。",
+  "structured_context": {
+    "age": 75,
+    "sex": "男",
+    "encounter_type": "inpatient",
+    "admission_type": "急诊",
+    "primary_complaint": "反复胸闷气促 3 年,加重伴双下肢水肿 1 周",
+    "procedure": "",
+    "los_days": 12
+  },
+  "known_facts": [
+    "慢性心力衰竭急性加重",
+    "NYHA IV 级",
+    "EF 38%",
+    "2 型糖尿病 20 年",
+    "高血压病 25 年",
+    "CKD 3 期",
+    "PCI 术后 7 年",
+    "腔隙性脑梗死后遗症"
+  ],
+  "negated_facts": [
+    "否认结核",
+    "否认肝炎",
+    "否认药物过敏"
+  ],
+  "historical_facts": [
+    "2019 年 LAD PCI",
+    "吸烟 30 年(已戒 10 年)",
+    "腔隙性脑梗死 3 年"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "acute_decompensated_heart_failure_progression",
+    "ckd_progression_with_diabetes",
+    "hypoglycemia_in_ckd",
+    "drug_drug_interaction_polypharmacy",
+    "hyperkalemia_under_raasi"
+  ],
+  "gold_codes": [
+    "I50.900",
+    "I25.100",
+    "Z95.500",
+    "E11.900",
+    "I10.x00",
+    "N18.300",
+    "I69.300"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "Complex multi-morbidity elderly case; primary I50.900 (CHF acute exacerbation)."
+}

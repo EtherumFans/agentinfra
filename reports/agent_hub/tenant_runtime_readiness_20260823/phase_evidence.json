@@ -1,0 +1,95 @@
+{
+  "schema_version": "icoder.agent-hub-tenant-runtime-readiness-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_tenant_runtime_readiness_gate_passed",
+  "api_contract": {
+    "public_hub_schema_version": "1.3",
+    "public_runtime_policy": "not_checked_and_action_disabled_until_authenticated_tenant_readiness",
+    "tenant_endpoint": "/api/icoder/agents/hub/readiness",
+    "tenant_schema_version": "1.0",
+    "response_model": "AgentHubTenantReadinessResponse",
+    "readiness_model": "AgentHubTenantRuntimeReadiness",
+    "bearer_authenticated": true,
+    "additional_properties": false,
+    "canary_ttl_seconds_default": 900,
+    "probe_cache_scope": "organization_id_and_deployment_id",
+    "durable_canary_scope": "tenant_owned_audit_log_and_exact_deployment",
+    "openapi_sha256": "8934e9cf7d4f507f5cb3eac2cba8ca62909f235fa802bb104a97bcaac85efbf7",
+    "openapi_check": "passed"
+  },
+  "tests": {
+    "backend_targeted": {"passed": 31, "failed": 0},
+    "backend_expanded_hub_models_regression": {"passed": 127, "failed": 0},
+    "offline_visible_agent_e2e": {
+      "passed": 52,
+      "failed": 0,
+      "capability_claim": "development execution and safe fail-closed only"
+    },
+    "frontend": {"passed": 141, "failed": 0, "production_build": "passed"},
+    "javascript_sdk": {"passed": 52, "failed": 0},
+    "python_sdk": {"passed": 53, "failed": 0},
+    "dotnet_sdk": {
+      "runtime_tests_executed": false,
+      "reason": "dotnet CLI is not installed on this Windows host",
+      "source_and_ci_contracts_updated": true
+    },
+    "deployment_preflight": {
+      "passed": 81,
+      "failed": 0,
+      "contract_tests_passed": 1,
+      "artifact": "preflight/deployment_preflight.json",
+      "artifact_sha256": "2de8f11e756ae31afe2e294604862428a56923bfd8ffc74361912993345b820b"
+    }
+  },
+  "sdk_contract": {
+    "javascript": {
+      "version": "1.0.0-beta.28",
+      "method": "agents.hubReadiness()",
+      "package": "packages/javascript/icoder-sdk-1.0.0-beta.28.tgz",
+      "package_bytes": 51947,
+      "package_sha256": "3192231c3c787a3f079915b3efaf475b2886824e2845d10610efe08acebfe159",
+      "npm_production_vulnerabilities": 0
+    },
+    "python": {
+      "version": "1.0.0b28",
+      "methods": ["agents.hub_readiness()", "agent_hub.readiness()"],
+      "package": "packages/python/icoder_sdk-1.0.0b28-py3-none-any.whl",
+      "package_bytes": 34643,
+      "package_sha256": "0295836340df36292ce539e704868e90fa9153e39f8e5a15f7a9aa9d56fbaa83",
+      "wheel_path_import_smoke": "passed"
+    },
+    "dotnet": {
+      "version": "1.0.0-beta.28",
+      "method": "AgentHub.GetReadinessAsync()",
+      "framework_contracts": ["net8.0", "net10.0"]
+    },
+    "fail_closed_invariants": [
+      "public Hub never enables a tenant action",
+      "malformed partial or duplicate tenant readiness never enables a subset",
+      "live health requires verified connectivity",
+      "failed connectivity disables LLM Agent actions",
+      "semantic and production axes are not promoted by connectivity"
+    ]
+  },
+  "protected_state": {
+    "development_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_ports_open": 0,
+    "python_or_uvicorn_processes": 0,
+    "credential_used": false,
+    "credential_lengths": {"ICODER_CREDENTIAL_LLM": 0, "DEEPSEEK_API_KEY": 0},
+    "temporary_test_databases_remaining": [
+      "backend/data/test_tenant_readiness_api.db",
+      "backend/data/test_tenant_readiness_e2e.db",
+      "backend/data/test_tenant_readiness_preflight.db",
+      "backend/data/test_tenant_readiness_regression.db",
+      "backend/data/test_tenant_readiness_unit.db"
+    ],
+    "temporary_cleanup_status": "test schemas dropped; host policy prevents exact test database file deletion"
+  },
+  "limitations": [
+    "No current 25-Agent real-provider semantic matrix was executed.",
+    "No continuous availability latency capacity cost quota or SLA was measured.",
+    "The dotnet source and CI tests could not be executed on this host.",
+    "No production cloud hospital legal regulatory security certification or independent clinical review gate is satisfied by this phase."
+  ]
+}

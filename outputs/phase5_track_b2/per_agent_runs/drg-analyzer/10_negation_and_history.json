@@ -1,0 +1,61 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-53b1d2fd-a529-4371-be7b-319a51504ade",
+  "trace_id": "trace-8cc499736a6843b7",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 8763,
+  "cost": {
+    "amount": 0.00028,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"R91.x00\",\n      \"evidence_text\": \"胸部CT显示右肺上叶8mm混合磨玻璃结节，边界清楚，可见分叶征，疑诊肺恶性肿瘤，待排肺结核复发。\",\n      \"char_span\": [200, 250],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充编码Z85.100（肺癌个人史）以反映患者父亲肺癌家族史，并考虑编码Z86.100（结核病个人史）以记录既往肺结核病史，避免遗漏重要合并症/个人史导致DRG分组偏低。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"D49.100\",\n      \"evidence_text\": \"患者有高血压病史10年，使用氨氯地平控制，入院诊断明确为高血压病2级。\",\n      \"char_span\": [100, 130],\n      \"severity\": \"medium\",\n      \"suggestion\": \"当前编码I10.x00已覆盖高血压，但建议确认是否需细化至I10.x01（高血压病2级）以更精确反映病情，避免因编码不具体导致CMI影响。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"D49.100\",\n      \"evidence_text\": \"主诊断R91.x00（肺部异常影像）与D49.100（其他部位未特指的肿瘤）并存，但D49.100作为次要诊断可能不准确，因结节性质未明确。\",\n      \"char_span\": [180, 220],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议复核D49.100是否必要，若结节高度怀疑恶性但未确诊，可保留；否则考虑删除以避免诊断-手术不一致风险。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"Z86.100\",\n      \"evidence_text\": \"患者曾患肺结核，30年前已治愈，但未编码。\",\n      \"char_span\": [80, 100],\n      \"severity\": \"low\",\n      \"suggestion\": \"建议补充编码Z86.100（结核病个人史）以完整记录病史，避免因遗漏个人史影响DRG分组。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在2处downcoding风险：1）未编码肺癌家族史（Z85.100）和结核病个人史（Z86.100），可能遗漏重要合并症/个人史导致DRG分组偏低；2）高血压编码I10.x00可考虑细化至I10.x01以更精确。另D49.100与R91.x00并存需复核一致性。建议补充个人史编码并确认结节相关诊断的准确性。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"R91.x00\",\n      \"evidence_text\": \"胸部CT显示右肺上叶8mm混合磨玻璃结节，边界清楚，可见分叶征，疑诊肺恶性肿瘤，待排肺结核复发。\",\n      \"char_span\": [200, 250],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充编码Z85.100（肺癌个人史）以反映患者父亲肺癌家族史，并考虑编码Z86.100（结核病个人史）以记录既往肺结核病史，避免遗漏重要合并症/个人史导致DRG分组偏低。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"D49.100\",\n      \"evidence_text\": \"患者有高血压病史10年，使用氨氯地平控制，入院诊断明确为高血压病2级。\",\n      \"char_span\": [100, 130],\n      \"severity\": \"medium\",\n      \"suggestion\": \"当前编码I10.x00已覆盖高血压，但建议确认是否需细化至I10.x01（高血压病2级）以更精确反映病情，避免因编码不具体导致CMI影响。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"D49.100\",\n      \"evidence_text\": \"主诊断R91.x00（肺部异常影像）与D49.100（其他部位未特指的肿瘤）并存，但D49.100作为次要诊断可能不准确，因结节性质未明确。\",\n      \"char_span\": [180, 220],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议复核D49.100是否必要，若结节高度怀疑恶性但未确诊，可保留；否则考虑删除以避免诊断-手术不一致风险。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"Z86.100\",\n      \"evidence_text\": \"患者曾患肺结核，30年前已治愈，但未编码。\",\n      \"char_span\": [80, 100],\n      \"severity\": \"low\",\n      \"suggestion\": \"建议补充编码Z86.100（结核病个人史）以完整记录病史，避免因遗漏个人史影响DRG分组。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在2处downcoding风险：1）未编码肺癌家族史（Z85.100）和结核病个人史（Z86.100），可能遗漏重要合并症/个人史导致DRG分组偏低；2）高血压编码I10.x00可考虑细化至I10.x01以更精确。另D49.100与R91.x00并存需复核一致性。建议补充个人史编码并确认结节相关诊断的准确性。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 671,
+        "output_tokens": 665
+      },
+      "cost_usd": 0.00028,
+      "latency_ms": 8763
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 8763,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 8763
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (401 chars) + codes (3)",
+  "_gold_codes": [
+    "R91.x00",
+    "D49.100",
+    "I10.x00"
+  ],
+  "_client_wall_ms": 8929,
+  "_fixture": "fixtures/phase5_track_b2/10_negation_and_history.json",
+  "_tag": "10_negation_and_history",
+  "_ts": "2026-07-11T14:36:35"
+}

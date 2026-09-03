@@ -1,0 +1,349 @@
+{
+  "case_id": "CASE-e734f8420bf6",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-e734f8420bf6/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Conflicting documentation regarding the duration of diabetes: admission note states no prior history and new onset, while discharge summary states a 10-year history.",
+      "why_it_matters": "The duration of diabetes affects the specificity of the diagnosis (e.g., long-standing vs. new onset) and may impact coding of complications and management. Conflicting documentation can lead to inaccurate coding and potential compliance issues.",
+      "evidence_span": {
+        "document_id": "admission_note",
+        "quote": "既往无糖尿病史, 本次为初次发现",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e734f8420bf6/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The type of diabetes is not specified (e.g., type 2 vs. type 1). Although the admission diagnosis states type 2, the documentation lacks specificity regarding the type, which is essential for accurate coding.",
+      "why_it_matters": "Specifying the type of diabetes is crucial for correct coding and treatment. Without explicit documentation, there is a risk of misclassification.",
+      "evidence_span": {
+        "document_id": "admission_note",
+        "quote": "入院诊断:2型糖尿病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e734f8420bf6/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The discharge summary mentions '血糖控制不佳' (poor glycemic control) but does not specify the severity or the specific measures (e.g., HbA1c levels) that indicate poor control.",
+      "why_it_matters": "Severity of glycemic control is important for coding diabetes with hyperglycemia or other manifestations. Lack of specificity may lead to under-coding.",
+      "evidence_span": {
+        "document_id": "discharge_summary",
+        "quote": ":NAME>",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-e734f8420bf6/Q-001",
+      "gap_id": "CASE-e734f8420bf6/GAP-001",
+      "topic": "糖尿病病程",
+      "reason": "入院记录与出院小结关于糖尿病病史的记载存在矛盾，需明确实际病程。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "既往无糖尿病史, 本次为初次发现",
+        "char_start": 27,
+        "char_end": 43,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "既往无糖尿病史, 本次为初次发现",
+          "char_start": 27,
+          "char_end": 43,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "糖尿病史10年",
+          "char_start": 49,
+          "char_end": 56,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "患者入院记录记载'既往无糖尿病史, 本次为初次发现'，而出院小结记载'糖尿病史10年'。请明确患者糖尿病的实际病程。",
+      "response_options": [
+        "A. 本次为初次发现，既往无糖尿病史",
+        "B. 既往有糖尿病史，病程约10年",
+        "C. 既往有糖尿病史，但病程不足10年",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-e734f8420bf6/GAP-002",
+      "topic": "糖尿病分型",
+      "reason": "入院诊断为2型糖尿病，但缺乏分型依据，需明确具体类型。",
+      "query_text": "患者入院诊断为2型糖尿病，请明确糖尿病具体分型。",
+      "response_options": [
+        "A. 2型糖尿病",
+        "B. 1型糖尿病",
+        "C. 其他特殊类型糖尿病",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:2型糖尿病",
+          "char_start": 11,
+          "char_end": 21,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart explicitly documents diabetes type: '2型糖尿病'"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-e734f8420bf6/GAP-003",
+      "topic": "血糖控制不佳的严重程度",
+      "reason": "出院小结提及'血糖控制不佳'，但未说明具体指标或严重程度，需明确。",
+      "query_text": "出院小结记载'血糖控制不佳'，请明确血糖控制不佳的具体程度及相关指标（如HbA1c水平）。",
+      "response_options": [
+        "A. 轻度控制不佳（如HbA1c 7%-8%）",
+        "B. 中度控制不佳（如HbA1c 8%-9%）",
+        "C. 重度控制不佳（如HbA1c >9%）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "糖控制不佳",
+          "char_start": 73,
+          "char_end": 78,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the documented contradiction before ancillary refinement"
+      ],
+      "status": "DEFERRED_UNTIL_CONTRADICTION_RESOLVED",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 65岁, 入院诊断:2型糖尿病。入院记录:既往无糖尿病史, 本次为初次发现。出院小结:糖尿病史10年, <REDACTED:NAME>糖控制不佳。门诊病历:新发糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，65岁",
+      "入院诊断：2型糖尿病",
+      "既往无糖尿病史，本次为初次发现",
+      "出院小结：糖尿病史10年，血糖控制不佳",
+      "门诊病历：新发糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "65岁",
+      "patient_sex": "女性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "The admission note states no prior history of diabetes and new onset, while the discharge summary states a 10-year history. This is an internal conflict."
+    },
+    {
+      "category": "contradiction",
+      "description": "The outpatient record states '新发糖尿病' (new-onset diabetes), which contradicts the discharge summary's '糖尿病史10年' (10-year history)."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinical team must reconcile the conflicting duration of diabetes (new onset vs. 10-year history) by explicitly documenting the true onset date or stating the basis for the discrepancy. Additionally, specify the exact type of diabetes (e.g., type 2, type 1, or secondary) and provide objective evidence of poor glycemic control, such as recent HbA1c values, fasting glucose levels, or the specific treatment regimen and its response. Without this clarity, the coded severity and chronicity will be unreliable.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 4356,
+      "tokens": 333
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "I do not have live PubMed access, so I cannot retrieve or verify specific PMIDs. Based on general literature, conflicting documentation of diabetes duration (new onset vs. 10-year history) and unspecified type (T2 vs. T1) are common coding and clinical reconciliation issues; however, no single study resolves this discrepancy without objective biomarkers (e.g., C-peptide, autoantibodies, or historical HbA1c). For accurate coding and management, I recommend reconciling the record using the most recent HbA1c and clinical context, and explicitly documenting diabetes type and glycemic severity (e.g., HbA1c value) to align with ICD-10 and quality measures.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2576,
+      "tokens": 378
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-262535e1a82c",
+    "gap_identification": "run-d642ea846a20",
+    "gap_identification_risk_flags": "emitted=2;quote_snapped=1",
+    "expert_consultation": "run-ec7a48616914",
+    "query_generation": "run-8ffdd302a1b8",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart contains conflicting documentation regarding the duration of diabetes ",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=course;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-c3f2949e3a2c",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-37f4e20e3b9b",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-251741a2edb8"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-5c9d1a82aa0c",
+    "gap_identification": "trace-45882835306e",
+    "expert_consultation": "trace-2d5bc9d7bb18",
+    "query_generation": "trace-da21606fb296",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-02d68b7fc7a8",
+    "semantic_necessity_gate": "trace-2d606274bd64",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-491a232570a4"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2238,
+      "prompt_tokens": 226,
+      "completion_tokens": 99,
+      "total_tokens": 325,
+      "run_id": "run-262535e1a82c",
+      "trace_id": "trace-5c9d1a82aa0c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6676,
+      "prompt_tokens": 1050,
+      "completion_tokens": 706,
+      "total_tokens": 1756,
+      "run_id": "run-d642ea846a20",
+      "trace_id": "trace-45882835306e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5678,
+      "prompt_tokens": 1286,
+      "completion_tokens": 662,
+      "total_tokens": 1948,
+      "run_id": "run-8ffdd302a1b8",
+      "trace_id": "trace-da21606fb296",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4356,
+      "prompt_tokens": 225,
+      "completion_tokens": 108,
+      "total_tokens": 333,
+      "run_id": "run-7c14bc710471",
+      "trace_id": "trace-55b4f2f4c66e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2576,
+      "prompt_tokens": 239,
+      "completion_tokens": 139,
+      "total_tokens": 378,
+      "run_id": "run-6f5a06d6fe5b",
+      "trace_id": "trace-af9646b193b4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6af8b371ae07",
+      "trace_id": "trace-98cc8b583971",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-bf9cb9051966",
+      "trace_id": "trace-d9a50898ef4c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:23:38.881931Z"
+}

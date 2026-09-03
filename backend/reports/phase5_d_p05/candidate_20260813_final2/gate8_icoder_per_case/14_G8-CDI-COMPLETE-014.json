@@ -1,0 +1,288 @@
+{
+  "case_id": "CASE-15fc269abeb6",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-15fc269abeb6/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis of acute suppurative otitis media is documented, but the severity of the infection is not specified (e.g., mild, moderate, severe).",
+      "why_it_matters": "Severity specification may affect treatment intensity and monitoring, and is relevant for coding and clinical accuracy.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:急性化脓性中耳炎(右)",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-15fc269abeb6/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not document the clinical correlation of the fever (T 38.0℃) with the otitis media, nor any planned workup for the fever.",
+      "why_it_matters": "Fever is a systemic sign; clarifying its relation to the ear infection ensures accurate clinical assessment and coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "T 38.0℃",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-15fc269abeb6/GAP-001",
+      "topic": "急性化脓性中耳炎严重程度",
+      "reason": "病历记录诊断但未描述感染严重程度，需明确以指导治疗和随访。",
+      "query_text": "该患者急性化脓性中耳炎的严重程度如何？",
+      "response_options": [
+        "A. 轻度",
+        "B. 中度",
+        "C. 重度",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "诊断:急性化脓性中耳炎(右)",
+          "char_start": 50,
+          "char_end": 64,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: acute suppurative diagnosis is already explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-15fc269abeb6/GAP-002",
+      "topic": "发热与中耳炎的临床关联及处理",
+      "reason": "病历记录发热但未说明其与中耳炎的关系，也未提及发热的进一步检查计划。",
+      "query_text": "该患者发热（T 38.0℃）与急性中耳炎的相关性如何？是否计划进行其他检查？",
+      "response_options": [
+        "A. 发热与中耳炎相关，无需额外检查",
+        "B. 发热与中耳炎相关，但需进一步检查",
+        "C. 发热与中耳炎无关，需另行评估",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "T 38.0℃",
+          "char_start": 25,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: acute otitis diagnosis and measured fever are already documented"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 5岁, 因急性中耳炎就诊。耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。诊断:急性化脓性中耳炎(右)。予阿莫西林克拉维酸钾口服7天。3天后复诊症状缓解。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，5岁",
+      "急性中耳炎就诊",
+      "耳痛2天",
+      "体温38.0℃",
+      "耳镜检查：右耳鼓膜充血膨隆，无穿孔",
+      "诊断：急性化脓性中耳炎（右）",
+      "治疗：阿莫西林克拉维酸钾口服7天",
+      "3天后复诊症状缓解"
+    ],
+    "encounter_metadata": {
+      "patient_age": "5岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the severity of the acute suppurative otitis media (mild, moderate, or severe) must be explicitly documented, as this directly impacts the specificity of the diagnosis. Additionally, the clinical correlation of the fever (T 38.0℃) with the otitis media—and whether any workup (e.g., blood culture, sepsis evaluation) is planned or performed—should be clearly stated to avoid ambiguity in the clinical picture. Without these details, the record lacks the granularity needed to support precise code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2887,
+      "tokens": 303
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-9db75ad4671f",
+    "gap_identification": "run-b6189a60ff8b",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-496374ac52d0",
+    "query_generation": "run-4051bf30310b",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents the diagnosis and treatment but lacks severity specification",
+    "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-0d97e5eb168c",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-a7e78aa15b6b",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-eaeb0483441e"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-1a6d88d5b8e0",
+    "gap_identification": "trace-9f7ff9e38427",
+    "expert_consultation": "trace-b7472f3c849b",
+    "query_generation": "trace-5ced79c98cb0",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-b8e8910e6d96",
+    "semantic_necessity_gate": "trace-30c2c3feea4a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-ad3092ec9f74"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2948,
+      "prompt_tokens": 243,
+      "completion_tokens": 132,
+      "total_tokens": 375,
+      "run_id": "run-9db75ad4671f",
+      "trace_id": "trace-1a6d88d5b8e0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5217,
+      "prompt_tokens": 1099,
+      "completion_tokens": 357,
+      "total_tokens": 1456,
+      "run_id": "run-b6189a60ff8b",
+      "trace_id": "trace-9f7ff9e38427",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4679,
+      "prompt_tokens": 1110,
+      "completion_tokens": 448,
+      "total_tokens": 1558,
+      "run_id": "run-4051bf30310b",
+      "trace_id": "trace-5ced79c98cb0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2887,
+      "prompt_tokens": 194,
+      "completion_tokens": 109,
+      "total_tokens": 303,
+      "run_id": "run-c790ba54727e",
+      "trace_id": "trace-7508701563b3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b304f485b6fe",
+      "trace_id": "trace-05c5487e1016",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ee540997a996",
+      "trace_id": "trace-2bb2ed0ab262",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-39426ce66c11",
+      "trace_id": "trace-92274dec7d70",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:58:07.167239Z"
+}

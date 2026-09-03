@@ -1,0 +1,142 @@
+{
+  "generated_at": "2026-07-17T13:00:00Z",
+  "spec": "Phase A1A Gate 0A — Negative Fixture Coverage Reconciliation",
+  "charter_requirement_count": 12,
+  "independent_assertion_count": 12,
+  "covered_requirement_count": 12,
+  "uncovered_requirement_count": 0,
+  "charter_text_disclepancy_resolution": "Phase A0.1R produced 11 fixtures (NF01-NF11). A1A Gate 0 Addendum adds NF12 (worktree.no_secret injection test) to close the 12th charter requirement. No count was changed to 11; no fixture was fabricated. NF12 injects a benign test marker into a tracked file (README.md), patches the validator's fingerprint in-memory, runs check_no_secret_in_worktree, and restores the file in a finally clause.",
+  "coverage_matrix": [
+    {
+      "charter_nf_id": "NF-01",
+      "requirement": "Ledger count drift — P0_aggregate_open_strict claim must match actual strict-open count",
+      "defect_class": "Phase A0.1 V2 status-field-misnamed / strict-vs-open+mit ambiguity",
+      "fixture_id": "NF01",
+      "injection": "P0_aggregate_open_strict = 99 (claim drift)",
+      "validator_check": "check_ledger_open_count_strict",
+      "independent_assertion": "fixture mutates ledger in-memory + runs check + verifies FAIL with 'claim=99 actual=22'",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-02",
+      "requirement": "Ledger count drift — P0-S_open must match actual P0-S strict-open count",
+      "defect_class": "Phase A0.1 V2 derived count bug",
+      "fixture_id": "NF02",
+      "injection": "P0-S_open = 99 (claim drift)",
+      "validator_check": "check_ledger_p0_s_open_strict",
+      "independent_assertion": "fixture mutates ledger in-memory + runs check + verifies FAIL with 'claim=99 actual=10'",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-03",
+      "requirement": "Primary phase completeness — every OPEN+OPEN_BACKLOG+MITIGATED issue's canonical_id must appear in primary_phase_mapping[phase].explicit_ids",
+      "defect_class": "Phase A0.1 V2 did not cross-check per-issue vs explicit_ids; workstream misplacement invisible",
+      "fixture_id": "NF03",
+      "injection": "remove A0-P0-021 from A2_commercial_deferred.explicit_ids",
+      "validator_check": "check_ledger_primary_phase_complete",
+      "independent_assertion": "fixture mutates ledger in-memory + runs check + verifies FAIL mentions A0-P0-021",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-04",
+      "requirement": "Billing theater split — A0-P0-004 must carry split_status + split_performed (Product Truth vs Commercial Capability)",
+      "defect_class": "Phase A0.1 V2 did not distinguish product truth from commercial capability",
+      "fixture_id": "NF04",
+      "injection": "remove split_status from A0-P0-004",
+      "validator_check": "check_ledger_billing_theater_split",
+      "independent_assertion": "fixture mutates ledger in-memory + runs check + verifies FAIL mentions split_status",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-05",
+      "requirement": "NPM reframing — A0-P0-009 must be marked phase_a0_1r_reframe (NO_REPRODUCIBLE_SIGNED_EXTERNAL_DISTRIBUTION_CHANNEL)",
+      "defect_class": "Phase A0.1 V2 reported PUBLIC_NPM_NOT_PUBLISHED which is a forbidden verdict form",
+      "fixture_id": "NF05",
+      "injection": "remove phase_a0_1r_reframe from A0-P0-009",
+      "validator_check": "check_ledger_npm_reframed",
+      "independent_assertion": "fixture mutates ledger in-memory + runs check + verifies FAIL mentions reframed",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-06",
+      "requirement": "CDI boundary — A0-P0-007 must carry phase_a0_1r_boundary (research mode does NOT close clinical loop)",
+      "defect_class": "Phase A0.1 V2 treated CDI Research Mode as Clinical Loop Closure",
+      "fixture_id": "NF06",
+      "injection": "remove phase_a0_1r_boundary from A0-P0-007",
+      "validator_check": "check_ledger_cdi_bounded",
+      "independent_assertion": "fixture mutates ledger in-memory + runs check + verifies FAIL mentions boundary_applied",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-07",
+      "requirement": "Parity no illegal statuses — every dimension's parity_status must be in allowed_statuses",
+      "defect_class": "Phase A0.1 V2 used ICODER_TECH_DEBT as comparison status (not in allowed_statuses)",
+      "fixture_id": "NF07",
+      "injection": "restore D-05 parity_status to ICODER_TECH_DEBT",
+      "validator_check": "check_parity_no_illegal_statuses",
+      "independent_assertion": "fixture mutates parity in-memory + runs check + verifies FAIL mentions D-05",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-08",
+      "requirement": "Parity symmetric thresholds — both ICODER_ADVANTAGE and CORTI_ADVANTAGE must meet class-specific evidence threshold",
+      "defect_class": "Phase A0.1 V2 only checked ICODER_ADVANTAGE direction",
+      "fixture_id": "NF08",
+      "injection": "restore F-03 to CORTI_ADVANTAGE at corti_evidence_grade=E1 (below E7 threshold)",
+      "validator_check": "check_parity_symmetric_thresholds",
+      "independent_assertion": "fixture mutates parity in-memory + runs check + verifies FAIL mentions F-03",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-09",
+      "requirement": "Maturity 7-axis — every china_scenarios entry must have all 7 axes (code_maturity + quality_evidence + partner_validation + regulatory + workflow_closure + security + delivery)",
+      "defect_class": "Phase A0.1 V2 used 5 axes only (no security, no delivery)",
+      "fixture_id": "NF09",
+      "injection": "remove security axis from CN-01",
+      "validator_check": "check_maturity_7_axes",
+      "independent_assertion": "fixture mutates maturity in-memory + runs check + verifies FAIL mentions CN-01:security",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-10",
+      "requirement": "Manifest empty-dir semantics — directory entries (path ends with /) must have exists=true + artifact_count",
+      "defect_class": "Phase A0.1 V2 marked empty dirs as exists=false",
+      "fixture_id": "NF10",
+      "injection": "restore exists=false on phase7/gate13a/screenshots/",
+      "validator_check": "check_manifest_empty_dirs",
+      "independent_assertion": "fixture mutates manifest in-memory + runs check + verifies FAIL mentions exists=false for dir",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-11",
+      "requirement": "Manifest storage_mode — every entry must have a legal storage_mode (Public / SPLIT_PUBLIC_RESTRICTED / Restricted)",
+      "defect_class": "Phase A0.1 V2 manifest had no storage_mode field",
+      "fixture_id": "NF11",
+      "injection": "set storage_mode = 'SECRET_LEAKED' (illegal)",
+      "validator_check": "check_manifest_storage_mode",
+      "independent_assertion": "fixture mutates manifest in-memory + runs check + verifies FAIL mentions SECRET_LEAKED",
+      "covered": true
+    },
+    {
+      "charter_nf_id": "NF-12",
+      "requirement": "Worktree no plain-text secret — git grep against compromised secret fingerprint must return no matches",
+      "defect_class": "Phase A0.1 V2 did not sweep worktree for secret leaks",
+      "fixture_id": "NF12",
+      "injection": "append benign test marker to tracked README.md; patch validator's SECRET_FINGERPRINT_SUBSTRING in-memory to the marker",
+      "validator_check": "check_no_secret_in_worktree",
+      "independent_assertion": "fixture mutates README.md (real working-tree file) + patches validator fingerprint in-memory + runs check + verifies FAIL mentions secret found + restores README.md in finally clause",
+      "covered": true,
+      "new_in_gate0_addendum": true
+    }
+  ],
+  "validator_post_addendum_state": {
+    "positive_checks_total": 15,
+    "positive_checks_pass": 15,
+    "negative_fixtures_total": 12,
+    "negative_fixtures_pass": 12,
+    "negative_fixture_runner_exit_code": 0,
+    "readme_md_restored": true,
+    "validator_re_run_clean": true
+  },
+  "verdict": "PASS_A1A_GATE0A_NEGATIVE_FIXTURE_COVERAGE_RECONCILED_12_OF_12"
+}

@@ -1,0 +1,289 @@
+{
+  "case_id": "CASE-61012795b8c1",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-61012795b8c1/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart documents weight loss and decreased appetite but does not specify the underlying etiology or clinical correlation.",
+      "why_it_matters": "Without an etiology, the condition cannot be accurately coded; it may represent a malignancy, endocrine disorder, or other systemic disease, and further workup is needed.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "食欲下降1月, 体重减轻5kg",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-61012795b8c1/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart mentions '明显异常' (obvious abnormality) but does not specify what is abnormal, lacking diagnostic specificity.",
+      "why_it_matters": "The unspecified abnormality prevents accurate coding and may indicate a need for further diagnostic clarification.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "<REDACTED:NAME>明显异常",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-61012795b8c1/GAP-001",
+      "topic": "体重减轻和食欲下降的病因",
+      "reason": "病历记录了食欲下降和体重减轻，但未明确其病因或临床关联。",
+      "query_text": "该患者食欲下降和体重减轻的可能病因是什么？",
+      "response_options": [
+        "A. 恶性肿瘤相关",
+        "B. 慢性感染或炎症性疾病",
+        "C. 内分泌代谢性疾病（如糖尿病、甲状腺功能亢进）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "食欲下降1月, 体重减轻5kg",
+          "char_start": 11,
+          "char_end": 26,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: no diagnosis or completed workup supports a diagnosis-clarification query"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-61012795b8c1/GAP-002",
+      "topic": "明显异常的具体内容",
+      "reason": "病历提及'明显异常'但未指明具体异常，缺乏诊断特异性。",
+      "query_text": "请明确'明显异常'所指的具体异常发现。",
+      "response_options": [
+        "A. 实验室检查结果异常",
+        "B. 影像学检查发现异常",
+        "C. 体格检查发现异常",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "<REDACTED:NAME>明显异常",
+          "char_start": 27,
+          "char_end": 46,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 70岁, 食欲下降1月, 体重减轻5kg。<REDACTED:NAME>明显异常。建议进一步检查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，70岁",
+      "食欲下降1月",
+      "体重减轻5kg",
+      "建议进一步检查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "70岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "The phrase '明显异常' is vague and does not specify the nature of the abnormality, obscuring the clinical conclusion."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The clinical documentation must specify the underlying cause of the weight loss and decreased appetite—such as whether it is due to malignancy, gastrointestinal disease, endocrine disorder, or psychiatric condition—and clearly state the specific abnormal finding (e.g., laboratory value, imaging result, or physical exam sign) that prompted the recommendation for further testing. Without this etiological and diagnostic specificity, the encounter cannot be accurately coded to reflect the true clinical condition or the medical necessity of the workup. Please clarify the abnormal finding and the suspected diagnosis in the final assessment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3391,
+      "tokens": 240
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-e57a6c37060a",
+    "gap_identification": "run-8ff1e1b1be52",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-31c22fe6bb84",
+    "query_generation": "run-eb767dc1b2ca",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks specificity regarding the cause of weight loss and the nature of",
+    "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-cd511dcd4905",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-7f7a5a4493f9",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-5f0ba5a820bc"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-c29dbe5d1319",
+    "gap_identification": "trace-10c16a33b467",
+    "expert_consultation": "trace-785eec290b2f",
+    "query_generation": "trace-1b9245cefef3",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d1cd2855f2aa",
+    "semantic_necessity_gate": "trace-407a92b66bd8",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-7598dac509c0"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2067,
+      "prompt_tokens": 203,
+      "completion_tokens": 75,
+      "total_tokens": 278,
+      "run_id": "run-e57a6c37060a",
+      "trace_id": "trace-c29dbe5d1319",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5057,
+      "prompt_tokens": 1003,
+      "completion_tokens": 427,
+      "total_tokens": 1430,
+      "run_id": "run-8ff1e1b1be52",
+      "trace_id": "trace-10c16a33b467",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4463,
+      "prompt_tokens": 1164,
+      "completion_tokens": 424,
+      "total_tokens": 1588,
+      "run_id": "run-eb767dc1b2ca",
+      "trace_id": "trace-1b9245cefef3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3391,
+      "prompt_tokens": 132,
+      "completion_tokens": 108,
+      "total_tokens": 240,
+      "run_id": "run-7308d6f06b77",
+      "trace_id": "trace-eabfa089f40c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-352fa55605a9",
+      "trace_id": "trace-cbf9aada586c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6265c7faa812",
+      "trace_id": "trace-69bc862a3beb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f3e176209357",
+      "trace_id": "trace-b11aaa7300d5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:57:07.249311Z"
+}

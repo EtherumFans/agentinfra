@@ -1,0 +1,54 @@
+{
+  "phase": "a2a_v1_compatibility_slice_a",
+  "captured_at": "2026-08-21T23:34:00+08:00",
+  "network_llm_calls": 0,
+  "browser_started": false,
+  "native_medcoder_started": false,
+  "implementation": {
+    "protocol_version": "1.0",
+    "legacy_protocol_preserved": "0.3",
+    "bindings": ["JSONRPC", "HTTP+JSON"],
+    "implemented_operations": [
+      "SendMessage",
+      "SendStreamingMessage",
+      "GetTask",
+      "ListTasks",
+      "CancelTask"
+    ],
+    "not_yet_implemented": [
+      "SubscribeToTask",
+      "durable task event replay",
+      "/.well-known/agent-card.json",
+      "returnImmediately asynchronous task creation",
+      "push notification configuration",
+      "JavaScript/Python/.NET v1 SDK resources"
+    ],
+    "openapi_total_paths": 248,
+    "openapi_agentic_v1_paths": 7
+  },
+  "security_contracts": [
+    "authenticated organization and agent scoped task lookup",
+    "cross-agent task lookup returns TASK_NOT_FOUND",
+    "taskId infers context only after tenant and agent validation",
+    "referenceTaskIds require tenant and agent visibility",
+    "HMAC page token binds organization, agent and filters",
+    "conditional cancel update rejects state races",
+    "unknown ProtoJSON fields fail closed",
+    "unsupported raw/url parts and async options fail closed"
+  ],
+  "verification": {
+    "command_scope": [
+      "backend/tests/unit/icoder/a2a/test_envelope.py",
+      "backend/tests/unit/icoder/a2a/test_v1_protocol.py",
+      "backend/tests/integration/icoder/a2a/test_endpoints.py",
+      "backend/tests/unit/corti_parity/test_a2a_openapi_runtime_parity.py"
+    ],
+    "passed": 87,
+    "failed": 0,
+    "warnings": 1,
+    "warning": "Starlette TestClient httpx deprecation only",
+    "openapi_check": "passed"
+  },
+  "completion_claim": "partial",
+  "reason": "A2A v1.0 first compatibility slice is implemented, but Subscribe, durable events, well-known discovery, connectors, trace export, feedback and SDKs remain."
+}

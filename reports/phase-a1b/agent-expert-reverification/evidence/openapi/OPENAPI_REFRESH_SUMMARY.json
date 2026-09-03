@@ -1,0 +1,32 @@
+{
+  "phase": "A1B-AE-RV",
+  "sub_gate": "RV.6",
+  "captured_at": "2026-07-25",
+  "command": "cd backend && python scripts/export_openapi.py",
+  "output_path": "docs/openapi/openapi.json",
+  "output_size_bytes": 526530,
+  "paths_total": 208,
+  "info": {
+    "title": "iCoDer Clinical AI Platform",
+    "version": "1.0.0"
+  },
+  "pre_rv_state": {
+    "paths_total": 162,
+    "delta": "+46 paths",
+    "classification": "STALE_SNAPSHOT_PRE_RV",
+    "root_cause": "openapi.json not regenerated when backend routes were added in Phase A1B-AE.*"
+  },
+  "vitest_apiContract_at_pre_rv": {
+    "failures": [
+      "POST /api/v1/agents/quick",
+      "GET /api/icoder/agents/{id}/card"
+    ],
+    "reason": "routes existed in backend but not in stale OpenAPI snapshot"
+  },
+  "vitest_apiContract_post_rv": {
+    "pass_count": 78,
+    "fail_count": 0,
+    "verdict": "PASS"
+  },
+  "verdict": "PASS_RV_6_OPENAPI_REGENERATED_208_PATHS_VITEST_CONTRACT_GREEN"
+}

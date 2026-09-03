@@ -1,0 +1,324 @@
+{
+  "case_id": "CASE-47be0bf4e68e",
+  "completion_state": "BLOCKED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-47be0bf4e68e/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "肝硬化病因未明确（乙肝？其他？）",
+      "why_it_matters": "影响病因编码及严重程度评估",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "乙肝肝硬化史"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-47be0bf4e68e/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "肝硬化严重程度未明确（代偿期/失代偿期）",
+      "why_it_matters": "影响并发症及预后编码",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "乙肝肝硬化史"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-47be0bf4e68e/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "上消化道出血病因未明确（食管静脉曲张破裂出血已确认，但需明确是否还有其他原因）",
+      "why_it_matters": "影响出血病因的精确编码",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:上消化道出血"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-47be0bf4e68e/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "出血严重程度未量化（如休克指数、输血量等）",
+      "why_it_matters": "影响病情严重度编码及资源消耗评估",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "Hb 75, BP 95/60, HR 110"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-47be0bf4e68e/Q-001",
+      "gap_id": "CASE-47be0bf4e68e/GAP-001",
+      "topic": "肝硬化病因",
+      "reason": "患者有乙肝肝硬化史，但未明确是否为乙肝所致或其他病因。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "乙肝肝硬化史"
+      },
+      "query_text": "患者有乙肝肝硬化史，请明确肝硬化的具体病因。",
+      "response_options": [
+        "A. 乙肝相关性肝硬化",
+        "B. 丙肝相关性肝硬化",
+        "C. 酒精性肝硬化",
+        "D. 其他病因",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-47be0bf4e68e/Q-002",
+      "gap_id": "CASE-47be0bf4e68e/GAP-002",
+      "topic": "肝硬化严重程度",
+      "reason": "患者有乙肝肝硬化史，但未明确是代偿期还是失代偿期。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "乙肝肝硬化史"
+      },
+      "query_text": "患者有乙肝肝硬化史，请明确肝硬化的严重程度。",
+      "response_options": [
+        "A. 代偿期肝硬化",
+        "B. 失代偿期肝硬化",
+        "C. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-47be0bf4e68e/Q-003",
+      "gap_id": "CASE-47be0bf4e68e/GAP-003",
+      "topic": "上消化道出血病因",
+      "reason": "入院诊断为上消化道出血，胃镜已确认食管静脉曲张破裂出血，但需明确是否还有其他原因。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:上消化道出血"
+      },
+      "query_text": "患者上消化道出血，胃镜已证实食管静脉曲张破裂出血，请明确是否合并其他出血原因。",
+      "response_options": [
+        "A. 仅食管静脉曲张破裂出血",
+        "B. 合并消化性溃疡出血",
+        "C. 合并急性胃黏膜病变",
+        "D. 合并其他原因",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-47be0bf4e68e/Q-004",
+      "gap_id": "CASE-47be0bf4e68e/GAP-004",
+      "topic": "出血严重程度量化",
+      "reason": "患者Hb 75, BP 95/60, HR 110，但未明确休克指数或输血量等量化指标。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "Hb 75, BP 95/60, HR 110"
+      },
+      "query_text": "患者目前生命体征和血红蛋白提示失血，请评估出血严重程度。",
+      "response_options": [
+        "A. 轻度出血（无血流动力学改变）",
+        "B. 中度出血（心动过速，血压尚稳定）",
+        "C. 重度出血（休克，需大量输血）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 62岁, 乙肝肝硬化史, 呕血1天。Hb 75, BP 95/60, HR 110。胃镜:食管静脉曲张出血, 已套扎。入院诊断:上消化道出血。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "乙肝肝硬化史",
+      "呕血1天",
+      "Hb 75",
+      "BP 95/60",
+      "HR 110",
+      "胃镜:食管静脉曲张出血,已套扎",
+      "入院诊断:上消化道出血"
+    ],
+    "encounter_metadata": {
+      "patient_age": "62",
+      "patient_sex": "男",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，需明确肝硬化病因（如乙肝相关性肝硬化）及分期（代偿期或失代偿期），并量化出血严重程度（如休克指数、输血量及血红蛋白动态变化），同时确认上消化道出血是否仅由食管静脉曲张破裂引起，以排除其他潜在病因。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2650,
+      "tokens": 241
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-0599f5708bf1",
+    "gap_identification": "run-167cafd6855e",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-ee002d97c03f",
+    "query_generation": "run-d4dc0c7d2b5b",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=肝硬化病因和严重程度未明确，上消化道出血虽已明确为食管静脉曲张破裂，但出血严重程度未量化，影响编码精确性。",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=10;blocked=0;flagged=0;final_count=4",
+    "claim_evidence_alignment_gate::run_id": "run-499e960c401d",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=4",
+    "semantic_necessity_gate::run_id": "run-d6956ac8a64e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-b41019662d3a"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-fecdb4f267ce",
+    "gap_identification": "trace-0941a62402a0",
+    "expert_consultation": "trace-4be273e9753b",
+    "query_generation": "trace-0bef2fae5b1e",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-ac64b4fa9d40",
+    "semantic_necessity_gate": "trace-a17b7beaa239",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-98e7efbb0847"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4469,
+      "prompt_tokens": 224,
+      "completion_tokens": 103,
+      "total_tokens": 327,
+      "run_id": "run-0599f5708bf1",
+      "trace_id": "trace-fecdb4f267ce",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5552,
+      "prompt_tokens": 858,
+      "completion_tokens": 521,
+      "total_tokens": 1379,
+      "run_id": "run-167cafd6855e",
+      "trace_id": "trace-0941a62402a0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6413,
+      "prompt_tokens": 953,
+      "completion_tokens": 709,
+      "total_tokens": 1662,
+      "run_id": "run-d4dc0c7d2b5b",
+      "trace_id": "trace-0bef2fae5b1e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2650,
+      "prompt_tokens": 178,
+      "completion_tokens": 63,
+      "total_tokens": 241,
+      "run_id": "run-d414ab3761fd",
+      "trace_id": "trace-858e0969c180",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b57d59b933da",
+      "trace_id": "trace-e295e01797c8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e7eefc95574c",
+      "trace_id": "trace-a61a59ef67c1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ef36bf8b69ad",
+      "trace_id": "trace-b93f617b172c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T02:55:23.523097Z"
+}

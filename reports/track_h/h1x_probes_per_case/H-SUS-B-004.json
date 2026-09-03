@@ -1,0 +1,89 @@
+{
+  "case_id": "H-SUS-B-004",
+  "group": "SUSPECTED",
+  "variant": "B",
+  "session_id": "8512d193-7e51-49cc-a3af-d955c798f5f1",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 25.82,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "pneumonia type (CAP vs HAP)",
+      "pneumonia severity"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 4845,
+  "first_token_at_s": 4.27,
+  "last_token_at_s": 25.82,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"0f2595db-6f6c-40ce-a9d6-1caf888b9361\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Admission documentation states \\\"possible pneumonia.\\\"\\n- Clinical indicators documented: \\\"febrile 38.8°C,\\\" \\\"crackles in right lower lobe,\\\" \\\"productive cough with ",
+    "message|{\"id\":\"0f2595db-6f6c-40ce-a9d6-1caf888b9361\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bcc-dc7c-7aef-b358-46268c199984\",\"taskId\":\"019f5bcc-dc7c-7a4a-b523-f98a0432f930\",\"credits\":0.057344,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.057344},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bcc-dc7c-7aef-b358-46268c199984",
+    "taskId": "019f5bcc-dc7c-7a4a-b523-f98a0432f930",
+    "credits": 0.057344,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Admission documentation states \"possible pneumonia.\"\n- Clinical indicators documented: \"febrile 38.8°C,\" \"crackles in right lower lobe,\" \"productive cough with yellow sputum,\" \"WBC 16.5 with left shift,\" and \"chest X-ray shows RLL infiltrate.\"\n- Treatment initiated: \"Started on ceftriaxone + azithromycin.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: The principal condition is documented only as uncertain.\n   - Why it matters: \"Possible pneumonia\" may not provide final diagnostic specificity for accurate coding/reporting if the diagnosis is being treated as confirmed at discharge or after study.\n   - Evidence quote: \"Patient admitted with 'possible pneumonia'.\"\n   - Minimal clarification needed: Whether pneumonia was confirmed, ruled out, still suspected, or remained clinically undetermined after evaluation."
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Pneumonia type/etiology is not specified.\n   - Why it matters: Coding specificity improves when the provider documents the pneumonia type/etiology if known (for example, organism-specific or other clinically established type). If not known, that should be stated.\n   - Evidence quote: \"productive cough with yellow sputum,\" \"WBC 16.5 with left shift,\" \"chest X-ray shows RLL infiltrate,\" and \"Started on ceftriaxone + azithromycin.\"\n   - Minimal clarification needed: The pneumonia type/etiology"
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Anatomical specificity is present in findings but not clearly linked in the diagnosis statement.\n   - Why it matters: The chart contains laterality/lobar detail that may support a more precise diagnosis statement.\n   - Evidence quote: \"crackles in right lower lobe\" and \"chest X-ray shows RLL infiltrate.\"\n   - Minimal clarification needed: Whether the diagnosis should be documented as right lower lobe pneumonia, if clinically appropriate."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Status of pneumonia diagnosis"
+      },
+      {
+        "idx": 2,
+        "text": "Pneumonia specificity"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Coding Expert: Consulted for coding specificity gaps and compliant query targets. Output was not substantively usable because it did not return the requested analysis; therefore no expert content was accepted.\n- AMBOSS Expert: Not consulted. Clinical criteria clarification was not required to identify the main CDI gap from this excerpt.\n- CDI/Web Search Expert: Not consulted. No external guideline lookup was necessary for this limited chart-based clarification.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Admission documentation states \"possible pneumonia.\"\n- Clinical indicators documented: \"febrile 38.8°C,\" \"crackles in right lower lobe,\" \"productive cough with yellow sputum,\" \"WBC 16.5 with left shift,\" and \"chest X-ray shows RLL infiltrate.\"\n- Treatment initiated: \"Started on ceftriaxone + azithromycin.\"\n\nDocumentation Gaps:\n1. Gap: The principal condition is documented only as uncertain.\n   - Why it matters: \"Possible pneumonia\" may not provide final diagnostic specificity for accurate coding/reporting if the diagnosis is being treated as confirmed at discharge or after study.\n   - Evidence quote: \"Patient admitted with 'possible pneumonia'.\"\n   - Minimal clarification needed: Whether pneumonia was confirmed, ruled out, still suspected, or remained clinically undetermined after evaluation.\n\n2. Gap: Pneumonia type/etiology is not specified.\n   - Why it matters: Coding specificity improves when the provider documents the pneumonia type/etiology if known (for example, organism-specific or other clinically established type). If not known, that should be stated.\n   - Evidence quote: \"productive cough with yellow sputum,\" \"WBC 16.5 with left shift,\" \"chest X-ray shows RLL infiltrate,\" and \"Started on ceftriaxone + azithromycin.\"\n   - Minimal clarification needed: The pneumonia type/etiology if clinically known, or that the etiology is unspecified/undetermined.\n\n3. Gap: Anatomical specificity is present in findings but not clearly linked in the diagnosis statement.\n   - Why it matters: The chart contains laterality/lobar detail that may support a more precise diagnosis statement.\n   - Evidence quote: \"crackles in right lower lobe\" and \"chest X-ray shows RLL infiltrate.\"\n   - Minimal clarification needed: Whether the diagnosis should be documented as right lower lobe pneumonia, if clinically appropriate.\n\nProposed Provider Queries:\n1. Topic: Status of pneumonia diagnosis\n   - Reason query is needed: The record documents uncertainty with supporting clinical indicators and treatment, but no clarified diagnosis statement.\n   - Evidence quote: \"Patient admitted with 'possible pneumonia'\"; \"febrile 38.8°C\"; \"WBC 16.5 with left shift\"; \"chest X-ray shows RLL infiltrate\"; \"Started on ceftriaxone + azithromycin.\"\n   - Non-leading query text: \"The admission note documents 'possible pneumonia.' Based on the documented clinical findings of fever 38.8°C, WBC 16.5 with left shift, productive cough, right lower lobe crackles, chest X-ray with RLL infiltrate, and treatment with ceftriaxone plus azithromycin, please clarify the status of pneumonia for this encounter.\"\n   - Suggested response options:\n     - Pneumonia confirmed after study\n     - Pneumonia ruled out after study\n     - Pneumonia remained suspected/probable\n     - Other diagnosis explaining the findings\n     - Clinically undetermined\n\n2. Topic: Pneumonia specificity\n   - Reason query is needed: The chart supports a pulmonary infectious process, but the diagnosis lacks type/etiologic specificity and does not explicitly link the lobar location to the diagnosis.\n   - Evidence quote: \"crackles in right lower lobe\"; \"productive cough with yellow sputum\"; \"chest X-ray shows RLL infiltrate.\"\n   - Non-leading query text: \"If pneumonia is confirmed, please clarify the most specific diagnosis supported for this encounter, including any known type/etiology and anatomic location.\"\n   - Suggested response options:\n     - Pneumonia, organism/type not further specified\n     - Right lower lobe pneumonia\n     - Pneumonia due to a specified organism/type (please document)\n     - Other pulmonary condition (please document)\n     - Clinically undetermined\n\nCoding Specificity Checklist:\n- Was pneumonia confirmed, ruled out, or still suspected after evaluation?\n- If confirmed, what is the most specific diagnosis statement?\n- Etiology/type, if known; otherwise document unspecified/undetermined.\n- Anatomic location, if clinically applicable: right lower lobe is supported in findings.\n- Any causative organism only if documented/confirmed.\n\nRisk Flags:\n- Uncertain diagnosis wording: \"possible pneumonia\" requires clarification for final coding.\n- No documented organism or definitive type in the excerpt.\n- Evidence does not support querying additional complications or alternative diagnoses beyond pneumonia specificity from this excerpt alone.\n\nSpecialist Trace:\n- Coding Expert: Consulted for coding specificity gaps and compliant query targets. Output was not substantively usable because it did not return the requested analysis; therefore no expert content was accepted.\n- AMBOSS Expert: Not consulted. Clinical criteria clarification was not required to identify the main CDI gap from this excerpt.\n- CDI/Web Search Expert: Not consulted. No external guideline lookup was necessary for this limited chart-based clarification."
+}

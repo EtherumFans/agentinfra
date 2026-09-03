@@ -1,0 +1,56 @@
+{
+  "fixture_id": "02_cardiology",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "心血管内科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者男性,62岁,因「突发胸骨后压榨样疼痛 3 小时」急诊入院。3 小时前无明显诱因出现胸骨后压榨样疼痛,向左肩、左上肢放射,伴大汗、恶心,无呕吐,含服硝酸甘油未缓解。急诊心电图示:V1-V4 ST 段弓背向上抬高 0.3-0.5mV,II/III/aVF ST 段压低。肌钙蛋白 I 12.5 ng/mL(参考值 <0.04)。急诊冠脉造影:LAD 近段 100% 闭塞,RCA 中段 80% 狭窄,LCX 30% 狭窄。行 LAD PCI 术,植入药物洗脱支架 1 枚,术后 TIMI 血流 3 级。既往:吸烟 40 年,每日 20 支;否认高血压、糖尿病史。父亲 65 岁心肌梗死病史。查体:BP 110/70mmHg,HR 96 次/分,双肺底未闻及啰音。入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级);冠状动脉单支病变(PCI 术后);高脂血症;吸烟者。",
+  "structured_context": {
+    "age": 62,
+    "sex": "男",
+    "encounter_type": "inpatient",
+    "admission_type": "急诊",
+    "primary_complaint": "突发胸骨后压榨样疼痛 3 小时",
+    "procedure": "PCI (LAD DES × 1)",
+    "los_days": 7
+  },
+  "known_facts": [
+    "急性前壁 STEMI",
+    "LAD 100% 闭塞",
+    "PCI 植入 DES 1 枚",
+    "cTnI 12.5 ng/mL",
+    "Killip II 级"
+  ],
+  "negated_facts": [
+    "否认高血压",
+    "否认糖尿病",
+    "无呕吐"
+  ],
+  "historical_facts": [
+    "吸烟 40 年",
+    "父亲 65 岁 MI"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "stent_thrombosis",
+    "post_mi_heart_failure",
+    "contraindication_of_anticoagulation"
+  ],
+  "gold_codes": [
+    "I21.001",
+    "I25.100",
+    "Z95.500",
+    "E78.500"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "STEMI + PCI case; primary I21.001 (acute anterior STEMI)."
+}

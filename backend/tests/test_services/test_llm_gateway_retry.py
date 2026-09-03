@@ -4,6 +4,7 @@ Covers Commit 2: 429/503 retry, 401/400 no-retry, circuit breaker integration.
 Commit 3: error paths return a degraded mock response (never raise).
 """
 import asyncio
+import json
 
 import httpx
 import pytest
@@ -83,6 +84,59 @@ async def test_retry_429_twice_then_200(monkeypatch, fresh_circuit, no_sleep):
     status = fresh_circuit.status()
     assert status["state"] == "closed"
     assert status["failures"] == 0
+
+
+@pytest.mark.asyncio
+async def test_request_context_can_only_tighten_tokens_timeout_and_attempts(
+    fresh_circuit,
+):
+    handler, calls = _mock_transport([
+        (429, {"error": "rate limited"}),
+    ])
+    provider = DeepSeekProvider(
+        api_key="test-key",
+        max_tokens=4096,
+        temperature=0.4,
+        timeout=120,
+        _transport=httpx.MockTransport(handler),
+    )
+
+    result = await provider.generate(
+        [{"role": "user", "content": "fixed synthetic canary"}],
+        context={
+            "max_tokens": 8,
+            "temperature": 0,
+            "timeout_seconds": 5,
+            "max_attempts": 1,
+        },
+    )
+
+    assert len(calls) == 1
+    payload = json.loads(calls[0].content)
+    assert payload["max_tokens"] == 8
+    assert payload["temperature"] == 0
+    _assert_degraded(result, "provider_429_503")
+
+
+@pytest.mark.asyncio
+async def test_request_context_cannot_widen_provider_token_or_timeout_limits(
+    fresh_circuit,
+):
+    handler, calls = _mock_transport([(200, _success_body())])
+    provider = DeepSeekProvider(
+        api_key="test-key",
+        max_tokens=32,
+        timeout=10,
+        _transport=httpx.MockTransport(handler),
+    )
+
+    await provider.generate(
+        [{"role": "user", "content": "fixed synthetic canary"}],
+        context={"max_tokens": 9999, "timeout_seconds": 9999},
+    )
+
+    payload = json.loads(calls[0].content)
+    assert payload["max_tokens"] == 32
 
 
 @pytest.mark.asyncio

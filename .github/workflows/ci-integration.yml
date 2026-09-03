@@ -47,6 +47,7 @@ jobs:
         ports:
           - 5432:5432
     env:
+      DATABASE_URL: postgresql+asyncpg://icoder:icoder_test@localhost:5432/icoder_test
       ICODER_DATABASE_URL: postgresql+asyncpg://icoder:icoder_test@localhost:5432/icoder_test
       ICODER_ALLOW_DEGRADED_NO_KEY: "1"
       ICODER_DISABLE_AUTH_FOR_TESTS: "1"
@@ -59,7 +60,35 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: packages/icoder-sdk/package-lock.json
       - run: pip install -r requirements.txt
+
+      - name: PostgreSQL least-privilege role provisioning contract
+        env:
+          P1_POSTGRES_ADMIN_DATABASE_URL: postgresql+psycopg://icoder:icoder_test@localhost:5432/icoder_test
+        run: >-
+          python -m pytest
+          tests/integration/test_postgresql_role_provisioning.py
+          -v --tb=short
+
+      - name: Install official A2A JavaScript interoperability dependency
+        working-directory: packages/icoder-sdk
+        run: npm ci
+
+      - name: Apply PostgreSQL schema for cross-process trace contract
+        env:
+          DATABASE_URL: ${{ env.ICODER_DATABASE_URL }}
+        run: python -m alembic upgrade head
+
+      - name: PostgreSQL cross-process RunTrace contract
+        run: >-
+          python -m pytest
+          tests/integration/test_run_trace_postgres_cross_process.py
+          -v --tb=short
 
       - name: Integration tests
         run: python -m pytest tests/integration -v --tb=short
@@ -69,9 +98,10 @@ jobs:
 
       - name: Backend e2e tests
         run: python -m pytest tests/e2e -v --tb=short
-        continue-on-error: true  # orchestrator_real_deepseek needs a real LLM key
         env:
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY || '' }}
+          # The live DeepSeek test skips explicitly when this secret is absent;
+          # all other e2e failures remain blocking.
+          ICODER_CREDENTIAL_LLM: ${{ secrets.ICODER_CREDENTIAL_LLM || '' }}
 
       - name: e2e_product tests
         run: python -m pytest tests/e2e_product -v --tb=short
@@ -124,3 +154,130 @@ jobs:
               print(f'MEDCODER_MODE_REGISTERED: {m.name} = {m.value}')
           print('MODE_REGISTRY_OK')
           "
+
+  agent-hub-live-e2e:
+    name: Agent Hub 26-Agent live E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: icoder
+          POSTGRES_PASSWORD: icoder_test
+          POSTGRES_DB: icoder_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql+asyncpg://icoder:icoder_test@localhost:5432/icoder_test
+      ICODER_CREDENTIAL_LLM: ${{ secrets.ICODER_CREDENTIAL_LLM || '' }}
+      ICODER_ALLOW_DEGRADED_NO_KEY: "0"
+      ICODER_DISABLE_AUTH_FOR_TESTS: "0"
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Validate all Hub-visible Packs without network access
+        run: |
+          python scripts/corti_parity/build_agent_hub_runtime_matrix.py \
+            --output-dir "$RUNNER_TEMP/agent-hub-live/runtime" \
+            --assert-visible-ready
+          python -m pytest -q \
+            tests/unit/corti_parity/test_agent_hub_adversarial_matrix.py \
+            tests/unit/corti_parity/test_agent_hub_semantic_evidence_bundle.py \
+            tests/unit/icoder_runtime/test_agent_hub_runtime_matrix.py \
+            tests/unit/icoder_runtime/test_visible_agent_safety_properties.py
+
+      - name: Record explicit live-E2E skip when no credential is configured
+        if: env.ICODER_CREDENTIAL_LLM == ''
+        run: |
+          echo "Agent Hub live E2E was not executed because ICODER_CREDENTIAL_LLM is unavailable." \
+            | tee "$RUNNER_TEMP/agent-hub-live/LIVE_E2E_SKIPPED.txt"
+
+      - name: Generate job-scoped result-attestation key
+        if: env.ICODER_CREDENTIAL_LLM != ''
+        run: |
+          attestation_key="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+          echo "::add-mask::$attestation_key"
+          echo "ICODER_SECRET_KEY=$attestation_key" >> "$GITHUB_ENV"
+
+      - name: Start single-worker API for live Agent E2E
+        if: env.ICODER_CREDENTIAL_LLM != ''
+        run: |
+          python -m alembic upgrade head
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 \
+            > "$RUNNER_TEMP/agent-hub-live/uvicorn.out.log" \
+            2> "$RUNNER_TEMP/agent-hub-live/uvicorn.err.log" &
+          echo $! > "$RUNNER_TEMP/agent-hub-live/uvicorn.pid"
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:8000/openapi.json > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API failed to become ready" >&2
+          exit 1
+
+      - name: Run 26 happy-path and 26 adversarial Agent cases
+        if: env.ICODER_CREDENTIAL_LLM != ''
+        run: |
+          python scripts/corti_parity/run_agent_hub_examples_e2e.py \
+            --out-dir "$RUNNER_TEMP/agent-hub-live/examples" \
+            --delay 0.5 --timeout 150 --force --allow-self-register
+          python scripts/corti_parity/run_agent_hub_adversarial_e2e.py \
+            --out-dir "$RUNNER_TEMP/agent-hub-live/adversarial" \
+            --delay 0.5 --timeout 150 --force --allow-self-register
+
+      - name: Run two-round Agent stability benchmark
+        if: env.ICODER_CREDENTIAL_LLM != ''
+        run: |
+          python scripts/corti_parity/run_agent_hub_stability_benchmark.py \
+            --out-dir "$RUNNER_TEMP/agent-hub-live/stability" \
+            --happy-seed-dir "$RUNNER_TEMP/agent-hub-live/examples" \
+            --adversarial-seed-dir "$RUNNER_TEMP/agent-hub-live/adversarial" \
+            --repetitions 2 --delay 0.5 --timeout 150 --allow-self-register
+
+      - name: Validate reference semantics and assemble live evidence bundle
+        if: env.ICODER_CREDENTIAL_LLM != ''
+        run: |
+          python scripts/corti_parity/run_agent_hub_reference_quality_replay.py \
+            --responses-dir "$RUNNER_TEMP/agent-hub-live/examples/responses" \
+            --source-report "$RUNNER_TEMP/agent-hub-live/examples/agent_hub_examples_e2e.json" \
+            --out-dir "$RUNNER_TEMP/agent-hub-live/reference"
+          python scripts/corti_parity/build_agent_hub_semantic_evidence_bundle.py \
+            --examples "$RUNNER_TEMP/agent-hub-live/examples/agent_hub_examples_e2e.json" \
+            --adversarial "$RUNNER_TEMP/agent-hub-live/adversarial/agent_hub_adversarial_e2e.json" \
+            --reference "$RUNNER_TEMP/agent-hub-live/reference/agent_hub_reference_quality_replay.json" \
+            --stability "$RUNNER_TEMP/agent-hub-live/stability/agent_hub_stability_benchmark.json" \
+            --out-dir "$RUNNER_TEMP/agent-hub-live/semantic-evidence"
+          python scripts/corti_parity/build_agent_hub_runtime_matrix.py \
+            --output-dir "$RUNNER_TEMP/agent-hub-live/runtime-with-semantic-evidence" \
+            --semantic-evidence "$RUNNER_TEMP/agent-hub-live/semantic-evidence/agent_hub_semantic_evidence_bundle.json" \
+            --assert-visible-ready
+
+      - name: Stop live-E2E API
+        if: always() && env.ICODER_CREDENTIAL_LLM != ''
+        run: |
+          if [ -f "$RUNNER_TEMP/agent-hub-live/uvicorn.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/agent-hub-live/uvicorn.pid")" || true
+          fi
+
+      - name: Upload Agent Hub live-E2E evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-hub-live-e2e
+          path: ${{ runner.temp }}/agent-hub-live
+          retention-days: 14

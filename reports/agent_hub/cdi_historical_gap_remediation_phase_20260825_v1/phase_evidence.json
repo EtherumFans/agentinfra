@@ -1,0 +1,109 @@
+{
+  "schema_version": "icoder.cdi-historical-gap-remediation-phase/v1",
+  "generated_at": "2026-08-25T02:01:42.8045139+08:00",
+  "status": "offline_structural_remediation_verified_real_model_replay_pending",
+  "scope": "synthetic_development_regression_not_independent_clinical_gold",
+  "historical_candidate": {
+    "path": "reports/track_h/h4_benchmark_candidate_rc5",
+    "query_count_agreement_within_one": 0.75,
+    "average_absolute_query_delta": 1.0,
+    "actual_out_of_fixture_range": [
+      {
+        "case_id": "G8-CDI-GAP-004",
+        "expected_min": 1,
+        "expected_max": 2,
+        "historical_actual": 0,
+        "delta_to_range": -1
+      },
+      {
+        "case_id": "G8-CDI-GAP-008",
+        "expected_min": 1,
+        "expected_max": 2,
+        "historical_actual": 3,
+        "delta_to_range": 1
+      },
+      {
+        "case_id": "G8-CDI-CONFLICT-032",
+        "expected_min": 1,
+        "expected_max": 2,
+        "historical_actual": 3,
+        "delta_to_range": 1
+      }
+    ],
+    "previously_named_but_within_fixture_range": [
+      "G8-CDI-INSUF-025",
+      "G8-CDI-NEG-027",
+      "G8-CDI-CONFLICT-035",
+      "G8-CDI-LAB-036",
+      "G8-CDI-LAB-037",
+      "G8-CDI-LAB-038"
+    ]
+  },
+  "remediation": {
+    "gap004": "one open single-dimension pancreatitis-etiology query only when acute pancreatitis, gallstone history, unresolved etiology, and a matching documentation gap are all present",
+    "gap008": "existing DKA diagnosis focus suppresses documented diabetes type and secondary severity drafts",
+    "conflict032": "existing necessity rules retain the duration conflict and suppress explicit type and redundant glycemic-control measurement drafts",
+    "diagnosis_invention_prevented": true,
+    "resolved_etiology_duplicate_prevented": true,
+    "exact_evidence_spans_required": 2,
+    "unable_to_determine_option_required": true
+  },
+  "verification": {
+    "cdi_orchestrator_regression": {
+      "passed": 41,
+      "failed": 0,
+      "elapsed_seconds": 2.93,
+      "serial": true
+    },
+    "cdi_gate_composition": {
+      "passed": 153,
+      "failed": 0,
+      "elapsed_seconds": 3.34,
+      "serial": true
+    },
+    "all_visible_offline_safety": {
+      "passed": 78,
+      "failed": 0,
+      "elapsed_seconds": 27.10,
+      "serial": true
+    },
+    "clinical_calibration_and_deployment_focused": {
+      "passed": 24,
+      "failed": 0,
+      "elapsed_seconds": 40.32,
+      "serial": true
+    },
+    "deployment_preflight": {
+      "passed_checks": 92,
+      "failed_checks": 0,
+      "path": "reports/deployment/cdi_historical_gap_remediation_phase_20260825_v1/deployment_preflight.json",
+      "sha256": "fcb66a8a528124ee7c679bf671d5f0836535d569f4d26ab3dba58cbb7acab1bf"
+    },
+    "powershell_runner_parse_errors": 0
+  },
+  "safety_invariants": {
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "external_llm_disabled": true,
+    "temporary_sqlite_used": true,
+    "protected_database_unchanged": true,
+    "protected_database_sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "credential_environment_present_after_tests": false,
+    "python_or_uvicorn_processes_after_tests": 0,
+    "backend_common_listeners_after_tests": 0
+  },
+  "source_sha256": {
+    "backend/app/icoder/agent_runtime/cdi/orchestrator.py": "7c9d0afd12f7e6b8b3a33a4c7411a8108e6cf100136edcfc1215af01bb418569",
+    "backend/tests/unit/icoder/cdi/test_orchestrator.py": "eae478ffc5d0d480486cbb7c3f5cc49b2ab9572826e986c0dc3da356cb27a3bb",
+    "backend/tests/fixtures/cdi_gate8_40cases.json": "22382b8ebe5955849442cfcd3b3ed646252d66fee17a77a15e4107859648db9a",
+    "docs/corti_parity/ICODER_CDI_HISTORICAL_GAP_REMEDIATION_PHASE_SUMMARY_2026-08-25.md": "a813447c198aa9d63bccfcb48b84f97ad65de771ec706d20bb5c815d674b55cb"
+  },
+  "claim_boundaries": {
+    "real_model_cdi_cases_executed": 0,
+    "real_model_total_clinical_calibration_invocations": 0,
+    "independent_clinical_gold_used": false,
+    "corti_head_to_head_completed": false,
+    "production_ready_proven": false
+  },
+  "next_gate": "run the governed 26-agent live-provider E2E and 50 serial clinical calibration invocations with a new temporary key"
+}

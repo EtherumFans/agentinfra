@@ -1,0 +1,64 @@
+{
+  "phase": "agentic_v2_connector_resource_and_security_crud",
+  "captured_at": "2026-08-22T00:03:00+08:00",
+  "network_llm_calls": 0,
+  "external_connector_calls": 0,
+  "browser_started": false,
+  "native_medcoder_started": false,
+  "implementation": {
+    "migration": "044_agentic_connectors",
+    "tables": [
+      "agent_connectors",
+      "connector_credentials",
+      "connector_execution_audit"
+    ],
+    "connector_types": ["registry", "mcp", "agent", "a2a", "schema"],
+    "openapi_total_paths": 251,
+    "openapi_connector_paths": 3,
+    "crud_methods": ["GET list", "POST", "GET", "PATCH", "DELETE"],
+    "credential_methods": ["PUT bind-or-rotate reference", "DELETE reference"],
+    "credential_storage": "external secret-manager reference and non-secret metadata only"
+  },
+  "security_contracts": [
+    "organization and source Agent are the leading query scope",
+    "cross-tenant and cross-Agent resources return 404",
+    "connector type is immutable and updates require expected_version",
+    "registry entries are server-approved",
+    "Agent self-loop, cycle, depth and fan-out are bounded",
+    "MCP and A2A require canonical HTTPS and reject userinfo, query, fragment and non-443 ports",
+    "loopback, private, link-local, metadata, CGNAT, unspecified, multicast and reserved IPs are blocked",
+    "CN enabled external connectors require an exact host egress allowlist",
+    "JSON Schema dialect, depth, nodes, external references and risky regex are bounded",
+    "secret-shaped config keys and values are rejected",
+    "validation responses for connector paths strip rejected input values",
+    "credential references are write-only and never occur in ConnectorResponse",
+    "mutations require owner or admin organization role",
+    "configuration changes emit minimum-necessary tenant audit records",
+    "connector delete creates an invisible tombstone so execution audit foreign keys remain valid"
+  ],
+  "verification": {
+    "connector_unit_and_integration": {
+      "passed": 30,
+      "failed": 0
+    },
+    "combined_a2a_connector_ssrf_regression": {
+      "passed": 148,
+      "failed": 0,
+      "warnings": 1,
+      "warning": "Starlette TestClient httpx deprecation only"
+    },
+    "alembic_upgrade_044_and_downgrade_043": "passed",
+    "openapi_check": "passed",
+    "sensitive_shape_scan": "0 matches"
+  },
+  "not_yet_implemented": [
+    "connector execution engine and mock execution E2E",
+    "connection-time DNS pinning and redirect revalidation",
+    "OAuth token exchange and provider-side credential resolution",
+    "connector circuit breakers, retry and execution budgets",
+    "JavaScript/Python/.NET connector SDK resources",
+    "PostgreSQL multi-process locking and Docker Linux E2E"
+  ],
+  "completion_claim": "resource CRUD complete; execution path partial",
+  "reason": "The persistent five-type resource and security CRUD slice is complete, but this does not claim a production connector runner or Corti hosted-service equivalence."
+}

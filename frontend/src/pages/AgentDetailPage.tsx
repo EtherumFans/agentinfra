@@ -1,22 +1,35 @@
-// Agent Detail Page — standalone page for /ai-studio/agents/:agentId
+// Agent Detail Page - standalone page for /ai-studio/agents/:agentId
 // Chat area (left) + SettingsCodeTab (right) with Settings/Code tabs
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useT } from '../i18n';
 import {
-  Bot, Send, Loader2, Home, ChevronRight, Plus, Settings, Code,
+  Bot, Send, Loader2, Plus,
   X, Paperclip, FileText, Braces, Trash2, Wrench, Pencil,
-  Search, Check, Sparkles, BookOpen, Copy, User, Clock,
 } from 'lucide-react';
-import { agentsApi, billingApi, oauthApi } from '../services/api';
+
+import { useT } from '../i18n';
+import { agentsApi, billingApi } from '../services/api';
+import { agentHubApi } from '../services/agentHubApi';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
-import type { RuntimeRunResult } from '../types/runtime';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import ToolSelector from '../components/agents/ToolSelector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import EditSystemPromptModal from '../components/EditSystemPromptModal';
 import A2ACollaboration from '../components/A2ACollaboration';
+import { buildAgentRunSnippets } from '../utils/agentSdkCode';
+
+function isRunActionDisabled(agent: any): boolean {
+  if (!agent) return true;
+  if (!agent.is_prebuilt && agent.lifecycle) {
+    return agent.lifecycle.run_action_enabled !== true;
+  }
+  return Boolean(
+    agent.is_prebuilt
+    && agent.runtime_readiness
+    && agent.runtime_readiness.run_action_enabled !== true
+  );
+}
 
 export default function AgentDetailPage() {
   const t = useT();
@@ -35,6 +48,8 @@ export default function AgentDetailPage() {
   const [runtimeTier, setRuntimeTier] = useState<number | null>(null);
   const [useRuntime, setUseRuntime] = useState(() => localStorage.getItem('icoder-agent-runtime-mode') !== 'legacy');
   const [installLoading, setInstallLoading] = useState(false);
+  // Phase 4-G #4: fork button state (clones iCoDer built agent into user's namespace)
+  const [forkLoading, setForkLoading] = useState(false);
   const toast = useToastStore((s) => s.addToast);
 
   // Agent Test Panel
@@ -43,18 +58,19 @@ export default function AgentDetailPage() {
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
 
-  // Agent Evaluation
-  const [showEval, setShowEval] = useState(false);
-  const [evalResult, setEvalResult] = useState<any>(null);
-  const [evalLoading, setEvalLoading] = useState(false);
-  const [evalHistory, setEvalHistory] = useState<any[]>([]);
+  // Real persisted run history. This deliberately does not claim evaluation
+  // accuracy because no independent gold-standard evaluation service exists.
+  const [showRunHistory, setShowRunHistory] = useState(false);
+  const [runHistory, setRunHistory] = useState<any[]>([]);
+  const [runHistoryLoading, setRunHistoryLoading] = useState(false);
+  const [runHistoryError, setRunHistoryError] = useState('');
 
   // Chat state
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [sessionId, setSessionId] = useState(() => `sess-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
-  const [memoryLoaded, setMemoryLoaded] = useState(false);
+  const [memoryReadiness, setMemoryReadiness] = useState<any | null>(null);
 
   // Expert bindings
   const [agentExperts, setAgentExperts] = useState<any[]>([]);
@@ -67,6 +83,7 @@ export default function AgentDetailPage() {
   const [showEditPrompt, setShowEditPrompt] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [lifecycleLoading, setLifecycleLoading] = useState(false);
 
   // Orchestration config
   const [routingStrategy, setRoutingStrategy] = useState<string>('llm_plan');
@@ -88,17 +105,15 @@ export default function AgentDetailPage() {
   const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
   const [showFormatMenu, setShowFormatMenu] = useState(false);
 
-  // API client / balance
+  // Billing balance
   const [balance, setBalance] = useState<number | null>(null);
-  const [apiClients, setApiClients] = useState<any[]>([]);
-  const [selectedApiClient, setSelectedApiClient] = useState<string>('');
-  const [copied, setCopied] = useState('');
   // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Track the currently active agentId to discard stale responses
   const activeAgentIdRef = useRef(agentId);
   const activeStreamRef = useRef<AbortController | null>(null);
+  const activeContextRef = useRef<string>('');
   useEffect(() => {
     activeAgentIdRef.current = agentId;
     // Abort any in-flight stream from previous agent
@@ -106,6 +121,7 @@ export default function AgentDetailPage() {
       activeStreamRef.current.abort();
       activeStreamRef.current = null;
     }
+    activeContextRef.current = '';
   }, [agentId]);
 
   // Load agent data
@@ -117,37 +133,43 @@ export default function AgentDetailPage() {
     setError('');
     setLoading(true);
     setChatMessages([]);
-    setMemoryLoaded(false);
+    setMemoryReadiness(null);
+    setRuntimeInstalled(false);
+    setRuntimeStatus('');
+    setRuntimeTier(null);
+    setRunHistory([]);
+    setRunHistoryError('');
     setSessionId(`sess-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
 
     billingApi.balance().then(r => { if (isActive()) setBalance(r.data.balance); }).catch(() => {});
-    oauthApi.list().then(r => {
-      if (!isActive()) return;
-      const clients = r.data?.clients || [];
-      setApiClients(clients);
-      if (clients.length > 0) setSelectedApiClient(clients[0].client_id);
-    }).catch(() => {});
-
-    let idToExpert: Record<string, any> = {};
+    const idToExpert: Record<string, any> = {};
     agentsApi.get(agentId).then(r2 => {
       if (!isActive()) return;
       const a = r2.data;
       setAgent(a);
       setAgentName(a.name || '');
-      // Check Runtime status for this agent
+      // Project Agents are runtime-addressable by their database ID. Their
+      // explicit lifecycle is authoritative; registry install state applies
+      // only to separately installed/prebuilt runtime Packs.
       const cleanName = (a.name || 'agent').toLowerCase().replace(/\s+/g, '-').replace(/\(copy\)/g, '').replace(/-+$/g, '');
       const ref = cleanName + '-' + (a.version || '1.0.0');
-      setAgentRef(ref);
-      runtimeAgentApi.listAgents().then(({ agents: installed }) => {
-        const found = installed.find((inst: { agent_ref: string }) =>
-          inst.agent_ref.includes(cleanName) || inst.agent_ref === ref
-        );
-        if (found) {
-          setRuntimeInstalled(true);
-          setRuntimeStatus(found.status);
-          setRuntimeTier((found as any).tier ?? null);
-        }
-      }).catch(() => {});
+      if (!a.is_prebuilt && a.lifecycle) {
+        setAgentRef(a.id);
+        setRuntimeInstalled(true);
+        setRuntimeStatus(a.lifecycle.state || a.status || 'draft');
+      } else {
+        setAgentRef(ref);
+        runtimeAgentApi.listAgents().then(({ agents: installed }) => {
+          const found = installed.find((inst: { agent_ref: string }) =>
+            inst.agent_ref.includes(cleanName) || inst.agent_ref === ref
+          );
+          if (found) {
+            setRuntimeInstalled(true);
+            setRuntimeStatus(found.status);
+            setRuntimeTier((found as any).tier ?? null);
+          }
+        }).catch(() => {});
+      }
       setSystemPrompt(a.system_prompt || '');
       const cfg = a.config || {};
       setRoutingStrategy(cfg.routing_strategy || 'llm_plan');
@@ -177,6 +199,40 @@ export default function AgentDetailPage() {
           return;
         }
       } catch {}
+      // Fallback: try Hub (prebuilt agents like icoder/medical-coding-agent@2.0.0)
+      try {
+        const hubRes = await agentHubApi.listWithTenantReadiness();
+        if (!isActive()) return;
+        const card = (hubRes.data?.agents || []).find(c => c.agent_ref === agentId || c.agent_id === agentId);
+        if (card) {
+          setAgent({
+            id: card.agent_ref,
+            name: card.name,
+            description: card.description,
+            version: card.version,
+            category: card.category,
+            system_prompt: '',
+            expert_ids: [],
+            config: { default_runtime_mode: card.default_runtime_mode },
+            is_prebuilt: true,
+            red_lines: card.red_lines,
+            workflow: card.workflow,
+            badge: card.badge,
+            // Phase 5 Track D P0 Gate 1: preserve internal fields for
+            // engineering views, but downstream rendering uses
+            // display_status + display_badges.
+            maturity: card.maturity,
+            production_ready: card.production_ready,
+            human_review: card.human_review,
+            display_status: card.display_status,
+            display_badges: card.display_badges,
+            usage_boundaries: card.usage_boundaries,
+            runtime_readiness: card.runtime_readiness,
+          } as any);
+          setAgentName(card.name); setAgentRef(card.agent_ref);
+          return;
+        }
+      } catch {}
       // Fallback: try templates
       try {
         const templatesRes = await agentsApi.templates();
@@ -198,13 +254,18 @@ export default function AgentDetailPage() {
     });
   }, [agentId]);
 
-  // Load memory context
+  // Load only aggregate governed-Memory readiness; no remembered content is fetched.
   useEffect(() => {
-    if (agent && !memoryLoaded) {
-      setMemoryLoaded(true);
+    if (!agentId || !agent) {
+      setMemoryReadiness(null);
+      return;
     }
-    if (!agent) setMemoryLoaded(false);
-  }, [agent, sessionId, memoryLoaded]);
+    let active = true;
+    agentsApi.memoryReadiness(agentId)
+      .then(response => { if (active) setMemoryReadiness(response.data); })
+      .catch(() => { if (active) setMemoryReadiness(null); });
+    return () => { active = false; };
+  }, [agent, agentId]);
 
   // Build message content
   const buildMessageContent = (): string => {
@@ -219,6 +280,10 @@ export default function AgentDetailPage() {
   const handleSend = async (overrideContent?: string) => {
     const content = overrideContent || buildMessageContent();
     if (!content.trim() || !agent) return;
+    if (isRunActionDisabled(agent)) {
+      toast(t.agentRuntimeUnavailableHint, 'error');
+      return;
+    }
 
     // Abort any in-flight stream
     if (activeStreamRef.current) {
@@ -229,7 +294,6 @@ export default function AgentDetailPage() {
     const isActive = () => activeAgentIdRef.current === agentId;
 
     const userMsg = { role: 'user', content };
-    const history = chatMessages.map(m => ({ role: m.role, content: m.content }));
     setChatMessages(prev => [...prev, userMsg]);
     if (!overrideContent) {
       setChatInput('');
@@ -243,18 +307,91 @@ export default function AgentDetailPage() {
     setChatMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
     try {
-      const token = localStorage.getItem('access_token') || '';
-      // /api/agents/{id}/stream was deleted in Phase 2.1-A; A2A message:send
-      // is the new agent invocation path. Surface the migration to the user.
-      // TODO: rewrite to A2A SSE via /api/icoder/agents/{id}/v1/message:send
-      throw new Error('Agent streaming endpoint removed in Phase 2.1-A. Use A2A message:send via /api/icoder/agents/{id}/v1/message:send instead.');
-      // eslint-disable-next-line no-unreachable
-      void token;
+      let streamedText = '';
+      let providerCharacters = 0;
+      const resp = await runtimeAgentApi.agentStream(agentId || '', content, {
+        signal: abortController.signal,
+        context_id: activeContextRef.current || undefined,
+        onStatus: (status) => {
+          if (!isActive() || streamedText) return;
+          const message = typeof status.message === 'string'
+            ? status.message
+            : 'Agent execution in progress';
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx ? { ...item, content: `⏳ ${message}` } : item
+          ));
+        },
+        onTextDelta: (delta) => {
+          if (!isActive()) return;
+          streamedText += delta;
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx ? { ...item, content: streamedText } : item
+          ));
+        },
+        onProviderProgress: (progress) => {
+          if (!isActive() || streamedText) return;
+          const characters = Number(progress.characters || 0);
+          if (Number.isFinite(characters) && characters > 0) {
+            providerCharacters += characters;
+          }
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx
+              ? { ...item, content: `⏳ Model output received (${providerCharacters} characters); validating…` }
+              : item
+          ));
+        },
+        onToolEvent: (event, payload) => {
+          if (!isActive() || streamedText) return;
+          const toolName = typeof payload.toolName === 'string'
+            ? `: ${payload.toolName}`
+            : '';
+          const label = event === 'data-tool-call'
+            ? `Tool completed${toolName}`
+            : event === 'data-provider-reset'
+              ? 'Provider switched; partial output discarded'
+              : 'Tool call streaming';
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx ? { ...item, content: `⏳ ${label}` } : item
+          ));
+        },
+      });
+
+      if (!isActive()) return;
+      if (resp.context_id) activeContextRef.current = resp.context_id;
+
+      if (resp.error) {
+        setChatMessages(prev => prev.map((m, i) =>
+          i === assistantIdx
+            ? { ...m, content: `错误：${resp.summary || resp.error_reason || 'agent run failed'}` }
+            : m
+        ));
+      } else {
+        // Format response: summary + result preview
+        const parts: string[] = [];
+        if (resp.summary) parts.push(resp.summary);
+        if (resp.result && Object.keys(resp.result).length > 0) {
+          parts.push('```json\n' + JSON.stringify(resp.result, null, 2) + '\n```');
+        }
+        if (resp.warnings?.length) {
+          parts.push('⚠️ ' + resp.warnings.join('; '));
+        }
+        if (resp.manual_review_required) {
+          parts.push('🔍 人工复核提示：本次运行结果需经编码员人工确认。');
+        }
+        const assistantContent = parts.join('\n\n') || '(no output)';
+        setChatMessages(prev => prev.map((m, i) =>
+          i === assistantIdx ? { ...m, content: assistantContent } : m
+        ));
+        // Stash raw JSON for Copy JSON button.
+        setJsonData(JSON.stringify(resp, null, 2));
+      }
+      setChatLoading(false);
     } catch (err: any) {
       if (err.name === 'AbortError') return;
       if (isActive()) {
+        const msg = err?.response?.data?.detail || err.message || 'agent run failed';
         setChatMessages(prev => prev.map((m, i) =>
-          i === assistantIdx ? { ...m, content: m.content || `错误：${err.message}` } : m
+          i === assistantIdx ? { ...m, content: m.content || `错误：${msg}` } : m
         ));
         setChatLoading(false);
       }
@@ -263,15 +400,14 @@ export default function AgentDetailPage() {
 
   // Quick actions
   const handleWhatCanYouDo = () => {
-    const msg = "你能做什么？请描述你的能力、专长以及如何在医疗编码、临床文档及相关医疗任务中提供帮助。";
-    handleSend(msg);
+    handleSend(t.agentDetailCapabilityQuestion);
   };
 
 
   const [editingAttachment, setEditingAttachment] = useState<string | null>(null);
 
   const handleSuggestPrompt = () => {
-    const caseItem = { caseLabel: '腰椎间盘突出症', caseText: '患者，女，65岁。因腰痛伴左下肢放射痛3月就诊。腰椎MRI示L4/5椎间盘突出，压迫左侧神经根。入院诊断：腰椎间盘突出症。建议行PLIF手术。' };
+    const caseItem = { caseLabel: t.agentDetailTestCaseLabel, caseText: t.agentDetailTestCaseText };
 
     setAttachedFile({ name: caseItem.caseLabel, content: caseItem.caseText });
 
@@ -294,35 +430,41 @@ export default function AgentDetailPage() {
     setChatInput(instruction);
   };
 
-  // Agent Evaluation
-  const fetchEvalHistory = async () => {
-    // /api/agents/{id}/evaluation-history was deleted in Phase 2.1-A.
-    // TODO: re-implement via A2A run history (/api/runtime/runs) filtered by agent_ref.
+  const fetchRunHistory = async () => {
+    setRunHistoryLoading(true);
+    setRunHistoryError('');
     try {
-      const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'') + '-' + (agent?.version||'1.0.0');
-      // eslint-disable-next-line no-unused-vars
-      const _ = ref; // (kept for future A2A history call)
-      setEvalHistory([]);
-    } catch {}
-  };
-  const runEvaluation = async () => {
-    // /api/agents/{id}/evaluate was deleted in Phase 2.1-A.
-    // TODO: re-implement via A2A message:send + evaluation agent.
-    setEvalLoading(true);
-    try {
-      throw new Error('Agent evaluation endpoint removed in Phase 2.1-A. Use A2A message:send with an evaluation agent.');
+      const filterId = agent?.id || agentId || '';
+      if (!filterId) {
+        setRunHistory([]);
+        return;
+      }
+      const data = await runtimeAgentApi.getRunHistory(filterId, 10);
+      setRunHistory(data.items || []);
     } catch (e: any) {
-      // Surface the migration error
-      console.warn(e.message);
-    } finally { setEvalLoading(false); }
+      console.warn('fetchRunHistory: getRunHistory failed', e?.message || e);
+      setRunHistory([]);
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      setRunHistoryError(message);
+      toast(message, 'error');
+    } finally {
+      setRunHistoryLoading(false);
+    }
   };
 
   // Save settings
   const handleSaveSettings = async () => {
     if (!agent?.id) return;
+    if (agent.lifecycle?.state === 'archived') {
+      toast(t.agentLifecycleRestoreBeforeEdit, 'error');
+      return;
+    }
     setSavingSettings(true);
     try {
-      await agentsApi.update(agent.id, {
+      const response = await agentsApi.update(agent.id, {
         name: agentName,
         system_prompt: systemPrompt,
         expert_ids: agentExperts.map(e => e.id),
@@ -337,10 +479,42 @@ export default function AgentDetailPage() {
           },
         },
       });
+      setAgent(response.data);
+      setAgentName(response.data.name || agentName);
+      setAgentRef(response.data.id || agentRef);
+      setRuntimeStatus(response.data.lifecycle?.state || response.data.status || runtimeStatus);
       setSettingsSaved(true);
       setTimeout(() => setSettingsSaved(false), 2000);
-    } catch { /* silently fail */ }
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      toast(message, 'error');
+    }
     setSavingSettings(false);
+  };
+
+  const handleLifecycleAction = async (action: 'publish' | 'archive' | 'restore') => {
+    if (!agent?.id || lifecycleLoading) return;
+    setLifecycleLoading(true);
+    try {
+      const response = await agentsApi[action](agent.id);
+      const updated = response.data;
+      setAgent(updated);
+      setRuntimeInstalled(true);
+      setRuntimeStatus(updated.lifecycle?.state || updated.status || action);
+      setAgentRef(updated.id || agentRef);
+      toast(t.agentLifecycleActionSucceeded, 'success');
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      toast(message, 'error');
+    } finally {
+      setLifecycleLoading(false);
+    }
   };
 
   // Delete agent
@@ -355,7 +529,13 @@ export default function AgentDetailPage() {
       await agentsApi.delete(agent.id);
       setShowDeleteConfirm(false);
       navigate('/ai-studio/agents');
-    } catch { /* silently fail */ }
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      toast(message, 'error');
+    }
   };
 
   // Browse expert library
@@ -372,13 +552,6 @@ export default function AgentDetailPage() {
     setAgentExperts(prev => prev.filter(e => e.id !== id));
   };
 
-  const handleCopy = (key: string) => {
-    const code = `import { iCoDerClient } from "@icoder/sdk";\n\nconst client = new iCoDerClient({ apiKey: "YOUR_API_KEY" });\nconst agent = client.agent("${agent?.id || agentId}");\nconst response = await agent.chat("patient case...");`;
-    navigator.clipboard.writeText(code);
-    setCopied(key);
-    setTimeout(() => setCopied(''), 2000);
-  };
-
   // Only show spinner on very first load (no agent data at all)
   if (!agent && loading) {
     return (
@@ -393,7 +566,7 @@ export default function AgentDetailPage() {
     return (
       <div className="flex-1 flex flex-col bg-muted/20">
         <div className="flex-1 p-6 overflow-y-auto">
-          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 text-center py-16">
+          <div className="bg-background rounded-xl shadow-sm text-center py-16">
           <Bot size={48} className="mx-auto mb-3 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">{error || t.agentNotFound}</p>
           <Link to="/ai-studio/agents" className="inline-block mt-4 text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
@@ -406,17 +579,45 @@ export default function AgentDetailPage() {
   }
 
   const agentTitle = agentName || agent.name || agent.title || '智能体';
+  const dynamicProjectAgent = Boolean(agent && !agent.is_prebuilt && agent.lifecycle);
+  const runActionDisabled = isRunActionDisabled(agent);
+  const agentRunCode = buildAgentRunSnippets({
+    agentId: agent?.id || agentId || '',
+    agentRef: agentRef || agent?.config?.source_agent_ref || agent?.config?.agent_ref || '',
+    baseURL: window.location.origin,
+    runtimeMode: agent?.default_runtime_mode || agent?.config?.default_runtime_mode || '',
+  });
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Runtime status bar */}
       <div className="flex items-center gap-4 px-6 py-2 bg-muted/30 border-b text-xs">
         <span className="text-muted-foreground">Runtime:</span>
-        <span className="text-[11px] font-mono text-muted-foreground ml-auto">¥0.000000</span>
+        {memoryReadiness && (
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+              memoryReadiness.operationally_configured
+                ? 'bg-green-100 text-green-700'
+                : 'bg-amber-100 text-amber-700'
+            }`}
+            title={`持久记忆 ${memoryReadiness.consent_status}；${memoryReadiness.persisted_memory_count} 条；患者授权未验证，禁止 PHI`}
+          >
+            Memory: {memoryReadiness.consent_status === 'active' ? '已授权' : '未授权'}
+          </span>
+        )}
+        {dynamicProjectAgent && (
+          <span className="text-[11px] font-mono text-muted-foreground ml-auto">
+            v{agent?.lifecycle?.version || agent?.version || '1.0.0'}
+          </span>
+        )}
         {runtimeInstalled ? (
           <>
             <span className={`px-1.5 py-0.5 rounded-full font-medium ${
-              runtimeStatus === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+              runtimeStatus === 'enabled' || runtimeStatus === 'published'
+                ? 'bg-green-100 text-green-700'
+                : runtimeStatus === 'archived'
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-amber-100 text-amber-700'
             }`}>{runtimeStatus || 'installed'}</span>
             <span className="text-muted-foreground font-mono text-[11px]">{agentRef}</span>
             {/* Tier badge */}
@@ -434,7 +635,7 @@ export default function AgentDetailPage() {
               </span>
             )}
           </>
-        ) : (
+        ) : !dynamicProjectAgent ? (
           <button onClick={async () => {
             setInstallLoading(true);
             try {
@@ -446,9 +647,9 @@ export default function AgentDetailPage() {
               setAgentRef(data.agent_ref || agentRef);
               setRuntimeInstalled(true);
               setRuntimeStatus(data.status || 'enabled');
-              toast('Agent 已安装到 Runtime', 'success');
+              toast(t.agentDetailInstalledToast, 'success');
             } catch (e: any) {
-              const msg = e?.response?.data?.detail || e?.message || '安装失败';
+              const msg = e?.response?.data?.detail || e?.message || t.agentDetailInstallFailed;
               toast(msg, 'error');
             }
             finally { setInstallLoading(false); }
@@ -457,28 +658,80 @@ export default function AgentDetailPage() {
             className="px-2 py-0.5 rounded text-[11px] bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
             {installLoading ? 'Installing...' : 'Install to Runtime'}
           </button>
-        )}
-        {runtimeInstalled && (
+        ) : null}
+        {(runtimeInstalled || dynamicProjectAgent) && (
           <div className="flex gap-1 ml-auto">
-            <button onClick={() => setShowTestPanel(!showTestPanel)}
-              className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100">
-              测试
+            {/* Phase 4-G #4: Fork iCoDer built agent into user's editable namespace */}
+            {agent?.is_prebuilt && (
+              <button
+                onClick={async () => {
+                  if (forkLoading || !agentId) return;
+                  setForkLoading(true);
+                  try {
+                    const res = await agentHubApi.clone(agentId);
+                    const data = res.data;
+                    const forkedId = data.project_agent_id || agentId;
+                    if (data.cloned) {
+                      toast(t.agentClonedToDraftToast || '已复制到我的智能体', 'success');
+                    } else {
+                      toast(t.agentExistingCloneToast || '已有副本,正在打开', 'warning');
+                    }
+                    navigate(`/ai-studio/agents/${encodeURIComponent(forkedId)}`);
+                  } catch (e: any) {
+                    const status = e?.response?.status;
+                    if (status === 401) {
+                      toast(t.agentLoginRequiredToast || '请先登录', 'error');
+                      navigate('/login');
+                    } else {
+                      toast(e?.response?.data?.detail || e?.message || t.agentCloneFailedToast || '复制失败', 'error');
+                    }
+                  } finally { setForkLoading(false); }
+                }}
+                disabled={forkLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 flex items-center gap-1 transition-colors"
+                title="Clone this iCoDer built agent into your editable namespace"
+              >
+                {forkLoading ? 'Forking...' : '自定义'}
+              </button>
+            )}
+            {dynamicProjectAgent && agent?.lifecycle?.allowed_actions?.includes('publish') && (
+              <button onClick={() => handleLifecycleAction('publish')} disabled={lifecycleLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-40">
+                {t.agentLifecyclePublish}
+              </button>
+            )}
+            {dynamicProjectAgent && agent?.lifecycle?.allowed_actions?.includes('archive') && (
+              <button onClick={() => handleLifecycleAction('archive')} disabled={lifecycleLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-40">
+                {t.agentLifecycleArchive}
+              </button>
+            )}
+            {dynamicProjectAgent && agent?.lifecycle?.allowed_actions?.includes('restore') && (
+              <button onClick={() => handleLifecycleAction('restore')} disabled={lifecycleLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-40">
+                {t.agentLifecycleRestore}
+              </button>
+            )}
+            <button onClick={() => setShowTestPanel(!showTestPanel)} disabled={runActionDisabled}
+              title={runActionDisabled ? t.agentLifecycleRunDisabled : undefined}
+              className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-40">
+              {t.agentDetailTestTitle}
             </button>
-            <button onClick={() => { setShowEval(!showEval); if (!showEval && !evalHistory.length) fetchEvalHistory(); }}
+            <button onClick={() => { setShowRunHistory(!showRunHistory); if (!showRunHistory) fetchRunHistory(); }}
               className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-600 hover:bg-green-100">
-              评估
+              {t.agentDetailEvalTitle}
             </button>
-            <button onClick={async () => {
+            {!dynamicProjectAgent && <button onClick={async () => {
               try {
                 const newAction = runtimeStatus === 'enabled' ? 'disable' : 'enable';
                 await runtimeAgentApi.agentLifecycle(agentRef, newAction);
                 setRuntimeStatus(runtimeStatus === 'enabled' ? 'disabled' : 'enabled');
-                toast(`Agent ${newAction === 'enable' ? '已启用' : '已禁用'}`, 'success');
-              } catch { toast('操作失败，请检查权限', 'error'); }
+                toast(newAction === 'enable' ? t.agentEnabledToast : t.agentDisabledToast, 'success');
+              } catch { toast(t.agentDetailOperationFailed, 'error'); }
             }}
               className="px-2 py-0.5 rounded text-[11px] bg-gray-100 hover:bg-gray-200">
-              {runtimeStatus === 'enabled' ? 'Disable' : 'Enable'}
-            </button>
+              {runtimeStatus === 'enabled' ? t.agentDisable : t.agentEnable}
+            </button>}
           </div>
         )}
       </div>
@@ -487,13 +740,13 @@ export default function AgentDetailPage() {
       {showTestPanel && (
         <div className="px-6 py-3 bg-blue-50/50 border-b border-blue-100">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-semibold text-foreground">Agent 测试</h4>
+            <h4 className="text-xs font-semibold text-foreground">{t.agentDetailTestTitle}</h4>
             <button onClick={() => { setShowTestPanel(false); setTestResult(null); setTestInput(''); }}
               className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
           </div>
           <div className="flex gap-2">
             <textarea value={testInput} onChange={e => setTestInput(e.target.value)}
-              placeholder="输入测试病历，验证 Agent 编码结果..."
+              placeholder={t.agentDetailTestInputPlaceholder}
               rows={4} className="flex-1 text-xs border border-border rounded-lg px-3 py-2 bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
             <button onClick={async () => {
               if (!testInput.trim() || testLoading) return;
@@ -502,11 +755,15 @@ export default function AgentDetailPage() {
                 const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'agent') + '-' + (agent?.version||'1.0.0');
                 const data = await runtimeAgentApi.runAgent(ref, testInput);
                 setTestResult(data);
-              } catch (e: any) { setTestResult({ error: e?.message || '测试失败' }); }
+              } catch (e: any) { setTestResult({ error: e?.message || t.agentDetailTestFailed }); }
               finally { setTestLoading(false); }
-            }} disabled={testLoading || !testInput.trim()}
+            }} disabled={
+              testLoading
+              || !testInput.trim()
+              || runActionDisabled
+            }
               className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:opacity-40 shrink-0 self-end">
-              {testLoading ? '运行中...' : '运行测试'}
+              {testLoading ? t.agentDetailRunning : t.agentDetailRunTest}
             </button>
           </div>
           {testResult && (
@@ -516,19 +773,19 @@ export default function AgentDetailPage() {
               ) : (
                 <>
                   <div className="flex gap-4">
-                    <span>状态: <b>{testResult.status || '—'}</b></span>
-                    <span>耗时: <b>{testResult.processing_time_ms || 0}ms</b></span>
-                    <span>安全: <b>{testResult.safety ? '已校验' : '—'}</b></span>
+                    <span>{t.agentDetailStatus}: <b>{testResult.status || '-'}</b></span>
+                    <span>{t.agentDetailDuration}: <b>{testResult.processing_time_ms || 0}ms</b></span>
+                    <span>{t.agentDetailSafety}: <b>{testResult.safety ? t.agentDetailVerified : '-'}</b></span>
                   </div>
                   {testResult.primary_diagnosis?.code && (
                     <div>
-                      <p className="text-muted-foreground">主诊断</p>
-                      <p className="font-mono text-sm">{testResult.primary_diagnosis.code} — {testResult.primary_diagnosis.description || ''}</p>
+                      <p className="text-muted-foreground">{t.agentDetailPrimaryDx}</p>
+                      <p className="font-mono text-sm">{testResult.primary_diagnosis.code} - {testResult.primary_diagnosis.description || ''}</p>
                     </div>
                   )}
                   {testResult.secondary_diagnoses?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">次要诊断 ({testResult.secondary_diagnoses.length})</p>
+                      <p className="text-muted-foreground">{t.agentDetailSecondaryDx} ({testResult.secondary_diagnoses.length})</p>
                       <div className="flex flex-wrap gap-1">
                         {testResult.secondary_diagnoses.slice(0, 10).map((d: any, i: number) => (
                           <span key={i} className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">{d.code}</span>
@@ -538,7 +795,7 @@ export default function AgentDetailPage() {
                   )}
                   {testResult.procedures?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">手术 ({testResult.procedures.length})</p>
+                      <p className="text-muted-foreground">{t.agentDetailProcedures} ({testResult.procedures.length})</p>
                       <div className="flex flex-wrap gap-1">
                         {testResult.procedures.map((p: any, i: number) => (
                           <span key={i} className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">{p.code}</span>
@@ -548,7 +805,7 @@ export default function AgentDetailPage() {
                   )}
                   {testResult.issues_found?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">问题 ({testResult.issues_found.length})</p>
+                      <p className="text-muted-foreground">{t.agentDetailIssues} ({testResult.issues_found.length})</p>
                       {testResult.issues_found.slice(0, 5).map((iss: any, i: number) => (
                         <p key={i} className="text-[10px] text-amber-700">[{iss.severity}] {iss.message}</p>
                       ))}
@@ -556,7 +813,7 @@ export default function AgentDetailPage() {
                   )}
                   {testResult.safety?.post_check?.rule_issues?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">规则检查</p>
+                      <p className="text-muted-foreground">{t.agentDetailRuleChecks}</p>
                       {testResult.safety.post_check.rule_issues.map((r: any, i: number) => (
                         <p key={i} className="text-[10px] text-red-600">[{r.severity}] {r.message}</p>
                       ))}
@@ -570,16 +827,16 @@ export default function AgentDetailPage() {
       )}
       {/* Main: chat (left) + panel (right) */}
       <div className="flex-1 flex min-h-0">
-        {/* Left: Chat area — bg-muted/20 with card content */}
+        {/* Left: Chat area - bg-muted/20 with card content */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-muted/20">
           <div className="flex-1 p-4 flex flex-col min-h-0">
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 flex-1 flex flex-col min-h-0 overflow-y-auto">
+            <div className="bg-background rounded-xl shadow-sm flex-1 flex flex-col min-h-0 overflow-y-auto">
             {chatMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-6">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                   <Bot size={28} className="text-primary" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">{t.askTheAgentTitle}</h3>
+                <h3 className="text-lg font-brand text-foreground mb-2">{t.askTheAgentTitle}</h3>
                 <p className="text-sm text-muted-foreground">{t.askTheAgentDesc}</p>
               </div>
             ) : (
@@ -622,9 +879,9 @@ export default function AgentDetailPage() {
           {/* Bottom input */}
           <div className="shrink-0">
             <div className="max-w-3xl mx-auto">
-              {/* Attached case document card — iCoDer-style, above input */}
+              {/* Attached case document card - iCoDer-style, above input */}
               {attachedFile && (
-                <div className="mb-2 bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+                <div className="mb-2 bg-background rounded-xl shadow-sm overflow-hidden">
                   <div className="flex items-center justify-between px-3 py-2 border-b border-border/20 bg-muted/30">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
@@ -633,10 +890,10 @@ export default function AgentDetailPage() {
                       <span className="text-[11px] font-medium text-foreground">{attachedFile.name}</span>
                     </div>
                     <div className="flex items-center gap-0.5">
-                      <button onClick={() => setEditingAttachment(attachedFile.content)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="编辑">
+                      <button onClick={() => setEditingAttachment(attachedFile.content)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title={t.agentDetailEdit}>
                         <Pencil size={11} />
                       </button>
-                      <button onClick={() => setAttachedFile(null)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="移除">
+                      <button onClick={() => setAttachedFile(null)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title={t.agentDetailRemove}>
                         <X size={12} />
                       </button>
                     </div>
@@ -649,7 +906,7 @@ export default function AgentDetailPage() {
 
               {/* JSON data input */}
               {inputFormat === 'json' && (
-                <div className="mb-2 bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-3">
+                <div className="mb-2 bg-background rounded-xl shadow-sm p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
                       <Braces size={12} /> {t.jsonData}
@@ -663,20 +920,20 @@ export default function AgentDetailPage() {
                     onChange={e => setJsonData(e.target.value)}
                     placeholder='{"key": "value"}'
                     rows={3}
-                    className="w-full text-xs font-mono bg-muted/50 border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="w-full text-xs font-mono bg-muted/50 border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-foreground/70 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
                   />
                 </div>
               )}
 
               {/* Main input */}
-              <div className="bg-background rounded-2xl shadow-sm ring-1 ring-border/20 focus-within:ring-primary/30 focus-within:shadow-md transition-all">
+              <div className="bg-background rounded-2xl shadow-sm focus-within:ring-primary/30 focus-within:shadow-md transition-all">
                 <textarea
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                  onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
                   placeholder={t.askTheAgentPlaceholder}
                   rows={1}
-                  className="w-full text-sm bg-transparent focus:outline-none placeholder:text-muted-foreground resize-none py-3 px-4 min-h-[40px] max-h-[120px]"
+                  className="w-full text-sm bg-transparent focus:outline-none placeholder:text-foreground/70 resize-none py-3 px-4 min-h-[40px] max-h-[120px]"
                   onInput={(e) => { const el = e.target as HTMLTextAreaElement; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }}
                 />
 
@@ -715,8 +972,12 @@ export default function AgentDetailPage() {
                   <div className="flex-1" />
 
                   <button onClick={() => handleSend()}
-                    disabled={(!chatInput.trim() && !jsonData.trim() && !attachedFile) || chatLoading}
-                    className="w-9 h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 transition-all shrink-0 flex items-center justify-center">
+                    disabled={
+                      (!chatInput.trim() && !jsonData.trim() && !attachedFile)
+                      || chatLoading
+                      || runActionDisabled
+                    }
+                    className="w-9 h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:opacity-30 transition-all shrink-0 flex items-center justify-center">
                     {chatLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   </button>
                 </div>
@@ -760,58 +1021,43 @@ export default function AgentDetailPage() {
         {/* Separator */}
         <div className="h-full w-px bg-border/40 shrink-0" />
 
-        {/* Right: SettingsCodeTab panel or Eval panel */}
+        {/* Right: settings/code or persisted run-history panel */}
         <div className="w-80 bg-muted/10 shrink-0 overflow-y-auto">
-          {showEval ? (
+          {showRunHistory ? (
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold text-foreground">Agent 评估</h4>
-                <button onClick={() => setShowEval(false)} className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
+                <h4 className="text-xs font-semibold text-foreground">{t.agentDetailEvalTitle}</h4>
+                <button onClick={() => setShowRunHistory(false)} className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
               </div>
-              <button onClick={runEvaluation} disabled={evalLoading}
-                className="w-full py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-40">
-                {evalLoading ? '评估中...' : '运行金标准评估'}
+              <button onClick={fetchRunHistory} disabled={runHistoryLoading}
+                className="w-full py-2 rounded-lg border border-border bg-background text-xs font-medium hover:bg-accent disabled:opacity-40">
+                {runHistoryLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : t.agentRunHistoryRefresh}
               </button>
-              {evalResult && (
-                <div className="bg-white rounded-lg border p-3 space-y-2 text-xs">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-green-700">{evalResult.primary_dx_accuracy ? (evalResult.primary_dx_accuracy*100).toFixed(0)+'%' : '—'}</p><p className="text-[10px] text-muted-foreground">诊断准确率</p></div>
-                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-blue-700">{evalResult.primary_proc_accuracy ? (evalResult.primary_proc_accuracy*100).toFixed(0)+'%' : '—'}</p><p className="text-[10px] text-muted-foreground">手术准确率</p></div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center">{evalResult.total_cases} cases in {evalResult.elapsed_seconds}s</p>
-                  <button onClick={() => {
-                    const rows = [['Case ID','Expected DX','Actual DX','Match','Expected PROC','Actual PROC','Match','Latency(ms)']];
-                    (evalResult.per_case||[]).forEach((c:any) => rows.push([c.case_id,c.expected_dx,c.actual_dx,c.dx_match?'YES':'NO',c.expected_proc||'',c.actual_proc||'',c.proc_match?'YES':'NO',String(c.latency_ms||0)]));
-                    const csv = rows.map(r => r.join(',')).join('\n');
-                    const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
-                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `eval-${agentRef||'agent'}-${new Date().toISOString().slice(0,10)}.csv`; a.click();
-                  }} className="w-full mt-2 py-1.5 rounded text-[10px] border border-border text-muted-foreground hover:text-foreground">导出 CSV</button>
-                  <div className="max-h-48 overflow-y-auto space-y-1">
-                    {evalResult.per_case?.map((c: any, i: number) => (
-                      <div key={i} className="flex items-center gap-2 py-1 border-b border-muted">
-                        <span className="text-[10px] font-mono">{c.case_id}</span>
-                        <span className="text-[10px] font-mono">{c.expected_dx}</span>
-                        <span className="ml-auto">{c.dx_match ? '✅' : '❌'}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {evalHistory.length > 0 && (
+              {runHistoryError ? (
+                <p className="text-xs text-destructive text-center py-4" role="alert">{runHistoryError}</p>
+              ) : runHistory.length > 0 ? (
                 <div className="bg-white rounded-lg border p-3 text-xs">
-                  <p className="font-medium mb-1">历史趋势</p>
-                  {evalHistory.slice(0,5).map((h: any, i: number) => (
-                    <div key={i} className="flex justify-between py-0.5 text-[10px]">
-                      <span className="text-muted-foreground">{h.evaluated_at?.slice(0,16)||''}</span>
-                      <span className="font-mono text-green-700">{h.primary_dx_accuracy ? (h.primary_dx_accuracy*100).toFixed(0)+'%' : '—'}</span>
+                  <p className="font-medium mb-1">{t.agentDetailHistoryTrend}</p>
+                  {runHistory.map((h: any, i: number) => (
+                    <div key={h.run_id || i} className="py-1.5 border-b border-muted last:border-0 text-[10px]">
+                      <div className="flex justify-between gap-2">
+                        <span className="font-mono text-foreground">{h.run_id?.slice(0,12) || '-'}</span>
+                        <span className={h.status === 'completed' ? 'text-green-700' : h.status === 'failed' ? 'text-red-700' : 'text-amber-700'}>{h.status || '-'}</span>
+                      </div>
+                      <div className="flex justify-between gap-2 text-muted-foreground mt-0.5">
+                        <span>{(h.created_at || '').slice(0,16)}</span>
+                        <span>{h.runtime_mode || '-'}{typeof h.latency_ms === 'number' ? ` · ${h.latency_ms}ms` : ''}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
-              )}
+              ) : !runHistoryLoading ? (
+                <p className="text-xs text-muted-foreground text-center py-8">{t.agentRunHistoryEmpty}</p>
+              ) : null}
             </div>
           ) : (
           <SettingsCodeTab
-            labels={{ settings: '设置', code: '代码', tools: '工具' }}
+            labels={{ settings: t.settingsCodeTabSettings, code: t.settingsCodeTabCode, tools: t.settingsCodeTabTools }}
             tools={
               <ToolSelector
                 enabledTools={enabledTools}
@@ -822,11 +1068,21 @@ export default function AgentDetailPage() {
             }
             settings={
               <div className="flex flex-col">
+                {/* Phase 4-G #4: Forked-from badge for clones (config.source_agent_ref) */}
+                {agent?.config?.source_agent_ref && (
+                  <div className="px-4 pt-3 pb-2 bg-primary/5 border-b border-primary/10">
+                    <div className="flex items-center gap-1.5 text-[10px] text-primary">
+                      <span className="px-1.5 py-0.5 rounded bg-primary/10 font-medium">Forked</span>
+                      <span className="text-muted-foreground">from</span>
+                      <code className="font-mono text-primary/80 break-all">{agent.config.source_agent_ref}</code>
+                    </div>
+                  </div>
+                )}
                 {/* Name */}
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">基本信息</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.agentDetailBasicInfo}</h3>
                   </div>
                   <div className="px-4 pb-4">
                     <label className="text-xs text-foreground/70 block mb-1.5">
@@ -837,7 +1093,7 @@ export default function AgentDetailPage() {
                       onChange={e => { setAgentName(e.target.value.slice(0, 50)); setSettingsSaved(false); }}
                       placeholder={t.agentNamePlaceholder}
                       maxLength={50}
-                      className="w-full text-sm border border-border/60 rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all"
+                      className="w-full text-sm border border-border/60 rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-foreground/70/40 focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all"
                     />
                   </div>
                 </div>
@@ -846,7 +1102,7 @@ export default function AgentDetailPage() {
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">{t.systemPrompt}</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.systemPrompt}</h3>
                   </div>
                   <div className="px-4 pb-4">
                     <div
@@ -866,9 +1122,9 @@ export default function AgentDetailPage() {
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">{t.experts}</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.experts}</h3>
                     {agentExperts.length > 0 && (
-                      <span className="text-[10px] text-muted-foreground/50 ml-auto">{agentExperts.length} 个</span>
+                      <span className="text-[10px] text-muted-foreground/50 ml-auto">{agentExperts.length} {t.agentDetailExpertCountSuffix}</span>
                     )}
                   </div>
                   <div className="px-4 pb-4">
@@ -898,7 +1154,7 @@ export default function AgentDetailPage() {
                             }}
                             onDragEnd={() => { setDragIdx(null); }}
                             className={`flex items-center py-2 px-2.5 rounded-lg hover:bg-accent/40 transition-all group border border-transparent hover:border-border/30 cursor-grab active:cursor-grabbing ${dragIdx === idx ? 'opacity-50' : ''}`}>
-                            <span className="text-[9px] text-muted-foreground/40 w-4 shrink-0" title="拖拽排序">⠿</span>
+                            <span className="text-[9px] text-muted-foreground/40 w-4 shrink-0" title={t.agentDetailDragSort}>⠿</span>
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
                                 <Wrench size={12} className="text-primary" />
@@ -920,7 +1176,7 @@ export default function AgentDetailPage() {
                       <Plus size={12} /> {t.addExpert}
                     </button>
                     {agentExperts.length > 1 && (
-                      <p className="text-[10px] text-muted-foreground/40 mt-1.5 text-center">⠿ 拖拽专家调整调用优先级</p>
+                      <p className="text-[10px] text-muted-foreground/40 mt-1.5 text-center">⠿ {t.agentDetailDragHint}</p>
                     )}
                   </div>
                 </div>
@@ -929,57 +1185,57 @@ export default function AgentDetailPage() {
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">编排策略</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.agentDetailOrchestrationStrategy}</h3>
                   </div>
                   <div className="px-4 pb-4 space-y-3">
                     <div>
-                      <label className="text-[10px] text-muted-foreground">路由策略</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailRoutingStrategy}</label>
                       <select value={routingStrategy} onChange={e => { setRoutingStrategy(e.target.value); setSettingsSaved(false); }}
                         className="w-full text-xs border border-border/60 rounded-lg px-2.5 py-2 bg-background text-foreground mt-0.5 focus:outline-none focus:ring-1 focus:ring-ring">
-                        <option value="llm_plan">LLM 动态规划（推荐）</option>
-                        <option value="tool_native">Tool-Native 合同强制（新）</option>
-                        <option value="fixed_order">固定顺序执行</option>
-                        <option value="parallel">并行调用</option>
-                        <option value="single_expert">单专家直连</option>
+                        <option value="llm_plan">{t.agentDetailRoutingLlmPlan}</option>
+                        <option value="tool_native">{t.agentDetailRoutingToolNative}</option>
+                        <option value="fixed_order">{t.agentDetailRoutingFixedOrder}</option>
+                        <option value="parallel">{t.agentDetailRoutingParallel}</option>
+                        <option value="single_expert">{t.agentDetailRoutingSingleExpert}</option>
                       </select>
                       <p className="text-[9px] text-muted-foreground/50 mt-0.5">
-                        {routingStrategy === 'llm_plan' && '由 AI 分析任务后动态选择专家及调用顺序'}
-                        {routingStrategy === 'tool_native' && 'LLM 自主选择工具，Harness 以合同强制验证每次调用'}
-                        {routingStrategy === 'fixed_order' && '按列表顺序逐个调用绑定的专家'}
-                        {routingStrategy === 'parallel' && '同时调用所有专家，聚合结果'}
-                        {routingStrategy === 'single_expert' && '仅调用默认专家，忽略其他绑定'}
+                        {routingStrategy === 'llm_plan' && t.agentDetailRoutingLlmPlanDesc}
+                        {routingStrategy === 'tool_native' && t.agentDetailRoutingToolNativeDesc}
+                        {routingStrategy === 'fixed_order' && t.agentDetailRoutingFixedOrderDesc}
+                        {routingStrategy === 'parallel' && t.agentDetailRoutingParallelDesc}
+                        {routingStrategy === 'single_expert' && t.agentDetailRoutingSingleExpertDesc}
                       </p>
                     </div>
 
                     {/* Permission Preset */}
                     <div>
-                      <label className="text-[10px] text-muted-foreground">权限策略 (Deny-First)</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailPermissionPreset}</label>
                       <select value={permissionPreset} onChange={e => { setPermissionPreset(e.target.value); setSettingsSaved(false); }}
                         className="w-full text-xs border border-border/60 rounded-lg px-2.5 py-2 bg-background text-foreground mt-0.5 focus:outline-none focus:ring-1 focus:ring-ring">
-                        <option value="medical_coding">医学编码（推荐）</option>
-                        <option value="cdi_audit">临床文档审核（只读）</option>
-                        <option value="drg_analysis">DRG/DIP 支付分析</option>
-                        <option value="restrictive">严格模式（仅确定性工具）</option>
-                        <option value="full_access">全量访问（开发/管理）</option>
+                        <option value="medical_coding">{t.agentDetailPermissionMedicalCoding}</option>
+                        <option value="cdi_audit">{t.agentDetailPermissionCdiAudit}</option>
+                        <option value="drg_analysis">{t.agentDetailPermissionDrgAnalysis}</option>
+                        <option value="restrictive">{t.agentDetailPermissionRestrictive}</option>
+                        <option value="full_access">{t.agentDetailPermissionFullAccess}</option>
                       </select>
                       <p className="text-[9px] text-muted-foreground/50 mt-0.5">
-                        {permissionPreset === 'medical_coding' && '标准编码管道——确定性工具+LLM工具有限使用'}
-                        {permissionPreset === 'cdi_audit' && '只读分析工具——不允许编码分配'}
-                        {permissionPreset === 'drg_analysis' && '编码+DRG分析——适合医保审核'}
-                        {permissionPreset === 'restrictive' && '仅确定性工具（ICD索引/证据排名等），最大安全性'}
-                        {permissionPreset === 'full_access' && '全部工具可用——仅开发和管理使用'}
+                        {permissionPreset === 'medical_coding' && t.agentDetailPermissionMedicalCodingDesc}
+                        {permissionPreset === 'cdi_audit' && t.agentDetailPermissionCdiAuditDesc}
+                        {permissionPreset === 'drg_analysis' && t.agentDetailPermissionDrgAnalysisDesc}
+                        {permissionPreset === 'restrictive' && t.agentDetailPermissionRestrictiveDesc}
+                        {permissionPreset === 'full_access' && t.agentDetailPermissionFullAccessDesc}
                       </p>
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">最大重试次数: {maxRetries}</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailMaxRetriesLabel.replace('{n}', String(maxRetries))}</label>
                       <input type="range" min="0" max="5" value={maxRetries} onChange={e => { setMaxRetries(Number(e.target.value)); setSettingsSaved(false); }}
                         className="w-full mt-0.5" />
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">置信度阈值: {confidenceThreshold.toFixed(1)}</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailConfidenceThresholdLabel.replace('{n}', confidenceThreshold.toFixed(1))}</label>
                       <input type="range" min="0" max="1" step="0.1" value={confidenceThreshold} onChange={e => { setConfidenceThreshold(Number(e.target.value)); setSettingsSaved(false); }}
                         className="w-full mt-0.5" />
-                      <div className="flex justify-between text-[9px] text-muted-foreground/40"><span>0.0 (宽松)</span><span>1.0 (严格)</span></div>
+                      <div className="flex justify-between text-[9px] text-muted-foreground/40"><span>{t.agentDetailConfidenceLoose}</span><span>{t.agentDetailConfidenceStrict}</span></div>
                     </div>
                   </div>
                 </div>
@@ -997,7 +1253,8 @@ export default function AgentDetailPage() {
                   </button>
                   <button
                     onClick={handleSaveSettings}
-                    disabled={savingSettings}
+                    disabled={savingSettings || agent?.lifecycle?.state === 'archived'}
+                    title={agent?.lifecycle?.state === 'archived' ? t.agentLifecycleRestoreBeforeEdit : undefined}
                     className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all shadow-sm shadow-primary/20"
                   >
                     {savingSettings ? t.savingAgent : settingsSaved ? t.savedAgent : t.save}
@@ -1007,118 +1264,10 @@ export default function AgentDetailPage() {
             }
             code={
               <CodeSnippet
-                javascript={`import { iCoDerClient } from "@icoder/sdk";
-
-const client = new iCoDerClient({
-  apiKey: "YOUR_API_KEY",
-});
-
-// Create and configure the agent
-const agent = await client.agents.create({
-  name: "${agentTitle}",
-  description: ${JSON.stringify(agent?.description || '')},
-  experts: [
-${agentExperts.map(e => `    { name: "${e.name}", type: "reference" },`).join('\n')}
-  ],
-  systemPrompt: ${JSON.stringify(systemPrompt || '')},
-});
-
-const agentId = agent.id;
-
-// Send a message to the agent
-const result = await client.agents.messageSend(agentId, {
-  message: {
-    role: "user",
-    parts: [
-      {
-        text: "patient case...",
-        kind: "text",
-      },
-    ],
-    messageId: crypto.randomUUID(),
-    kind: "message",
-  },
-});
-
-console.log("Agent response:", result);`}
-                python={`from icoder import iCoDerClient
-import uuid
-
-client = iCoDerClient(
-    api_key="YOUR_API_KEY"
-)
-
-# Create and configure the agent
-agent = client.agents.create(
-    name="${agentTitle}",
-    description=${JSON.stringify(agent?.description || '')},
-    experts=[
-${agentExperts.map(e => `        {"name": "${e.name}", "type": "reference"},`).join('\n')}
-    ],
-    system_prompt=${JSON.stringify(systemPrompt || '')},
-)
-
-agent_id = agent["id"]
-
-# Send a message to the agent
-result = client.agents.message_send(
-    agent_id=agent_id,
-    message={
-        "role": "user",
-        "parts": [
-            {
-                "text": "patient case...",
-                "kind": "text",
-            },
-        ],
-        "message_id": str(uuid.uuid4()),
-        "kind": "message",
-    },
-)
-
-print("Agent response:", result)`}
-                csharp={`using iCoDer;
-using iCoDer.Agents;
-
-var client = new iCoDerClient("YOUR_API_KEY");
-
-// Create and configure the agent
-var createRequest = new AgentCreateRequest
-{
-    Name = "${agentTitle}",
-    Description = ${JSON.stringify(agent?.description || '')},
-    Experts = new List<AgentExpertRef>
-    {
-${agentExperts.map(e => `        new AgentExpertRef { Name = "${e.name}", Type = "reference" },`).join('\n')}
-    },
-    SystemPrompt = @${JSON.stringify(systemPrompt || '')},
-};
-
-var agent = await client.Agents.CreateAsync(createRequest);
-var agentId = agent.Id;
-
-// Send a message to the agent
-var message = new AgentMessage
-{
-    Role = "user",
-    Parts = new List<MessagePart>
-    {
-        new MessagePart { Text = "patient case...", Kind = "text" },
-    },
-    MessageId = Guid.NewGuid().ToString(),
-    Kind = "message",
-};
-
-var result = await client.Agents.MessageSendAsync(agentId, message);
-
-Console.WriteLine($"Agent response: {result}");`}
-                json={JSON.stringify({
-                  name: agentTitle,
-                  description: agent?.description || '',
-                  system_prompt: systemPrompt || '',
-                  experts: agentExperts.map(e => ({ name: e.name, type: 'reference' })),
-                  config: agent?.config || {},
-                }, null, 2)}
+                javascript={agentRunCode.javascript}
+                python={agentRunCode.python}
+                curl={agentRunCode.curl}
+                json={agentRunCode.json}
               />
             }
           />
@@ -1126,7 +1275,7 @@ Console.WriteLine($"Agent response: {result}");`}
         </div>
       </div>
 
-      {/* Expert Library Modal removed — experts.py deleted in Phase 2.1-B Step 1 */}
+      {/* Expert Library Modal removed - experts.py deleted in Phase 2.1-B Step 1 */}
 
       {/* System Prompt Editor Modal */}
       {showEditPrompt && (
@@ -1144,7 +1293,7 @@ Console.WriteLine($"Agent response: {result}");`}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowDeleteConfirm(false)}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-background rounded-xl shadow-sm p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-semibold text-foreground mb-1">{t.deleteConfirmTitle}</h3>
             <p className="text-xs text-muted-foreground mb-4">{t.deleteConfirmDesc}</p>
             <p className="text-sm text-foreground mb-6">
@@ -1173,7 +1322,7 @@ Console.WriteLine($"Agent response: {result}");`}
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setEditingAttachment(null)}>
           <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">编辑病例内容</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t.agentDetailEditCase}</h3>
               <button onClick={() => setEditingAttachment(null)} className="p-1 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
             </div>
             <div className="p-5">
@@ -1186,13 +1335,13 @@ Console.WriteLine($"Agent response: {result}");`}
               />
             </div>
             <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border bg-muted/20">
-              <button onClick={() => setEditingAttachment(null)} className="text-xs px-4 py-2 rounded-lg hover:bg-accent transition-colors">取消</button>
+              <button onClick={() => setEditingAttachment(null)} className="text-xs px-4 py-2 rounded-lg hover:bg-accent transition-colors">{t.cancel}</button>
               <button onClick={() => {
                 if (attachedFile && editingAttachment.trim()) {
                   setAttachedFile({ ...attachedFile, content: editingAttachment.trim() });
                 }
                 setEditingAttachment(null);
-              }} className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">保存</button>
+              }} className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">{t.save}</button>
             </div>
           </div>
         </div>

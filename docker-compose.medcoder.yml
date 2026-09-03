@@ -1,0 +1,26 @@
+# Local-development overlay that makes the isolated MedCodER worker an
+# actual backend dependency.  The base compose file deliberately leaves the
+# URL empty so a normal stack does not pretend semantic retrieval is active.
+#
+# Usage:
+#   MEDCODER_RETRIEVER_TOKEN=<32-512 random chars> docker compose \
+#     -f docker-compose.local-dev.yml -f docker-compose.medcoder.yml up --build
+services:
+  backend:
+    environment:
+      - MEDCODER_RETRIEVER_URL=http://medcoder-retriever:8100
+      - MEDCODER_RETRIEVER_TOKEN=${MEDCODER_RETRIEVER_TOKEN:?set a dedicated 32-512 character worker token}
+      - MEDCODER_RETRIEVER_ALLOW_HTTP=1
+      - MEDCODER_RETRIEVER_TIMEOUT_SECONDS=${MEDCODER_RETRIEVER_TIMEOUT_SECONDS:-30}
+      - ICODER_DISABLE_NATIVE_MEDCODER=true
+    depends_on:
+      medcoder-retriever:
+        condition: service_healthy
+
+  medcoder-retriever:
+    # Override the opt-in profile in the base file. Selecting this overlay is
+    # itself the explicit opt-in and guarantees the backend and worker start
+    # together.
+    profiles: []
+    environment:
+      - MEDCODER_RETRIEVER_TOKEN=${MEDCODER_RETRIEVER_TOKEN:?set a dedicated 32-512 character worker token}

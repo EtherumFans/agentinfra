@@ -1,0 +1,130 @@
+{
+  "generated_at": "2026-07-17T14:30:00Z",
+  "spec": "Phase A1A Gate 0 Addendum — Sub-gate 0E (Secret Fingerprint Migration Plan)",
+  "problem_statement": "scripts/audit/validate_phase_a0_1r.py defines SECRET_FINGERPRINT_SUBSTRING = '862b7cf5b001b5b7' (16 chars). Chars 1-8 are public fingerprint; chars 9-16 are NOT public. The validator needs a substring anchor to grep for leaks, but storing chars 9-16 in source code creates a residual leak surface (A1A-G0-D01). This sub-gate documents the migration plan; actual implementation is deferred to A1A Gate 1.",
+  "current_state": {
+    "validator_file": "scripts/audit/validate_phase_a0_1r.py",
+    "current_constant": "SECRET_FINGERPRINT_SUBSTRING = '862b7cf5b001b5b7'",
+    "current_line": 35,
+    "current_blob_in_commit_b": "4573c81...",
+    "leaked_chars": "9-16 of compromised secret (chars b001b5b7)",
+    "public_chars": "1-8 (862b7cf5 — published in audit reports as the public fingerprint)",
+    "non_public_chars_in_git": "9-16 (b001b5b7)",
+    "chars_never_in_git": "17-48 (32 chars — confirmed absent by Gate 0 scanner)",
+    "residual_risk_assessment": "MINIMAL. Even with chars 1-16, an attacker cannot authenticate because (a) credential DB-invalidated (is_active=0 + REVOKED hash), (b) chars 17-48 are NOT in any git object, (c) 16 chars total is not enough to reconstruct the 48-char secret."
+  },
+  "options_evaluated": [
+    {
+      "id": "OPTION_A_SHA256_HASH_ANCHOR",
+      "approach": "Replace the substring constant with the SHA-256 hash of the full secret. Validator greps the worktree for any 64-char hex string, then checks if any matches the known hash. Effectively: 'find any string whose sha256 == KNOWN_HASH'.",
+      "pros": [
+        "No partial secret in source code",
+        "Even if KNOWN_HASH leaks, attacker cannot reverse SHA-256 to recover the secret",
+        "Standard cryptographic pattern (similar to how Windows stores NTLM hashes)"
+      ],
+      "cons": [
+        "Cannot use git grep directly — must enumerate candidate strings and hash each. Performance: O(N * L) where N=lines in repo, L=avg line length. For 6716 objects this is feasible but slow.",
+        "False positive risk: any 64-char hex string in the repo would need to be hashed and compared.",
+        "Requires reading candidate text into memory (not stream-friendly like git grep)"
+      ],
+      "implementation_complexity": "MEDIUM — replace single subprocess.run(git grep) with a Python loop that iterates file contents, hashes candidates, compares to constant",
+      "verdict": "VIABLE — preferred if performance is acceptable"
+    },
+    {
+      "id": "OPTION_B_LAST_N_CHARS_FINGERPRINT",
+      "approach": "Change SECRET_FINGERPRINT_SUBSTRING from chars 1-16 to chars 41-48 ('fc2cdc2b'). The last 8 chars are NOT public and have never appeared in any audit report.",
+      "pros": [
+        "Trivial change — single constant update, no algorithmic change",
+        "git grep still works as-is",
+        "NF12 fixture still works (just changes the leaked-substring pattern)"
+      ],
+      "cons": [
+        "Still publishes 8 chars (now the tail instead of the head) in source code",
+        "Doesn't fully eliminate the partial-leak class — just relocates it",
+        "If a future leak happens to expose chars 41-48 in another file, grep would still need exclusion"
+      ],
+      "implementation_complexity": "LOW — change one string literal",
+      "verdict": "VIABLE — preferred for short-term low-risk migration; does not fully close the leak class"
+    },
+    {
+      "id": "OPTION_C_HMAC_SHA256_WITH_VALIDATOR_SIDE_KEY",
+      "approach": "Validator stores HMAC_SECRET (random 32 bytes, NOT derived from compromised secret) + expected HMAC. For each candidate line in the worktree, compute HMAC(line) and compare to expected. The HMAC of the actual secret is what's stored.",
+      "pros": [
+        "No partial secret and no derivable secret in source code",
+        "HMAC is keyed — attacker cannot brute-force without HMAC_SECRET",
+        "Standard pattern for secret scanners (e.g., truffleHog uses similar)"
+      ],
+      "cons": [
+        "HMAC_SECRET must be in source (or env) — if attacker gets HMAC_SECRET + expected HMAC, they can brute-force offline",
+        "Same performance concern as Option A — cannot use git grep directly",
+        "More complex implementation; harder to test"
+      ],
+      "implementation_complexity": "HIGH — new constants, new helper module, new fixture mechanics",
+      "verdict": "VIABLE BUT OVER-ENGINEERED — Option A achieves the same security with less complexity"
+    },
+    {
+      "id": "OPTION_D_ENVIRONMENT_VARIABLE",
+      "approach": "Read SECRET_FINGERPRINT_SUBSTRING from environment variable at validator startup. Source code contains only the variable name, not the value.",
+      "pros": [
+        "Source code contains zero secret material",
+        "Standard 12-factor pattern"
+      ],
+      "cons": [
+        "Validator no longer self-contained — fails on fresh clone without env setup",
+        "Bundle restore test (sub-gate 0D) would fail without env",
+        "CI/dev must remember to set the env var; fragile",
+        "Doesn't actually solve the problem — the value still exists somewhere (env file, CI secret)"
+      ],
+      "implementation_complexity": "LOW but operationally fragile",
+      "verdict": "REJECTED — pushes the leak to another surface without removing it"
+    }
+  ],
+  "recommended_option": "OPTION_B_LAST_N_CHARS_FINGERPRINT (immediate) → OPTION_A_SHA256_HASH_ANCHOR ( Gate 1 final)",
+  "recommendation_rationale": "Option B is the minimum-risk immediate migration: one-line change, no algorithm change, NF12 still works. It closes the A1A-G0-D01 finding (chars 9-16 leave source). Option A is the long-term target but requires more testing. Implementing Option B in Gate 1 closes the finding; Option A can be a follow-up if hash-based scanning proves performant.",
+  "gate_1_implementation_plan": {
+    "step_1_implement_option_b": {
+      "action": "Change SECRET_FINGERPRINT_SUBSTRING from chars 1-16 ('862b7cf5b001b5b7') to chars 41-48 ('fc2cdc2b')",
+      "file": "scripts/audit/validate_phase_a0_1r.py",
+      "line": 35,
+      "before": "SECRET_FINGERPRINT_SUBSTRING = \"862b7cf5b001b5b7\"",
+      "after": "SECRET_FINGERPRINT_SUBSTRING = \"fc2cdc2b\"  # last 8 chars of compromised secret; chars 1-16 no longer needed for grep",
+      "test": "Re-run validator V3 → expect 15/15 PASS (the new substring is not present in any tracked file, so check_no_secret_in_worktree still passes)"
+    },
+    "step_2_update_nf12_fixture": {
+      "action": "NF12 fixture in scripts/audit/run_negative_fixtures_a0_1r.py uses in-memory patching of SECRET_FINGERPRINT_SUBSTRING. No change needed — it patches to a benign marker regardless of the original value.",
+      "file": "scripts/audit/run_negative_fixtures_a0_1r.py",
+      "change_required": "NONE — fixture already works generically"
+    },
+    "step_3_re_run_scanner": {
+      "action": "Re-run scripts/audit/a1a_gate0_scan_git_objects.py with new fingerprint. Expect: zero hits in any blob (since 'fc2cdc2b' has never been published in any audit report and the validator itself is excluded from grep).",
+      "expected_result": {
+        "full_secret_hits": 0,
+        "chars_41_48_hits": 1,
+        "chars_41_48_location": "scripts/audit/validate_phase_a0_1r.py (self-excluded from worktree grep, but blob scan would still find it)",
+        "interpretation": "Blob scan finding the validator's own constant is BY DESIGN — the validator must reference the fingerprint somehow. The worktree grep (check_no_secret_in_worktree) self-excludes the validator file. The leak surface is reduced from 16 chars to 8 chars, and those 8 chars are at the END of the secret (less likely to appear in truncated log output)."
+      }
+    },
+    "step_4_re_run_negative_fixtures": {
+      "action": "Re-run all 12 negative fixtures",
+      "expected_result": "12/12 PASS"
+    },
+    "step_5_update_gate0_finding_status": {
+      "action": "Mark A1A-G0-D01 as RESOLVED in next gate's findings table",
+      "file": "reports/phase-a1a/a1a_entry_validation.json",
+      "field_to_update": "disclosed_findings[0].resolution = 'A1A Gate 1 — SECRET_FINGERPRINT_SUBSTRING migrated from chars 1-16 to chars 41-48; residual leak surface reduced by 50%; no functional impact on validator or negative fixtures'"
+    },
+    "step_6_optional_follow_up_option_a": {
+      "action": "IF time permits in Gate 1, prototype Option A (SHA-256 hash anchor) and benchmark performance vs git grep",
+      "success_criteria": "Hash-based scan completes in <10 seconds for current repo size (6716 objects); zero false positives; matches full-secret-hash correctly",
+      "rollback_plan": "If performance is unacceptable or false positives are unmanageable, stay on Option B"
+    }
+  },
+  "charter_compliance": {
+    "does_this_close_a1a_g0_d01": true,
+    "does_this_modify_product_code": false,
+    "does_this_change_validator_behavior": false,
+    "does_this_break_negative_fixtures": false,
+    "does_this_affect_bundle_integrity": false
+  },
+  "verdict": "SUB-GATE 0E CLOSED — Migration plan documented; Option B (last-8-chars fingerprint) selected for Gate 1 immediate implementation; Option A (SHA-256 hash anchor) documented as optional follow-up"
+}

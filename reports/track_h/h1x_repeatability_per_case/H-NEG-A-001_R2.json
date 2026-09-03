@@ -1,0 +1,92 @@
+{
+  "case_id": "H-NEG-A-001_R2",
+  "group": "NEGATION",
+  "variant": "A",
+  "session_id": "76b83707-1e1c-4535-bb07-e2c32e2c1749",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 26.52,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_query_topics": [],
+    "forbidden_query_topics": [
+      "migraine",
+      "intracranial lesion",
+      "CNS tumor",
+      "meningitis"
+    ],
+    "no_query_expected": true
+  },
+  "text_length": 4937,
+  "first_token_at_s": 3.97,
+  "last_token_at_s": 26.51,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"f1397c21-c5e8-437e-a7e9-06e53487238b\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 42-year-old female with intermittent headache for 2 weeks.\\n- Associated red-flag and migraine-type symptoms are denied: “Denies nausea, vomiting, photophobia, phonopho",
+    "message|{\"id\":\"f1397c21-c5e8-437e-a7e9-06e53487238b\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bce-f892-7d94-872b-1e72d3b6f8d2\",\"taskId\":\"019f5bce-f892-7d17-afe9-d0d859eda313\",\"credits\":0.059199999999999996,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.059199999999999996},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bce-f892-7d94-872b-1e72d3b6f8d2",
+    "taskId": "019f5bce-f892-7d17-afe9-d0d859eda313",
+    "credits": 0.059199999999999996,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 42-year-old female with intermittent headache for 2 weeks.\n- Associated red-flag and migraine-type symptoms are denied: “Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, neck stiffness.”\n- History notes: “No history of migraine. No family history of CNS disease.”\n- Objective findings are reassuring in the excerpt: “Normal neurological exam. Normal vital signs.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Headache diagnosis is nonspecific.\n- Why it matters: “Headache” alone lacks specificity for coding and clinical characterization.\n- Evidence quote: “intermittent headache for 2 weeks.”\n- Minimal clarification needed: Provider should clarify the headache type/etiology if known, or document that the cause/type is unknown or clinically undetermined."
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Headache severity/pattern details are incomplete.\n- Why it matters: Characterization supports accurate diagnosis documentation and distinguishes symptom-only documentation from a defined headache disorder.\n- Evidence quote: “intermittent headache for 2 weeks.”\n- Minimal clarification needed: Document location, quality, severity, progression, and whether this is acute, subacute, recurrent, or persistent."
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Encounter assessment/working diagnosis is not stated.\n- Why it matters: The excerpt lists symptoms and negatives but does not document the clinician’s diagnostic impression.\n- Evidence quote: Entire excerpt documents symptom history and normal exam, but no explicit assessment beyond headache.\n- Minimal clarification needed: State the assessment/diagnostic impression for the headache, if one was established."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Headache type/etiology clarification"
+      },
+      {
+        "idx": 2,
+        "text": "Clinical assessment status of headache"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding/CDI-relevant documentation gaps and specificity needs. Accepted the general principle that the documentation supports only a nonspecific headache symptom and that clarification should remain conservative and non-leading. Rejected any implication of a more specific diagnosis because the excerpt does not document sufficient supporting evidence.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria clarification was not necessary because no specific diagnosis is documented.\n- CDI Web Search Expert: Not consulted. No current external policy or guideline lookup was required to answer conservatively from the chart excerpt alone.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 42-year-old female with intermittent headache for 2 weeks.\n- Associated red-flag and migraine-type symptoms are denied: “Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, neck stiffness.”\n- History notes: “No history of migraine. No family history of CNS disease.”\n- Objective findings are reassuring in the excerpt: “Normal neurological exam. Normal vital signs.”\n\nDocumentation Gaps:\n1. Gap: Headache diagnosis is nonspecific.\n- Why it matters: “Headache” alone lacks specificity for coding and clinical characterization.\n- Evidence quote: “intermittent headache for 2 weeks.”\n- Minimal clarification needed: Provider should clarify the headache type/etiology if known, or document that the cause/type is unknown or clinically undetermined.\n\n2. Gap: Headache severity/pattern details are incomplete.\n- Why it matters: Characterization supports accurate diagnosis documentation and distinguishes symptom-only documentation from a defined headache disorder.\n- Evidence quote: “intermittent headache for 2 weeks.”\n- Minimal clarification needed: Document location, quality, severity, progression, and whether this is acute, subacute, recurrent, or persistent.\n\n3. Gap: Encounter assessment/working diagnosis is not stated.\n- Why it matters: The excerpt lists symptoms and negatives but does not document the clinician’s diagnostic impression.\n- Evidence quote: Entire excerpt documents symptom history and normal exam, but no explicit assessment beyond headache.\n- Minimal clarification needed: State the assessment/diagnostic impression for the headache, if one was established.\n\nProposed Provider Queries:\n1. Topic: Headache type/etiology clarification\n- Reason query is needed: The documentation supports a headache symptom but does not specify the headache type or cause.\n- Evidence quote: “intermittent headache for 2 weeks” and “No history of migraine.”\n- Non-leading query text: “The record documents ‘intermittent headache for 2 weeks’ with normal neurological exam and vital signs. For documentation specificity, can you clarify the most accurate description of the patient’s headache for this encounter, if known?”\n- Suggested response options:\n  - Headache, unspecified\n  - Tension-type headache\n  - Migraine\n  - Secondary headache due to another documented condition\n  - Other specified headache diagnosis\n  - Clinically undetermined / unable to determine\nNote: If migraine, secondary headache, or another specified diagnosis is selected, supporting clinical documentation would be needed in the note; current excerpt alone does not establish those diagnoses.\n\n2. Topic: Clinical assessment status of headache\n- Reason query is needed: The excerpt does not explicitly state whether a definitive diagnosis was made versus symptom-only assessment.\n- Evidence quote: “intermittent headache for 2 weeks” with “Normal neurological exam. Normal vital signs.”\n- Non-leading query text: “Based on the documented history and examination, how would you like the headache-related assessment for this encounter to be documented?”\n- Suggested response options:\n  - Symptom only: headache without further specification\n  - Specific headache disorder diagnosed (please specify)\n  - Headache related to another documented condition (please specify)\n  - Clinically undetermined / unable to determine\n\nCoding Specificity Checklist:\n- Headache type/diagnostic label, if known\n- Etiology/cause, if established\n- Acute vs subacute vs chronic/recurrent pattern\n- Location and character of pain\n- Severity and progression\n- Whether this is a symptom only or a confirmed headache disorder\n- If a specific disorder is documented, the clinical basis supporting it in the note\n\nRisk Flags:\n- Nonspecific term: “headache” is documented without further classification.\n- Unsupported diagnosis risk: The excerpt does not support assigning migraine, secondary headache, intracranial pathology, or CNS infection based on the information provided.\n- Limited query scope: Because the note contains reassuring negatives and a normal exam, only symptom clarification is supportable from this excerpt; stronger diagnostic queries would be unsupported.\n- No contradiction identified within the provided excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding/CDI-relevant documentation gaps and specificity needs. Accepted the general principle that the documentation supports only a nonspecific headache symptom and that clarification should remain conservative and non-leading. Rejected any implication of a more specific diagnosis because the excerpt does not document sufficient supporting evidence.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria clarification was not necessary because no specific diagnosis is documented.\n- CDI Web Search Expert: Not consulted. No current external policy or guideline lookup was required to answer conservatively from the chart excerpt alone."
+}

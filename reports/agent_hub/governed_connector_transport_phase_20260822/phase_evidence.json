@@ -1,0 +1,56 @@
+{
+  "schema_version": "icoder/phase-evidence/v1",
+  "phase": "governed-connector-http-transport",
+  "date": "2026-08-22",
+  "result": "development_slice_passed_external_gates_open",
+  "llm": {
+    "provider": "mock",
+    "real_credential_used": false,
+    "external_connector_called": false
+  },
+  "capabilities": {
+    "mcp_streamable_http": true,
+    "mcp_initialize_and_session": true,
+    "a2a_v1_jsonrpc_and_http_json": true,
+    "a2a_agent_card_digest_pin": true,
+    "dns_resolution_to_socket_pin": true,
+    "redirect_revalidation": true,
+    "oauth2_client_credentials": true,
+    "bounded_streaming_responses": true,
+    "startup_wiring": true,
+    "cloud_and_cn_exact_egress_allowlists": true,
+    "phi_default_deny": true,
+    "registry_runtime_adapter": false,
+    "internal_agent_runtime_adapter": false,
+    "distributed_circuit_breaker": false,
+    "live_external_interoperability": false
+  },
+  "verification": [
+    {"suite": "backend_unit_and_contract", "passed": 128, "failed": 0, "warnings": 1, "duration_seconds": 27.41},
+    {"suite": "backend_serial_database_integration", "passed": 75, "failed": 0, "warnings": 6, "duration_seconds": 126.07},
+    {"suite": "backend_startup_e2e", "passed": 6, "failed": 0, "warnings": 1, "duration_seconds": 14.92},
+    {"suite": "javascript_sdk", "passed": 41, "failed": 0},
+    {"suite": "python_sdk", "passed": 48, "failed": 0},
+    {"suite": "frontend_openapi_contract", "passed": 60, "failed": 0},
+    {"suite": "frontend_production_build", "passed": 1, "failed": 0},
+    {"suite": "openapi_drift_check", "passed": 1, "failed": 0, "paths": 258, "bytes": 765977}
+  ],
+  "release_candidate": {
+    "version": "1.0.0-beta.22",
+    "javascript_artifact": true,
+    "python_wheel": true,
+    "python_sdist": true,
+    "dotnet_source_contract": true,
+    "dotnet_binary": false,
+    "published": false,
+    "manifest": "reports/release-candidate/LOCAL_RELEASE_MANIFEST_BETA22.json"
+  },
+  "external_gates": [
+    "Corti-hosted or independent remote MCP/A2A interoperability",
+    "cloud secret-manager provider adapter and rotation",
+    "PostgreSQL/Redis multi-worker behavior",
+    ".NET compilation and tests in CI",
+    "Docker/Linux/cloud/hospital acceptance",
+    "clinical, legal, compliance, certification, and independent reviewer approval"
+  ]
+}

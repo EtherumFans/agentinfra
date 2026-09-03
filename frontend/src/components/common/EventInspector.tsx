@@ -1,5 +1,7 @@
-// Event Inspector — iCoDer-style collapsible event log per page
+// Event Inspector - iCoDer-style collapsible event log per page
 import { useState } from 'react';
+
+import { useT } from '../../i18n';
 
 interface EventEntry {
   type: string;
@@ -14,6 +16,7 @@ interface EventInspectorProps {
 }
 
 export default function EventInspector({ events, creditsConsumed }: EventInspectorProps) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -22,16 +25,16 @@ export default function EventInspector({ events, creditsConsumed }: EventInspect
         onClick={() => setExpanded(!expanded)}
         className="w-full px-4 py-2 flex items-center justify-between text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
-        <span>Event Inspector</span>
+        <span>{t.eventInspectorTitle}</span>
         <div className="flex items-center gap-3">
-          <span>Credits consumed: {creditsConsumed > 0 ? `¥${creditsConsumed.toFixed(6)}` : 'N/A'}</span>
+          <span>{t.eventInspectorCreditsConsumed}: {creditsConsumed > 0 ? `¥${creditsConsumed.toFixed(6)}` : 'N/A'}</span>
           <span className={`transition-transform ${expanded ? 'rotate-180' : ''}`}>▾</span>
         </div>
       </button>
       {expanded && (
         <div className="px-4 pb-3 max-h-48 overflow-y-auto space-y-1.5">
           {events.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-2">No events recorded</p>
+            <p className="text-xs text-muted-foreground py-2">{t.eventInspectorNoEvents}</p>
           ) : (
             events.map((ev, i) => (
               <div key={i} className="flex items-start gap-2 text-[11px]">
@@ -51,3 +54,4 @@ export default function EventInspector({ events, creditsConsumed }: EventInspect
     </div>
   );
 }
+

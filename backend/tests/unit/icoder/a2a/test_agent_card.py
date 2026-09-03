@@ -19,6 +19,10 @@ from app.icoder.agent_runtime.a2a import (
     SecurityScheme,
     medcoder_coding_review_card,
 )
+from app.icoder.agent_runtime.a2a.agent_card import (
+    project_v1_agent_card,
+    resolve_v1_agent_card_base_url,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -177,7 +181,7 @@ def test_card_documentation_url_via_alias():
 
 def test_medcoder_card_basics():
     c = medcoder_coding_review_card()
-    assert c.name == "MedCodER Coding Review Agent"
+    assert c.name == "MedCodER 编码审核智能体"
     assert "编码审核" in c.description or "MedCodER" in c.description
     assert "medcoder-coding-review" in c.url
     assert c.version == "1.0.0"
@@ -186,7 +190,7 @@ def test_medcoder_card_basics():
 
 def test_medcoder_card_capabilities():
     c = medcoder_coding_review_card()
-    assert c.capabilities.streaming is False
+    assert c.capabilities.streaming is True
     assert c.capabilities.pushNotifications is False
     assert c.capabilities.stateTransitionHistory is True
 
@@ -260,6 +264,40 @@ def test_medcoder_card_default_input_output_modes():
     assert c.defaultOutputModes == ["application/json"]
 
 
+def test_v1_projection_uses_configured_origin_and_omits_internal_metadata(monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "ICODER_HOSTED_URL", "https://api.icoder.cn")
+    monkeypatch.setattr(settings, "ICODER_DEPLOYMENT_MODE", "cloud")
+    projected = project_v1_agent_card(
+        medcoder_coding_review_card(),
+        base_url="https://attacker.example/",
+        agent_id="agent/one",
+    )
+
+    assert projected["supportedInterfaces"][0]["url"].startswith(
+        "https://api.icoder.cn/"
+    )
+    assert "agent%2Fone" in projected["supportedInterfaces"][0]["url"]
+    assert "attacker.example" not in repr(projected)
+    assert "metadata" not in projected
+    assert projected["defaultInputModes"] == ["text/plain"]
+
+
+def test_v1_projection_rejects_unsafe_configured_origin_in_cloud(monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(
+        settings,
+        "ICODER_HOSTED_URL",
+        "https://user:secret@api.icoder.cn/?redirect=evil",
+    )
+    monkeypatch.setattr(settings, "ICODER_DEPLOYMENT_MODE", "cloud")
+
+    with pytest.raises(ValueError, match="safe public origin"):
+        resolve_v1_agent_card_base_url("https://attacker.example/")
+
+
 # ---------------------------------------------------------------------------
 # AgentListResponse
 # ---------------------------------------------------------------------------
@@ -268,7 +306,7 @@ def test_medcoder_card_default_input_output_modes():
 def test_agent_list_response_minimal():
     r = AgentListResponse(agents=[medcoder_coding_review_card()])
     assert len(r.agents) == 1
-    assert r.agents[0].name == "MedCodER Coding Review Agent"
+    assert r.agents[0].name == "MedCodER 编码审核智能体"
 
 
 def test_agent_list_response_empty():

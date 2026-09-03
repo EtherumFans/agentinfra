@@ -3,9 +3,9 @@
   "agent_type": "certified",
   "agent_ref": "icoder/medical-coding-agent@2.0.0",
   "manifest": {
-    "name": "Medical Coding Agent",
+    "name": "医学编码智能体",
     "version": "2.0.0",
-    "description": "iCoDer 官方医学编码 Agent (Corti-style)。基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出编码分配、文档缺口、合规校验、人工复核提示。AI-assisted coding — 不替代编码员, 不自动写回, 不 upcoding, 不推断未记录的诊断/手术。MVP maturity: production_ready=false, human_review=required。",
+    "description": "iCoDer 官方医学编码 Agent。基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出编码分配、文档缺口、合规校验、人工复核提示。AI-assisted coding — 不替代编码员, 不自动写回, 不 upcoding, 不推断未记录的诊断/手术。Runnable launch candidate: production_ready=false, human_review=required。",
     "category": "medical-coding",
     "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Stethoscope",
@@ -18,19 +18,19 @@
       "human-review-required",
       "corti-style"
     ],
-    "maturity": "mvp",
+    "maturity": "runnable",
     "production_ready": false,
     "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是 iCoDer Medical Coding Agent (Corti-style, MVP)。职责: 基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出 Corti-style 8-field 结构化结果。\n\n核心行为契约 (Corti 7-step workflow):\n1. Synthesize Encounter: 整合入院记录 / 出院小结 / 手术记录 / 病程记录 / 检查报告, 形成 encounter_summary (主诉、诊疗经过、关键发现)。\n2. Extract Clinical Evidence: 抽取诊断证据、手术证据、否定发现、既往病史 — 每条证据必须 char-anchored span (能在原文找到), 不得编造。\n3. Search Coding Candidates: BGE-M3 + FAISS 检索 ICD-10-CN / ICD-9-CM-3 候选编码 top-20, 经 icd10cn_code_catalog 合规过滤。\n4. Assign Codes: RankGPT-style 重排序 top-5 per diagnosis, 编码员可选 final code; 每个最终编码必须附 evidence span + confidence。\n5. Validate Coding: 跑 MedicalCodingRuleSet (R001-R010 + MC-R-M80-001) — catalog membership / chapter metadata / 主诊断冲突 / 手术-诊断一致性; 输出 validation_summary。\n6. Identify Documentation Gaps: 标记证据不足 / 候选编码冲突 / 否定发现未编码 / 历史诊断未编码 — 输出 documentation_gaps + uncodable_items。\n7. Generate Review Summary: 输出 review_conclusion (PASS | WARNING | FAIL) + manual_review_required + 人工复核重点 + trace_refs (run_id / stage_trace / rule_fired)。\n\n硬约束 (Corti 红线):\n- 不替代编码员 (AI-assisted, human_review=required)\n- 不 upcoding (不优先选择高补偿编码)\n- 不推断未记录的诊断 / 手术 (evidence-first, no inference beyond documentation)\n- 每个最终编码必须附 evidence span (no evidence = no code)\n- 不写回 EMR / HIS / 医保结算系统 (production_writeback_blocked=true)\n- 不声称 fully automated coding\n- 不绕过 PHI redaction (Context 强制)\n- 不输出 F1 / 模型效果指标给最终用户\n- documentation_gaps + uncodable_items + human_review 必须显式输出 (即使为空)",
+  "system_prompt": "你是 iCoDer Medical Coding Agent（开发上线候选）。职责: 基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出 8-field 结构化结果。\n\n核心行为契约 (7-step workflow):\n1. Synthesize Encounter: 整合入院记录 / 出院小结 / 手术记录 / 病程记录 / 检查报告, 形成 encounter_summary (主诉、诊疗经过、关键发现)。\n2. Extract Clinical Evidence: 抽取诊断证据、手术证据、否定发现、既往病史 — 每条证据必须 char-anchored span (能在原文找到), 不得编造。\n3. Search Coding Candidates: BGE-M3 + FAISS 检索 ICD-10-CN / ICD-9-CM-3 候选编码 top-20, 经 icd10cn_code_catalog 合规过滤。\n4. Assign Codes: RankGPT-style 重排序 top-5 per diagnosis, 编码员可选 final code; 每个最终编码必须附 evidence span + confidence。\n5. Validate Coding: 跑 MedicalCodingRuleSet (R001-R010 + MC-R-M80-001) — catalog membership / chapter metadata / 主诊断冲突 / 手术-诊断一致性; 输出 validation_summary。\n6. Identify Documentation Gaps: 标记证据不足 / 候选编码冲突 / 否定发现未编码 / 历史诊断未编码 — 输出 documentation_gaps + uncodable_items。\n7. Generate Review Summary: 输出 review_conclusion (PASS | WARNING | FAIL) + manual_review_required + 人工复核重点 + trace_refs (run_id / stage_trace / rule_fired)。\n\n硬约束 (编码红线):\n- 不替代编码员 (AI-assisted, human_review=required)\n- 不 upcoding (不优先选择高补偿编码)\n- 不推断未记录的诊断 / 手术 (evidence-first, no inference beyond documentation)\n- 每个最终编码必须附 evidence span (no evidence = no code)\n- 不写回 EMR / HIS / 医保结算系统 (production_writeback_blocked=true)\n- 不声称 fully automated coding\n- 不绕过 PHI redaction (Context 强制)\n- 不输出 F1 / 模型效果指标给最终用户\n- documentation_gaps + uncodable_items + human_review 必须显式输出 (即使为空)",
   "experts": [
     {
       "expert_id": "coding-expert",
       "name": "Coding Expert",
       "role": "primary",
-      "description": "Medical Coding Agent 主编排 Expert。委托 retriever / llm / rule_set 完成 Corti 7-step workflow; 5-stage MedCodER 管线作为 internal_engine 实现细节, 不暴露给最终用户。"
+      "description": "Medical Coding Agent 主编排 Expert。委托 retriever / llm / rule_set 完成 7-step workflow; 5-stage MedCodER 管线作为 internal_engine 实现细节, 不暴露给最终用户。"
     }
   ],
   "tools": [
@@ -159,8 +159,8 @@
     }
   ],
   "model": {
-    "primary": "deepseek-v4",
-    "fallback": "deepseek-v4-flash",
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-chat",
     "embedding": "BAAI/bge-m3",
     "embedding_dim": 1024,
     "temperature": 0.0,
@@ -179,7 +179,7 @@
     "不调用任何外部写 API (no outbound POST except DeepSeek / BGE-M3 / FAISS)"
   ],
   "output_contract": {
-    "schema_ref": "icoder/MedicalCodingAgentOutputV2/v1",
+    "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
     "a2a_parts": [
       "DataPart"
     ],
@@ -208,12 +208,798 @@
       "stage_trace": "list[StageTraceEntry] — 5 stage 状态 + latency_ms (technical)",
       "phi_redacted": "bool — 强制 true",
       "production_writeback_blocked": "bool — 强制 true"
-    }
+    },
+    "field_types": {
+      "encounter_summary": "object",
+      "documentation_analysis": "object",
+      "code_assignment": "object",
+      "documentation_gaps": "array",
+      "uncodable_items": "array",
+      "validation_summary": "object",
+      "human_review": "object",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "encounter_summary": {
+        "type": "object",
+        "properties": {
+          "chief_complaint": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "document_sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "doc_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "doc_type": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "doc_id",
+                "doc_type"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "encounter_date": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "key_findings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "treatment_course": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "chief_complaint",
+          "document_sources",
+          "encounter_date",
+          "key_findings",
+          "treatment_course"
+        ],
+        "additionalProperties": false
+      },
+      "documentation_analysis": {
+        "type": "object",
+        "properties": {
+          "diagnosis_evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "char_start": {
+                  "type": "integer"
+                },
+                "char_end": {
+                  "type": "integer"
+                },
+                "doc_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "doc_type": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "historical_conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "char_start": {
+                  "type": "integer"
+                },
+                "char_end": {
+                  "type": "integer"
+                },
+                "doc_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "doc_type": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "negated_findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "char_start": {
+                  "type": "integer"
+                },
+                "char_end": {
+                  "type": "integer"
+                },
+                "doc_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "doc_type": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "procedure_evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "char_start": {
+                  "type": "integer"
+                },
+                "char_end": {
+                  "type": "integer"
+                },
+                "doc_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "doc_type": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "diagnosis_evidence",
+          "historical_conditions",
+          "negated_findings",
+          "procedure_evidence"
+        ],
+        "additionalProperties": false
+      },
+      "code_assignment": {
+        "type": "object",
+        "properties": {
+          "primary_diagnosis": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "maxLength": 32768
+                    },
+                    "text": {
+                      "type": "string",
+                      "maxLength": 32768
+                    },
+                    "char_start": {
+                      "type": "integer"
+                    },
+                    "char_end": {
+                      "type": "integer"
+                    },
+                    "doc_id": {
+                      "type": "string",
+                      "maxLength": 32768
+                    },
+                    "doc_type": {
+                      "type": "string",
+                      "maxLength": 32768
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "text"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 100
+              }
+            },
+            "required": [
+              "category",
+              "code",
+              "confidence",
+              "description",
+              "evidence"
+            ],
+            "additionalProperties": false
+          },
+          "procedures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "category": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "kind": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "char_start": {
+                        "type": "integer"
+                      },
+                      "char_end": {
+                        "type": "integer"
+                      },
+                      "doc_id": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "doc_type": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "confidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "required": [
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 100
+                }
+              },
+              "required": [
+                "code",
+                "description",
+                "confidence",
+                "category",
+                "evidence"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "secondary_diagnoses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "category": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "kind": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "char_start": {
+                        "type": "integer"
+                      },
+                      "char_end": {
+                        "type": "integer"
+                      },
+                      "doc_id": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "doc_type": {
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "confidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "required": [
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 100
+                }
+              },
+              "required": [
+                "code",
+                "description",
+                "confidence",
+                "category",
+                "evidence"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "primary_diagnosis",
+          "procedures",
+          "secondary_diagnoses"
+        ],
+        "additionalProperties": false
+      },
+      "documentation_gaps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "gap_type": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "related_code": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "suggestion": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "gap_type",
+            "description",
+            "related_code",
+            "suggestion"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "uncodable_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "item_type": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "item_type",
+            "text",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "validation_summary": {
+        "type": "object",
+        "properties": {
+          "fired_rules": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "issues_found": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "message": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "severity": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "suggestion": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "code",
+                "message",
+                "severity",
+                "suggestion"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "manual_review_required": {
+            "type": "boolean",
+            "const": true
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "rule_set": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "fired_rules",
+          "issues_found",
+          "manual_review_required",
+          "passed",
+          "rule_set"
+        ],
+        "additionalProperties": false
+      },
+      "human_review": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "review_conclusion": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "review_focus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "review_required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "notes",
+          "review_conclusion",
+          "review_focus",
+          "review_required"
+        ],
+        "additionalProperties": false
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "method_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "mode": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "rule_fired": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "stage_trace": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stage": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "latency_ms": {
+                  "type": "integer"
+                },
+                "provider": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "model": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "method_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "error_code": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "stage",
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "failed_rules_require_human_review",
+        "when": [
+          {
+            "path": "validation_summary.passed",
+            "operator": "equals",
+            "value": false
+          }
+        ],
+        "must": [
+          {
+            "path": "human_review.review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "coding_diagnosis_evidence_matches_document",
+        "for_each": "documentation_analysis.diagnosis_evidence",
+        "text_path": "text",
+        "start_path": "char_start",
+        "end_path": "char_end",
+        "document_id_path": "doc_id"
+      },
+      {
+        "id": "coding_procedure_evidence_matches_document",
+        "for_each": "documentation_analysis.procedure_evidence",
+        "text_path": "text",
+        "start_path": "char_start",
+        "end_path": "char_end",
+        "document_id_path": "doc_id"
+      },
+      {
+        "id": "coding_negated_evidence_matches_document",
+        "for_each": "documentation_analysis.negated_findings",
+        "text_path": "text",
+        "start_path": "char_start",
+        "end_path": "char_end",
+        "document_id_path": "doc_id"
+      },
+      {
+        "id": "coding_history_evidence_matches_document",
+        "for_each": "documentation_analysis.historical_conditions",
+        "text_path": "text",
+        "start_path": "char_start",
+        "end_path": "char_end",
+        "document_id_path": "doc_id"
+      }
+    ],
+    "cross_agent_relations": [
+      {
+        "id": "coding_primary_matches_principal_review",
+        "local_path": "code_assignment.primary_diagnosis.code",
+        "upstream_agent_id": "principal-diagnosis-review",
+        "upstream_path": "candidates",
+        "upstream_item_path": "code",
+        "operator": "scalar_in_upstream_items",
+        "normalization": "medical_code",
+        "required": false
+      },
+      {
+        "id": "coding_secondary_matches_extracted_diagnoses",
+        "local_path": "code_assignment.secondary_diagnoses",
+        "local_item_path": "code",
+        "upstream_agent_id": "diagnosis-extractor",
+        "upstream_path": "diagnoses",
+        "upstream_item_path": "icd10_cn_code",
+        "operator": "local_items_subset_upstream_items",
+        "normalization": "medical_code",
+        "allow_empty_local": true,
+        "required": false
+      },
+      {
+        "id": "coding_procedures_match_extracted_procedures",
+        "local_path": "code_assignment.procedures",
+        "local_item_path": "code",
+        "upstream_agent_id": "procedure-extractor",
+        "upstream_path": "procedures",
+        "upstream_item_path": "code",
+        "operator": "local_items_subset_upstream_items",
+        "normalization": "medical_code",
+        "allow_empty_local": true,
+        "required": false
+      }
+    ]
   },
   "permissions": {
     "key": "medical-coding-default",
-    "name": "Medical Coding Agent 默认权限",
-    "description": "允许编码查询、规则校验、人工复核标记。禁止自动写回。Corti-style red lines enforced.",
+    "name": "医学编码智能体 默认权限",
+    "description": "允许编码查询、规则校验、人工复核标记。禁止自动写回。Red lines enforced.",
     "tools": {
       "search_icd": "allowed",
       "verify_code": "allowed",
@@ -250,7 +1036,7 @@
   "llm_capabilities": {
     "required_models": [
       {
-        "name": "deepseek-v4",
+        "name": "deepseek-chat",
         "purpose": "step2_extract_evidence + step4_assign_codes"
       },
       {
@@ -268,10 +1054,95 @@
     "discovery": "/api/icoder/agents",
     "agent_card_ref": "icoder/medical-coding-agent@2.0.0"
   },
+  "default_runtime_mode": "corti_like_fast",
+  "available_runtime_modes": [
+    "corti_like_fast",
+    "medcoder_deep"
+  ],
+  "example_inputs": [
+    {
+      "title": "T12 椎体压缩性骨折 (G001 gold case)",
+      "input_text": "患者男性,78岁,MRI 显示 T12 椎体压缩性骨折。"
+    },
+    {
+      "title": "骨质疏松伴病理性骨折",
+      "input_text": "患者女性,68岁,腰背部疼痛 3 月。X 线示 L1 椎体压缩性骨折,既往骨质疏松病史 5 年。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "encounter_summary": {
+        "chief_complaint": "",
+        "treatment_course": "",
+        "key_findings": [],
+        "document_sources": [],
+        "encounter_date": ""
+      },
+      "documentation_analysis": {
+        "diagnosis_evidence": [],
+        "procedure_evidence": [],
+        "negated_findings": [],
+        "historical_conditions": []
+      },
+      "code_assignment": {
+        "primary_diagnosis": {
+          "code": "S22.000x003",
+          "description": "胸椎压缩性骨折",
+          "confidence": 0.95,
+          "category": "principal",
+          "evidence": [
+            {
+              "text": "MRI 显示 T12 椎体压缩性骨折",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        "secondary_diagnoses": [],
+        "procedures": []
+      },
+      "documentation_gaps": [],
+      "uncodable_items": [],
+      "validation_summary": {
+        "passed": false,
+        "issues_found": [
+          {
+            "severity": "medium",
+            "code": "RULE-001",
+            "message": "病历信息有限，仅提供影像学结果，未明确骨折的具体类型（如创伤性、病理性）及外因，可能影响编码选择。",
+            "suggestion": "建议补充骨折的病因（如外伤、骨质疏松等）及是否伴有脊髓损伤，以确定更精确的编码。"
+          }
+        ],
+        "manual_review_required": true,
+        "rule_set": "MedCodERRetrievalRuleSet",
+        "fired_rules": [
+          "RULE-001"
+        ]
+      },
+      "human_review": {
+        "review_conclusion": "WARNING",
+        "review_required": true,
+        "review_focus": [],
+        "notes": "根据MRI结果，T12椎体压缩性骨折对应S22.000x003，但需进一步明确病因和是否合并其他损伤。"
+      },
+      "trace_refs": {
+        "run_id": "sample-run",
+        "stage_trace": [],
+        "rule_fired": [
+          "RULE-001"
+        ],
+        "mode": "Mode.UNSET",
+        "method_id": "",
+        "provider": "",
+        "model": "",
+        "trace_id": "sample-trace"
+      }
+    }
+  ],
+  "built_by": "icoder",
   "internal_engine": {
     "name": "MedCodER 5-stage pipeline (NAACL 2025 Industry Track)",
     "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
-    "note": "Internal implementation detail. Not user-facing. MedCodER 5-stage (Extraction → Retrieval → Merge → Re-Rank → Calibration) powers the Medical Coding Agent's step 2-5. Users interact with the Corti-style 7-step workflow only.",
+    "note": "Internal implementation detail. Not user-facing. MedCodER 5-stage (Extraction → Retrieval → Merge → Re-Rank → Calibration) powers the Medical Coding Agent's step 2-5. Users interact with the 7-step workflow only.",
     "stages": [
       "extraction",
       "retrieval",
@@ -282,6 +1153,6 @@
   },
   "code": {},
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "6f1ee7e4db0b7158856cfcf259b9247f83d49de30c4da035c144a97b7e4a82ea"
   }
 }

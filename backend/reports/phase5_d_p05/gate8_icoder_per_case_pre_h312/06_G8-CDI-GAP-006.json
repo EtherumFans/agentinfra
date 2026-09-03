@@ -1,0 +1,245 @@
+{
+  "case_id": "CASE-effd6768d26d",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-effd6768d26d/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血的诊断缺乏具体类型和病因，如缺铁性贫血、慢性病贫血等。",
+      "why_it_matters": "贫血是症状而非具体诊断，缺乏特异性会影响编码准确性和治疗方向。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:贫血"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-effd6768d26d/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "便潜血阳性未明确病因，如消化道出血、痔疮等。",
+      "why_it_matters": "便潜血阳性可能提示消化道出血，需明确病因以指导治疗和编码。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "便潜血阳性"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-effd6768d26d/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血的严重程度未明确（如轻度、中度、重度）。",
+      "why_it_matters": "严重程度影响编码和临床管理。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "Hb 65"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-effd6768d26d/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血的病程未明确（急性或慢性）。",
+      "why_it_matters": "急性与慢性贫血的编码和管理不同。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "乏力1月"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 60岁, 乏力1月。Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。便潜血阳性。入院诊断:贫血。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，60岁",
+      "乏力1月",
+      "Hb 65",
+      "MCV 72",
+      "血清铁 4.5",
+      "铁蛋白 8",
+      "便潜血阳性",
+      "入院诊断:贫血"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60",
+      "patient_sex": "男",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，贫血类型可明确为缺铁性贫血（小细胞低色素、血清铁和铁蛋白降低），需补充病因诊断，如便潜血阳性是否由消化道出血（如胃溃疡、结肠癌等）或痔疮引起。同时应明确贫血严重程度（Hb 65属中度贫血）及病程（乏力1月提示慢性过程），以支持完整诊断。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3067,
+      "tokens": 246
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-457c7537121e",
+    "gap_identification": "run-8a0db1c6513e",
+    "expert_consultation": "run-9102c59d0bb6",
+    "query_generation": "run-cd60e317e438",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=3;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-3849ef5a44e0",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-0bec55121e9a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-f6cd1ffb090a"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-d8754dfe5ce8",
+    "gap_identification": "trace-471295a39a5c",
+    "expert_consultation": "trace-335455f18b02",
+    "query_generation": "trace-9e75e50fa533",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-ce32736f5245",
+    "semantic_necessity_gate": "trace-4ae0525c158f",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-ed0b831e361c"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2507,
+      "prompt_tokens": 215,
+      "completion_tokens": 103,
+      "total_tokens": 318,
+      "run_id": "run-457c7537121e",
+      "trace_id": "trace-d8754dfe5ce8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4801,
+      "prompt_tokens": 327,
+      "completion_tokens": 439,
+      "total_tokens": 766,
+      "run_id": "run-8a0db1c6513e",
+      "trace_id": "trace-471295a39a5c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5405,
+      "prompt_tokens": 708,
+      "completion_tokens": 583,
+      "total_tokens": 1291,
+      "run_id": "run-cd60e317e438",
+      "trace_id": "trace-9e75e50fa533",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3067,
+      "prompt_tokens": 165,
+      "completion_tokens": 81,
+      "total_tokens": 246,
+      "run_id": "run-4d2f330f872c",
+      "trace_id": "trace-0cab83f82517",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-c13d461bba86",
+      "trace_id": "trace-a00199322d5a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-44560c45fa54",
+      "trace_id": "trace-1aa512d14f9f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4713af573dee",
+      "trace_id": "trace-5fc99377d6e4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:22:05.971385Z"
+}

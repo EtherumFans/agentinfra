@@ -1,0 +1,71 @@
+{
+  "schema_version": "icoder.agent-hub-external-semantic-e2e-forensic-recovery/v1",
+  "generated_at": "2026-08-26T00:00:00+08:00",
+  "status": "core_evidence_passed_wrapper_terminal_failure",
+  "authoritative_top_level_success": false,
+  "failure_window": "after_runtime_matrix_before_top_level_evidence",
+  "exact_failure_reason_persisted": false,
+  "credential_cleared_observed": true,
+  "source_results": {
+    "happy": {"passed": 26, "failed": 0},
+    "adversarial": {"passed": 26, "failed": 0},
+    "reference": {"passed": 26, "failed": 0},
+    "stability": {
+      "passed": 156,
+      "failed": 0,
+      "cost_coverage_rate": 1.0,
+      "cost_unknown_runs": 0,
+      "p50_seconds": 0.753,
+      "p95_seconds": 6.348,
+      "all_gates_passed": true
+    },
+    "semantic_bundle": {
+      "valid": true,
+      "semantic_live_e2e_verified": 26
+    },
+    "runtime_matrix": {
+      "semantic_evidence_valid": true,
+      "visible_semantic_live_e2e_verified": 26,
+      "visible_semantic_live_e2e_pending": 0,
+      "visible_external_semantic_live_e2e_pending": 0,
+      "visible_production_ready_verified": 0
+    }
+  },
+  "specialized_agents": {
+    "clinical-documentation-improvement-agent": {
+      "stability_runs": 6,
+      "passed": 6,
+      "p50_seconds": 20.378,
+      "p95_seconds": 26.662,
+      "p95_budget_seconds": 30.0,
+      "latency_budget_passed": true,
+      "cost_coverage_rate": 1.0,
+      "configured_cost_total_cny": 0.0100611,
+      "observed_llm_call_count_range": [7, 11]
+    },
+    "medical-coding-agent": {
+      "stability_runs": 6,
+      "passed": 6,
+      "p50_seconds": 5.511,
+      "p95_seconds": 6.688,
+      "p95_budget_seconds": 10.0,
+      "latency_budget_passed": true,
+      "cost_coverage_rate": 1.0,
+      "configured_cost_total_cny": 0.001564
+    }
+  },
+  "source_artifacts": {
+    "examples/agent_hub_examples_e2e.json": "c81d5f713989bc3a1173c19d49d225e8e058975be9282e0d19ff05c05d2708f2",
+    "adversarial/agent_hub_adversarial_e2e.json": "9ce971a13f8e60ea485191c1f90372bdaafdafb87865fc304cf548e40e56edcd",
+    "reference/agent_hub_reference_quality_replay.json": "e3495fd1761b9a2cf7d5d4558d4f66a90567b65102025e99ec040baa802e2095",
+    "stability/agent_hub_stability_benchmark.json": "0cceb71208cb20aad49ca457fb1c2eae5e74861ba78a62ce3d1215e19103e8fe",
+    "bundle/agent_hub_semantic_evidence_bundle.json": "e40e40514ec03adb5363757df396478b6a2986664e8637ef8c54d4c6fe5ad53d",
+    "runtime-matrix/agent_hub_runtime_matrix.json": "776ecc77e81d9ffd20052ec7d2ea01c55bb9d6b022d589ff40f5977149d34c45"
+  },
+  "limitations": [
+    "The wrapper did not persist its exact exception or backend exit code, so this recovery artifact does not promote the run to authoritative top-level success.",
+    "The live trace was produced before the follow-up fix that omits non-provider wall latency when overlapping provider calls make subtraction invalid.",
+    "The evidence uses Pack-owned synthetic cases and does not prove independent clinical accuracy, Corti parity, hospital acceptance, provider invoice reconciliation, or production readiness.",
+    "Production-ready verification remains 0/26."
+  ]
+}

@@ -1,9 +1,15 @@
-// iCoDer Developer Quickstart — iCoDer-style with i18n
+// iCoDer Developer Quickstart - iCoDer-style with i18n
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Key, BookOpen, Copy, Check, Terminal, ChevronRight, Loader2, Bot, Mic, FileEdit, Stethoscope, Play } from 'lucide-react';
+
 import { oauthApi } from '../services/api';
 import { useT } from '../i18n';
+import {
+  DEVELOPER_API_ENDPOINTS as API_ENDPOINTS,
+  buildCredentialEnv,
+  buildQuickstartSdkSnippets,
+} from '../utils/developerSdkCode';
 
 type AiTool = 'claude' | 'cursor' | 'codex' | 'lovable';
 type UseCase = 'dictation' | 'scribe' | 'coding' | 'chat';
@@ -11,13 +17,6 @@ type MainTab = 'ai-tools' | 'js-sdk' | 'dotnet-sdk' | 'api-playground';
 
 const AI_TOOLS: { key: AiTool; label: string }[] = [
   { key: 'claude', label: 'Claude Code' }, { key: 'cursor', label: 'Cursor' }, { key: 'codex', label: 'Codex' }, { key: 'lovable', label: 'Lovable' },
-];
-
-const API_ENDPOINTS: { key: string; method: string; path: string; label: string; sampleBody: string | null }[] = [
-  { key: 'facts-extract', method: 'POST', path: '/api/v2/tools/extract-facts', label: 'POST /api/v2/tools/extract-facts', sampleBody: JSON.stringify({ context: { type: 'text', text: '患者因腰痛伴左下肢放射痛3月就诊。查体：腰椎活动受限，左下肢直腿抬高试验阳性。' }, outputLanguage: 'zh-CN' }, null, 2) },
-  { key: 'agents-run', method: 'POST', path: '/api/icoder/agents/medcoder-coding-review/v1/message:send', label: 'POST /api/icoder/agents/{id}/v1/message:send (A2A)', sampleBody: JSON.stringify({ jsonrpc: '2.0', id: 'q-1', method: 'message/send', params: { message: { role: 'user', parts: [{ type: 'text', text: '请根据以下病例提供ICD-10-CN编码建议。' }] } } }, null, 2) },
-  { key: 'coding', method: 'POST', path: '/api/v2/tools/coding/icoder/', label: 'POST /api/v2/tools/coding/icoder/', sampleBody: JSON.stringify({ input: { case_id: 'case-xxx', text: '主诉：腹痛...' } }, null, 2) },
-  { key: 'usage', method: 'GET', path: '/api/usage/summary', label: 'GET /api/usage/summary', sampleBody: null },
 ];
 
 export default function DeveloperQuickstartPage() {
@@ -84,6 +83,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       const headers: Record<string, string> = {
         Authorization: token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',
+        ...(ep.headers || {}),
       };
       let parsedBody: any = {};
       if (ep.method === 'POST') {
@@ -109,13 +109,18 @@ const [oauthError, setOauthError] = useState<string | null>(null);
 
   const currentPrompt = USE_CASE_PROMPTS[useCase](window.location.origin);
   const origin = window.location.origin;
-  const jsCode = `import { iCoDerClient } from "@icoder/sdk";\n\nconst client = new iCoDerClient({ baseURL: "${origin}" });\n\nconst token = await client.oauth.getToken("${clientId || 'icoder-xxx'}", "${clientSecret ? clientSecret.substring(0, 20) + '...' : 'ics_xxx'}");\n\n// 事实提取\nconst facts = await client.facts.extract({\n  context: { type: "text", text: "患者因腰痛伴左下肢放射痛3月就诊..." },\n  outputLanguage: "zh-CN",\n});\nconsole.log("诊断:", facts.diagnosis_facts);\nconsole.log("手术:", facts.procedure_facts);`;
-  const dotNetCode = `using iCoDer.Sdk;\nusing iCoDer.Sdk.Models;\n\nvar credentials = new ClientCredentials { ClientId = "${clientId || 'icoder-xxx'}", ClientSecret = "${clientSecret ? clientSecret.substring(0, 20) + '...' : 'ics_xxx'}", BaseUrl = "${origin}" };\n\nvar client = new iCoDerClient(credentials);\n\n// 事实提取\nvar facts = await client.Facts.ExtractAsync(new FactExtractRequest\n{\n    Context = new FactContext { Type = "text", Text = "患者因腰痛伴左下肢放射痛3月就诊..." },\n    OutputLanguage = "zh-CN",\n});\nConsole.WriteLine($"诊断: {string.Join(", ", facts.DiagnosisFacts)}");\nConsole.WriteLine($"手术: {string.Join(", ", facts.ProcedureFacts)}");`;
+  const { javascript: jsCode, dotnet: dotNetCode } = buildQuickstartSdkSnippets(origin);
+  const credentialEnv = buildCredentialEnv(origin, clientId, clientSecret);
+  const copyCredentialEnv = () => {
+    navigator.clipboard.writeText(credentialEnv);
+    setEnvCopied(true);
+    setTimeout(() => setEnvCopied(false), 2000);
+  };
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin h-8 w-8 text-muted-foreground" /></div>;
 
   return (
-    <div className="p-6 bg-muted/20 min-h-full">
+    <div className="p-6 bg-muted/20 min-h-dvh">
       {oauthError && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex items-center justify-between">
           <span>{oauthError}</span>
@@ -132,11 +137,11 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       </div>
 
       {mainTab === 'ai-tools' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <p className="text-base text-muted-foreground">{t.devQsAiToolsDesc}</p>
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">1</div><h3 className="text-sm font-semibold text-foreground">{t.devQsStep1Title}</h3></div>
-            <div className="grid grid-cols-4 gap-3">{USE_CASES.map(uc => { const Icon = uc.icon; return <button key={uc.key} onClick={() => setUseCase(uc.key)} className={`flex flex-col items-center gap-2 p-4 rounded-lg transition-all text-left ${useCase === uc.key ? 'ring-2 ring-primary/50 bg-primary/5 shadow-sm' : 'ring-1 ring-border/20 bg-background hover:ring-primary/30 hover:bg-accent/50'}`}><Icon size={20} className={useCase === uc.key ? 'text-primary' : 'text-muted-foreground'} /><span className="text-sm font-medium text-foreground text-center leading-tight">{uc.label}</span></button>; })}</div>
+            <div className="grid grid-cols-4 gap-3">{USE_CASES.map(uc => { const Icon = uc.icon; return <button key={uc.key} onClick={() => setUseCase(uc.key)} className={`flex flex-col items-center gap-2 p-4 rounded-lg transition-all text-left ${useCase === uc.key ? 'ring-2 ring-primary/50 bg-primary/5 shadow-sm' : 'shadow-sm bg-background hover:ring-primary/30 hover:bg-accent/50'}`}><Icon size={20} className={useCase === uc.key ? 'text-primary' : 'text-muted-foreground'} /><span className="text-sm font-medium text-foreground text-center leading-tight">{uc.label}</span></button>; })}</div>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">2</div><h3 className="text-sm font-semibold text-foreground">{t.devQsStep2Title}</h3></div>
@@ -155,7 +160,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
               <Link to="/api-clients" className="px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">{t.devQsManageClients}</Link>
               {clientId ? (
                 <>
-                  <button onClick={() => { const dotEnv = `CLIENT_ID=${clientId}\nCLIENT_SECRET=${clientSecret || 'ics_xxx'}\nENVIRONMENT=development\nTENANT=default`; navigator.clipboard.writeText(dotEnv); setEnvCopied(true); setTimeout(() => setEnvCopied(false), 2000); }} className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
+                  <button onClick={copyCredentialEnv} className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
                   <span className="text-xs text-muted-foreground">{clientName}{showSecret && clientSecret && <span className="ml-2 font-mono text-[10px] text-muted-foreground/60">{clientSecret}</span>}</span>
                 </>
               ) : <button onClick={handleGenerate} disabled={generating} className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5 disabled:opacity-50">{generating ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{generating ? t.devQsGenerating : t.devQsGenerateCreds}</button>}
@@ -165,7 +170,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       )}
 
       {mainTab === 'js-sdk' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">1</div><h3 className="text-sm font-semibold text-foreground">{t.devQsCopyCreds}</h3></div>
             <p className="text-sm text-muted-foreground mb-3">{t.devQsCredsFlow}</p>
@@ -173,7 +178,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
             <div className="flex items-center gap-2">
               {clientId ? (
                 <>
-                  <button onClick={() => { const dotEnv = `CLIENT_ID=${clientId}\nCLIENT_SECRET=${clientSecret || 'ics_xxx'}\nENVIRONMENT=development\nTENANT=default`; navigator.clipboard.writeText(dotEnv); setEnvCopied(true); setTimeout(() => setEnvCopied(false), 2000); }} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
+                  <button onClick={copyCredentialEnv} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
                   <button onClick={() => setShowSecret(!showSecret)} className="px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground transition-colors">{showSecret ? '隐藏凭据' : t.devQsViewCreds}</button>
                 </>
               ) : <button onClick={handleGenerate} disabled={generating} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5 disabled:opacity-50">{generating ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{generating ? t.devQsGenerating : t.devQsGenerateCreds}</button>}
@@ -196,7 +201,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       )}
 
       {mainTab === 'dotnet-sdk' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">1</div><h3 className="text-sm font-semibold text-foreground">{t.devQsCopyCreds}</h3></div>
             <p className="text-sm text-muted-foreground mb-3">{t.devQsCredsFlowDotnet}</p>
@@ -204,7 +209,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
             <div className="flex items-center gap-2">
               {clientId ? (
                 <>
-                  <button onClick={() => { const dotEnv = `CLIENT_ID=${clientId}\nCLIENT_SECRET=${clientSecret || 'ics_xxx'}\nENVIRONMENT=development\nTENANT=default`; navigator.clipboard.writeText(dotEnv); setEnvCopied(true); setTimeout(() => setEnvCopied(false), 2000); }} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
+                  <button onClick={copyCredentialEnv} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
                   <button onClick={() => setShowSecret(!showSecret)} className="px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground transition-colors">{showSecret ? '隐藏凭据' : t.devQsViewCreds}</button>
                 </>
               ) : <button onClick={handleGenerate} disabled={generating} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5 disabled:opacity-50">{generating ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{generating ? t.devQsGenerating : t.devQsGenerateCreds}</button>}
@@ -227,7 +232,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       )}
 
       {mainTab === 'api-playground' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <p className="text-base text-muted-foreground">{t.devQsApiPlaygroundDesc}</p>
 
           <div>

@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://icoder.cloud/schemas/a1c3/patient-context.schema.json",
+  "title": "PatientContext",
+  "description": "iCoDer A1C.3 — Standard Patient Context (per PDF A1C.3 §七). Closes RV.5 BLOCKED_BY_NO_CONTEXT_CREATE_ENDPOINT.",
+  "type": "object",
+  "required": [
+    "tenant_id",
+    "source_system",
+    "patient_id",
+    "visit_type",
+    "department_id",
+    "clinician_id",
+    "purpose_of_use",
+    "consent_legal_basis"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "context_id": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 12,
+      "description": "iCoDer server-generated ID (uuid.uuid4().hex[:12]). Required on response, ignored on request.",
+      "pattern": "^[a-f0-9]{12}$"
+    },
+    "organization_id": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 12,
+      "description": "iCoDer internal org ID. Injected from JWT (A1A Gate 2).",
+      "pattern": "^[a-f0-9]{12}$"
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Hospital tenant slug (e.g. zju-fh-cn-hangzhou)."
+    },
+    "source_system": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "HIS/EMR identifier (e.g. ZJU-FH-HIS-2024 or HIS_SIMULATOR).",
+      "examples": ["ZJU-FH-HIS-2024", "HIS_SIMULATOR", "WCH-EMR-v3"]
+    },
+    "patient_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "De-identified patient ID (hospital-side EMPI already resolved)."
+    },
+    "encounter_id": {
+      "type": ["string", "null"],
+      "maxLength": 64,
+      "description": "Existing encounter ID if reused; null for new encounters."
+    },
+    "visit_type": {
+      "type": "string",
+      "enum": [
+        "inpatient",
+        "outpatient",
+        "emergency",
+        "day-case",
+        "home-care",
+        "telemed",
+        "rehab",
+        "observation"
+      ]
+    },
+    "department_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Department code (hospital-side)."
+    },
+    "ward_id": {
+      "type": ["string", "null"],
+      "maxLength": 64,
+      "description": "Ward ID. Required for inpatient and day-case."
+    },
+    "clinician_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Attending physician staff ID."
+    },
+    "document_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-f0-9]{12}$"},
+      "default": [],
+      "description": "Existing iCoDer document IDs to attach to this context."
+    },
+    "purpose_of_use": {
+      "type": "string",
+      "enum": ["treatment", "billing", "operations", "quality", "research", "public-health"]
+    },
+    "consent_legal_basis": {
+      "type": "string",
+      "enum": [
+        "patient-consent",
+        "treatment-necessity",
+        "legal-obligation",
+        "vital-interest",
+        "public-interest"
+      ]
+    },
+    "trace_id": {
+      "type": ["string", "null"],
+      "maxLength": 64,
+      "description": "W3C traceparent. Server-generated if absent; client may inject for end-to-end tracing.",
+      "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Server-generated UTC timestamp with Z suffix."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Server-generated UTC timestamp. Hard ceiling: created_at + 24h."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "expired", "deleted"],
+      "description": "Context lifecycle state. Server-managed."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "visit_type": {"enum": ["inpatient", "day-case"]}
+        },
+        "required": ["visit_type"]
+      },
+      "then": {
+        "required": ["ward_id"]
+      }
+    }
+  ]
+}

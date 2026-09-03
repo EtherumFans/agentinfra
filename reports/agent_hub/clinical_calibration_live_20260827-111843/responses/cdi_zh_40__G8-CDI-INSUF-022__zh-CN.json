@@ -1,0 +1,172 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-6315ba40-0543-4407-85a5-a3ef78367f6e",
+  "trace_id": "trace-847b8bf4a0564f5b",
+  "trace_url": "/ai-studio/runs/run-6315ba40-0543-4407-85a5-a3ef78367f6e/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 7427,
+  "cost": {
+    "amount": 0.00080752,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，50岁",
+        "主诉乏力",
+        "建议进一步检查"
+      ],
+      "encounter_metadata": {
+        "patient_age": "50岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "主诉乏力，但未明确病因或相关检查结果，缺乏诊断特异性。",
+        "why_it_matters": "乏力是非特异性症状，未明确病因会影响编码的准确性，可能导致无法分配具体诊断代码。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "患者男性, 50岁, 乏力。建议进一步检查。",
+          "char_start": 0,
+          "char_end": 22,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 1,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "empty chart — no coding substrate",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-de6150004aa1",
+        "trace_id": "trace-65e53b46c7a3"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a590030c24cc",
+        "trace_id": "trace-91ffe5b94bda"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-b4e15444cf02",
+        "trace_id": "trace-ebbe15e85642"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-39f5086b27e5",
+        "trace_id": "trace-d65bb4b4e777"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-6315ba40-0543-4407-85a5-a3ef78367f6e",
+      "stage_trace": {
+        "encounter_synthesis": "trace-e8020ff67b84",
+        "gap_identification": "trace-6c4a001c8278",
+        "expert_consultation": "trace-14908d0b2b29",
+        "query_generation": "trace-bc1dee36d578",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-ea494b9dc33d",
+        "semantic_necessity_gate": "trace-d367beaf61c0",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-ed080d216d75"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-d726c8e37df2",
+        "gap_identification": "run-1420bd1f69bd",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-b14b6e1a91c9",
+        "query_generation": "run-e441dc2741fa",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=1;llm_complete=False;llm_reasoning=病历仅记录主诉乏力，未提供任何检查结果、病因或临床关联，无法满足编码所需的特异性要求。",
+        "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=1;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-00ecc8c41637",
+        "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-387db65f09d7",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-81f56dd6c5dc"
+      },
+      "trace_id": "trace-847b8bf4a0564f5b"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI1MDk4ODc1ZTA2OTMyMjVkNzYxNjExM2NlN2IwYmQ0ZTFiNDNhMTg2Y2I1MjEzNGYwYzk3NjBhNmFiMjdiNTk5IiwiZSI6MTc4Nzg4NzQwOSwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tNjMxNWJhNDAtMDU0My00NDA3LTg1YTUtYTNlZjc4MzY3ZjZlIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.Aao9XKvwac2MzAD0vxDPz-HA4wBb7yRFVhlgj5gAChM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.59
+}

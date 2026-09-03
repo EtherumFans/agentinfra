@@ -1,0 +1,143 @@
+{
+  "phase": "A1D",
+  "title": "Layer 1 Engineering Debt Cleanup & CI Signal Restoration — Baseline State",
+  "date": "2026-08-05",
+  "charter_version": "1.1",
+  "charter_version_history": [
+    "1.0 (2026-08-05, commit c81d49a) — initial freeze",
+    "1.1 (2026-08-05, this subgate A1D.0) — fix §二 blocker list / §四 A1D.2 scope per IC-A1D-1"
+  ],
+  "predecessor_phase": "A1C",
+  "predecessor_terminal_commit": "209f25a",
+  "predecessor_terminal_verdict": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+  "head_branch": "phase-a1a/emergency-containment",
+  "head_commit_at_entry": "0a7bb11",
+  "head_commit_at_close": "(populated at commit time — see A1D_FINAL_COMMIT_MANIFEST.json)",
+
+  "immutable_5_tuple": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": "CONTRADICTED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "GATE4_ACCEPTANCE_STATUS": "REOPENED",
+    "CORTI_PARITY_VERDICT": "NOT_DEMONSTRATED",
+    "CORTI_PARITY_WEIGHTED_PERCENT": 52.6,
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "source": "A1A Gate 4R-I (commits a2613b7 / 1a9cbe7 / a2a1136)",
+    "mutation_allowed_in_A1D": false
+  },
+
+  "scope": {
+    "in_scope_blocker_count": 9,
+    "in_scope_blocker_ids": [
+      "A1C-B-002",
+      "A1C-B-003",
+      "A1C-B-007",
+      "A1C-B-008",
+      "A1C-B-010",
+      "A1C-B-011",
+      "A1C-B-012",
+      "A1C-B-018",
+      "A1C-B-020"
+    ],
+    "out_of_scope_blocker_count": 11,
+    "out_of_scope_blocker_ids": [
+      "A1C-B-001",
+      "A1C-B-004",
+      "A1C-B-005",
+      "A1C-B-006",
+      "A1C-B-009",
+      "A1C-B-013",
+      "A1C-B-014",
+      "A1C-B-015",
+      "A1C-B-016",
+      "A1C-B-017",
+      "A1C-B-019"
+    ],
+    "out_of_scope_reason": "Pilot-env-gated per A1C_OPEN_BLOCKERS.csv (target_phase=Pilot env). Pilot ops responsibility, parallel to A1D."
+  },
+
+  "subgate_verdicts": {
+    "A1D.0": {
+      "title": "Charter + entry audit",
+      "verdict": "PASS_A1D_0_CHARTER_V1_1_AND_ENTRY_AUDIT_FILED",
+      "commit": "(this commit)",
+      "deliverables_authored": 7,
+      "findings_count": 3,
+      "findings_severity": "observation (1 inconsistency + 2 observations, no P0)"
+    },
+    "A1D.1": {
+      "title": "ESLint introduction & frontend lint signal restoration",
+      "verdict": "PENDING",
+      "scope": ["A1C-B-003"],
+      "commit": null
+    },
+    "A1D.2": {
+      "title": "Small infra: audit pause + egress decision log",
+      "verdict": "PENDING",
+      "scope": ["A1C-B-012", "A1C-B-018"],
+      "commit": null,
+      "note": "v1.1 amendment: A1C-B-015 (webhook queue) removed from A1D.2 — its target_phase is Pilot env, not A1D. Decision and local implementation defer to Layer 2."
+    },
+    "A1D.3": {
+      "title": "Identity & audit: UserRole extension + audit_middleware",
+      "verdict": "PENDING",
+      "scope": ["A1C-B-010", "A1C-B-011", "A1C-B-020"],
+      "commit": null
+    },
+    "A1D.4": {
+      "title": "Cloud resilience: KMS rotation + LLM fallback provider",
+      "verdict": "PENDING",
+      "scope": ["A1C-B-007", "A1C-B-008"],
+      "commit": null,
+      "expected_blocked": [
+        "LLM fallback provider real API key (Pilot env)",
+        "KMS real rotation end-to-end (Pilot env)"
+      ]
+    },
+    "A1D.5": {
+      "title": "CI signal: 88 baseline failures triage",
+      "verdict": "PENDING",
+      "scope": ["A1C-B-002"],
+      "scope_decomposition": ["spec", "STT", "oauth", "health_check"],
+      "commit": null
+    },
+    "A1D.6": {
+      "title": "Final verdict + state archive",
+      "verdict": "PENDING",
+      "scope": [],
+      "commit": null
+    }
+  },
+
+  "exit_conditions": {
+    "all_9_eng_blockers_closed": false,
+    "regression_full_pass": false,
+    "ci_signal_clean": false,
+    "eslint_pass": false,
+    "forbidden_verdicts_honoured_count": "11/11",
+    "forbidden_git_ops_honoured_count": "12/12",
+    "five_tuple_mutated": false,
+    "a1c_final_artifacts_modified": false
+  },
+
+  "runtime_at_entry": {
+    "python": "3.12.3",
+    "node": "22.20.0",
+    "npm": "10.9.3",
+    "git": "2.50.1.windows.1",
+    "os": "Windows 10 Home China 10.0.19045 (MINGW64_NT-10.0-19045)"
+  },
+
+  "forbidden_verdicts_in_effect": [
+    "PRODUCTION_READY",
+    "READY_FOR_HOSPITAL_DEPLOYMENT",
+    "CLINICAL_GRADE_VERIFIED",
+    "PHI_BOUNDED",
+    "CORTI_PARITY_VERIFIED",
+    "CORTI_AGENTIC_PARITY_VERIFIED",
+    "READY_FOR_MVP_SHIP",
+    "FULLY_VERIFIED",
+    "A1C_REASSESSED_PASS",
+    "PILOT_ENV_READY",
+    "LAYER1_COMPLETE"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "experiment": "A",
+  "title": "Direct answer (no forced expert)",
+  "input": "Patient: 67-year-old male, presents to ED with acute substernal chest pain radiating to left arm for 2 hours. ECG shows ST-elevation in inferior leads II, III, aVF. Diagnosed with acute STEMI. Cardiac cath revealed 90% RCA occlusion, treated with drug-eluting stent. Aspirin and nitroglycerin given. PMH: Type 2 DM.\n\nAssign ICD-10-CM codes for this encounter.",
+  "agent_definition_id": "c731e909-d55a-4b86-bbbe-30f3c9e984f0",
+  "agent_name": "PHASE4H-AUDIT-MC",
+  "conversation_id": "4c2f06c9-6a3e-46a0-a5cf-78fa4d16cbf7",
+  "message_id": "O3fJADTjRQdfuBMT",
+  "endpoint": "POST https://api.console.corti.app/functions/v1/ai/agents/{conversation_id}",
+  "duration_ms": 15824,
+  "credits_consumed": 0.028388,
+  "request_body": {
+    "agentDefinitionId": "c731e909-d55a-4b86-bbbe-30f3c9e984f0",
+    "id": "4c2f06c9-6a3e-46a0-a5cf-78fa4d16cbf7",
+    "messages": [
+      {
+        "parts": [{"text": "...", "type": "text"}],
+        "id": "O3fJADTjRQdfuBMT",
+        "role": "user"
+      }
+    ],
+    "projectId": "b8f8129a-c31d-407f-b723-6ecc592d31e4",
+    "trigger": "submit-message"
+  },
+  "sse_event_types_observed": [
+    "data-status-update (state=working)",
+    "text-start",
+    "text-delta (entire response in 1 chunk)",
+    "text-end",
+    "message-metadata (contextId + taskId + credits + state=completed)",
+    "finish (finishReason=stop)",
+    "[DONE]"
+  ],
+  "tool_or_expert_events_observed": [],
+  "expert_invocation_evidence": "NONE — LLM answered directly, no tool-start/tool-end/expert events in SSE stream",
+  "contextId": "019f4ffb-3201-73d8-8379-898a9e429271",
+  "taskId": "019f4ffb-3201-72c6-9873-a4898c2252cb",
+  "key_finding": "Corti Orchestrator for direct-answer case = SINGLE LLM CALL with no expert/tool dispatch. Experts are CONDITIONAL via LLM-driven routing, not declarative DAG."
+}

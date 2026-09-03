@@ -1,0 +1,207 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-b26a1359-5648-4e72-b51a-15d7ed75030f",
+  "trace_id": "trace-023d0c494dbd44d8",
+  "trace_url": "/ai-studio/runs/run-b26a1359-5648-4e72-b51a-15d7ed75030f/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 16190,
+  "cost": {
+    "amount": 0.00094542,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "55岁男性，体检发现血脂异常",
+        "总胆固醇5.8 mmol/L，低密度脂蛋白胆固醇3.6 mmol/L，高密度脂蛋白胆固醇1.0 mmol/L，甘油三酯2.2 mmol/L",
+        "血压130/85 mmHg，BMI 25 kg/m²",
+        "10年心血管风险5%",
+        "无慢性病史，无症状",
+        "建议饮食运动，3个月后复查"
+      ],
+      "encounter_metadata": {
+        "patient_age": "55岁",
+        "patient_sex": "男性",
+        "encounter_type": "体检"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "血脂异常未明确具体类型（如高胆固醇血症、高甘油三酯血症或混合型高脂血症）",
+        "why_it_matters": "影响诊断编码的精确性和治疗方案的针对性",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断:血脂异常",
+          "char_start": 94,
+          "char_end": 101,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "血脂异常未明确严重程度（如轻度、中度、重度）",
+        "why_it_matters": "影响风险分层和随访管理决策",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "血脂:TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2",
+          "char_start": 25,
+          "char_end": 64,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "血脂异常未明确病因（原发性或继发性）",
+        "why_it_matters": "影响病因编码和进一步检查的必要性",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "无慢性病史",
+          "char_start": 19,
+          "char_end": 24,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "For accurate coding, the chart must specify the lipid abnormality type (e.g., isolated hypercholesterolemia, hypertriglyceridemia, or mixed hyperlipidemia) based on the provided values, and clarify whether it is primary or secondary (given no chronic disease, likely primary). Additionally, document the severity (e.g., borderline, moderate) and note that the 10-year cardiovascular risk of 5% places this in a low-risk category, which is essential for coding context. Without these details, the diagnosis remains too nonspecific for precise code assignment.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2456,
+        "tokens": 303,
+        "run_id": "run-b38da881bbe0",
+        "trace_id": "trace-724b92e4a708"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ee238d238b69",
+        "trace_id": "trace-777fe35fda65"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-b5ff9920823c",
+        "trace_id": "trace-ae2ac7a3fa25"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'BMI' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-27b810ce22e5",
+        "trace_id": "trace-7cb8af5b3472"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-b26a1359-5648-4e72-b51a-15d7ed75030f",
+      "stage_trace": {
+        "encounter_synthesis": "trace-e4e70ac6dfd1",
+        "gap_identification": "trace-a33777cdc71c",
+        "expert_consultation": "trace-a153ae5abd71",
+        "query_generation": "trace-dd1e32f9cffd",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-c0618c258d09",
+        "semantic_necessity_gate": "trace-a809fdb62384",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-88de44313de6"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-71ed8b76ce5c",
+        "gap_identification": "run-a24593a0c97d",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-917cd6f77d10",
+        "query_generation": "run-3df0899fedaf",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=血脂异常诊断缺乏类型、严重程度和病因的明确说明，且异常血脂值未进行临床相关性解释，需要澄清后才能准确编码。",
+        "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=3;degraded=0;blocked=1;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-3f2ec38c0631",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-6f87df27b101",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-7dad967009c7"
+      },
+      "trace_id": "trace-023d0c494dbd44d8"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJlMDU3YzdlNGU1NjEwMzBjODk5ZjhlNzAxNGU1NWM5MDM5MWIwOTc5YzE3YmVmMjZiM2UzZGM1MGNiNmQ3YzQyIiwiZSI6MTc4Nzg4MjUwMiwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tYjI2YTEzNTktNTY0OC00ZTcyLWI1MWEtMTVkN2VkNzUwMzBmIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.CDlbxv9cQ_EE4TSZoTDkYO8LsEv969eV9xTNT6I9nWw",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 16.314
+}

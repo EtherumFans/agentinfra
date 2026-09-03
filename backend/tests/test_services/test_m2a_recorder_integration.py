@@ -28,6 +28,29 @@ os.environ.setdefault("LLM_PROVIDER", "mock")
 os.environ.setdefault("LLM_API_KEY", "")
 
 
+class _StubGateway:
+    """Deterministic local gateway for recorder tests; performs no I/O."""
+
+    is_configured = True
+
+    async def generate(self, messages, **kwargs):
+        return {
+            "content": json.dumps({
+                "review_conclusion": "PASS",
+                "primary_diagnosis": {
+                    "code": "I50.900",
+                    "description": "心力衰竭",
+                    "confidence": 0.95,
+                    "category": "principal",
+                    "evidence": ["I50.900 心力衰竭"],
+                },
+                "manual_review_required": True,
+                "confidence": 0.95,
+            }, ensure_ascii=False),
+            "usage": {"input_tokens": 1, "output_tokens": 1},
+        }
+
+
 @pytest.fixture
 def m2a_dir():
     tmp = tempfile.mkdtemp(prefix="m2a_rec_")
@@ -39,7 +62,7 @@ def test_recorder_inactive_no_op(m2a_dir):
     """当 recorder=None 时，HybridCodingAdapter 仍正常工作，零 trace 写入。"""
     from icoder_runtime.providers.medical_coding.hybrid_adapter import HybridCodingAdapter
 
-    a = HybridCodingAdapter(mode="prompt_llm")
+    a = HybridCodingAdapter(gateway=_StubGateway(), mode="prompt_llm")
     assert a._recorder is None
 
     async def go():
@@ -63,7 +86,9 @@ def test_recorder_active_hybrid_records_stages(m2a_dir):
     rt = RunTraceService(store=store)
     recorder = M2aRecorder(run_trace=rt, default_agent_ref="hybrid_test")
 
-    a = HybridCodingAdapter(mode="prompt_llm", recorder=recorder)
+    a = HybridCodingAdapter(
+        gateway=_StubGateway(), mode="prompt_llm", recorder=recorder
+    )
 
     async def go():
         return await a.infer_async([{"role": "user", "content": "I50.900 心力衰竭"}])
@@ -120,7 +145,9 @@ def test_recorder_failure_does_not_block_business_logic(m2a_dir):
             raise RuntimeError("disk full")
 
     recorder = M2aRecorder(run_trace=BrokenRunTrace())
-    a = HybridCodingAdapter(mode="prompt_llm", recorder=recorder)
+    a = HybridCodingAdapter(
+        gateway=_StubGateway(), mode="prompt_llm", recorder=recorder
+    )
 
     async def go():
         return await a.infer_async([{"role": "user", "content": "I50.900"}])
@@ -140,7 +167,9 @@ def test_recorder_sample_payload_rejected(m2a_dir):
     store = M2aStore(m2a_dir)
     rt = RunTraceService(store=store)
     recorder = M2aRecorder(run_trace=rt, default_agent_ref="sample_test")
-    a = HybridCodingAdapter(mode="prompt_llm", recorder=recorder)
+    a = HybridCodingAdapter(
+        gateway=_StubGateway(), mode="prompt_llm", recorder=recorder
+    )
 
     async def go():
         # Force is_sample=True via metadata (recorder doesn't take is_sample,

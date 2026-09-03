@@ -2,7 +2,7 @@
 
 ## 产品定位
 
-iCoDer 是**Corti-competitive 临床 AI 平台**——预置编码审核、语音转录、文书生成、事实提取、嵌入助手等临床 AI 能力即开即用。Agent Runtime 提供多租户、Marketplace、合同强制工具系统、Deny-First 安全模型。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
+iCoDer 是**Corti-competitive 临床 AI 平台**——预置编码审核、语音转录、文书生成、事实提取、嵌入助手等临床 AI 能力即开即用。Agent Runtime 提供多租户、Agent Hub、合同强制工具系统、Deny-First 安全模型。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
 
 **与 Corti 的关系**：iCoDer 在产品形态、能力边界和开发者体验上**无限逼近 Corti**——同样是 Agent Runtime 平台，支持语音转录→事实提取→编码审核→报告生成的完整临床 AI 工作流。区别在于 iCoDer 将**可审计**作为基础设施内置：每条编码可溯源，每条决策链 SHA-256 哈希可重放，这是 AI 安全性的前提而非定位边界。
 
@@ -34,8 +34,8 @@ extract_evidence → search_icd10_index → assign_diagnosis_code
 ### 部署方式
 
 ```bash
-# 1. 通过 API 创建 Agent
-curl -X POST /api/agents -d '{
+# 1. 通过 API 创建项目 Agent 定义
+curl -X POST /api/rest/v1/agent_definitions -d '{
   "name": "骨科编码审核Agent",
   "system_prompt": "你是骨科专科编码审核专家...",
   "config": {
@@ -46,7 +46,7 @@ curl -X POST /api/agents -d '{
 }'
 
 # 2. 对接 HIS/EMR 系统
-# 出院时自动触发 → POST /api/encounters/text → POST /api/reviews → Webhook 推送结果
+# 出院时自动触发 → POST /api/v1/agents/{agent_id}/run → 读取 Run/Trace 结果
 ```
 
 ### 效果指标
@@ -60,44 +60,89 @@ curl -X POST /api/agents -d '{
 
 ---
 
-## 场景二：临床文档改进 (CDI) Agent
+## 场景二：临床文档改进 (CDI) Agent — CORE_ENTRY_AGENT #1
+
+> **Phase 5 Track D (2026-07-11)**: CDI 升级为 CORE_ENTRY_AGENT, 与 Medical Coding 并列.
+> 详见 [reports/phase5_track_d/](../reports/phase5_track_d/) + [docs/product/PRODUCT_DIRECTION.md](product/PRODUCT_DIRECTION.md).
 
 ### 客户痛点
 
-医保飞行检查发现大量病历存在"诊断特异性不足"问题——如仅写"肺炎"而非"细菌性肺炎（左下叶）"。这直接影响 DRG 权重和医院收入。临床医生没有时间逐份检查文档质量。
+医保飞行检查发现大量病历存在"诊断特异性不足"问题——如仅写"肺炎"而非"细菌性肺炎（左下叶）"。这直接影响编码准确性和临床事实还原。临床医生没有时间逐份检查文档质量。
+
+**注意 (Phase 5 Track D §4.3 边界)**: CDI 不是为了提升 CMI/支付/权重. CDI 是为了让临床事实被准确写清楚.
 
 ### iCoDer 方案
 
-构建 CDI Agent，只读分析病历文档，自动生成符合规范的医师查询：
+构建 CDI Agent (CORE_ENTRY_AGENT)，识别影响事实表达、准确编码和合规审核的内涵缺口，生成中立、非诱导、基于证据的临床澄清任务 (Provider Query)，形成医生答复 → 文档修订 → CDI 复核 → Medical Coding 闭环。
 
 ```
-extract_evidence → check_documentation_gaps → cdi_review → generate_cdi_query
+病历输入
+  → 文档结构化 (discharge-summary-structuring, SPECIALIZED_AGENT)
+  → 基础完整性检查 (note-completeness, SPECIALIZED_AGENT)
+  → 临床内涵缺口识别 (CDI 核心)
+  → 必要时调用受控 Expert / Tool
+  → 生成 Documentation Gaps (结构化 Schema)
+  → 生成 Provider Query Draft
+  → Non-leading Query 检查 (BLOCKED_LEADING_QUERY gate)
+  → 人工审核 (status: DRAFT → PENDING_CDI_REVIEW → APPROVED)
+  → 发送医生 (SENT_TO_CLINICIAN → VIEWED → RESPONDED)
+  → 文档修订 (DOCUMENTATION_UPDATED → REVALIDATED → CLOSED)
 ```
 
 **权限策略**：`cdi_audit` 预置——只读分析，不允许编码分配。`search_icd10_index` 等编码工具被 Deny-First 拦截。
 
-### 生成的 CDI 查询示例
+**红线 (Phase 5 Track D §15)**:
+- ❌ no_diagnosis_invention (不自动生成诊断)
+- ❌ no_upcoding (不以支付提升为目标)
+- ❌ no_leading_query (Non-leading Query gate)
+- ❌ no_automatic_chart_modification (不自动改病历)
+- ❌ chart_evidence_required (必须有病历证据)
+- ❌ clinician_confirmation_required (医生必须确认)
+- ❌ human_review_required (人工审核必须)
+- ❌ production_writeback_blocked (生产写回默认关闭)
+- ❌ external_web_not_patient_fact_source (Web Search 不直接产生患者事实)
+
+### Non-leading Provider Query 示例
+
+> ⚠️ 注意: 旧版本中 "建议: 请在病程记录中明确：肺炎病原体是否为肺炎链球菌？" 是诱导式查询 (leading query).
+> Phase 5 Track D §8.3 Non-leading Query Gate 会阻断此类查询. 改为中立的多选题:
 
 ```markdown
-## 文档缺口查询
+## 临床澄清任务 (Provider Query)
 
-**患者**: 张三 (ENC-20260529-001)
-**主治医师**: 李医生
-**日期**: 2026-05-29
+**query_id**: q_cdi_2026_0711_a3c5
+**gap_id**: gap_diagnostic_specificity_pneumonia
+**priority**: routine
+**status**: DRAFT  ← AI 生成后默认 DRAFT, 必须人工审核才能发送
 
-### 查询 1: 肺炎诊断特异性
-**依据**: 入院记录诊断"肺炎"，但痰培养结果为"肺炎链球菌"
-**影响**: 当前编码 J18.9（未特指肺炎）→ 可升级为 J13（肺炎链球菌肺炎）
-**DRG 影响**: ES21 → ES22，权重增加 0.35
-**建议**: 请在病程记录中明确：肺炎病原体是否为肺炎链球菌？
+### 临床问题
+入院记录诊断为"肺炎", 痰培养结果为"肺炎链球菌". 请根据您的临床判断回答:
+
+### 答复选项 (单选, 也允自由文本 / 无法确定 / 临床不支持)
+- [ ] A. 肺炎病原体为肺炎链球菌 (J13)
+- [ ] B. 肺炎病原体为其他已知病原体 (请在自由文本中说明)
+- [ ] C. 痰培养结果为定植菌, 不作为病原体
+- [ ] D. 无法确定 (unable to determine)
+- [ ] E. 临床不支持 (痰培养结果与临床表现不符)
+
+### 证据 (基于病历原文)
+- source_document: 入院记录 (2026-07-11 14:23)
+  evidence_text: "诊断: 肺炎"
+  char_start: 234, char_end: 240
+- source_document: 微生物检验报告 (2026-07-11 16:00)
+  evidence_text: "痰培养: 肺炎链球菌 (3+)"
+  char_start: 12, char_end: 32
 ```
 
 ### 部署方式
 
 ```bash
-curl -X POST /api/agents -d '{
-  "name": "CDI文档改进Agent",
-  "config": {"permission_preset": "cdi_audit", "routing_strategy": "tool_native"}
+# CDI run with chart context
+curl -X POST /api/cdi/runs -d '{
+  "patient_ref": "p_001",
+  "encounter_ref": "e_2026_0711_001",
+  "documents": [...],
+  "draft_codes": ["J18.9"]
 }'
 ```
 
@@ -173,7 +218,7 @@ iCoDer Console (集团管理员)
 
 **技术支撑**：
 - 多租户：Organization + OrganizationMember + switch-org
-- Agent 市场：publish → marketplace → install
+- Agent Hub：发现上线候选卡片 → 校验租户 readiness → clone 到项目
 - 权限隔离：每个院区独立 PermissionPolicy
 - 审计独立：每个组织的 AuditChain 完全隔离
 
@@ -191,34 +236,28 @@ HIS 厂商通过 iCoDer SDK 在现有系统中嵌入 AI 能力：
 
 ```javascript
 // 东软 HIS 系统中的集成代码
-import { iCoDerClient } from '@icoder/sdk';
+import iCoDer from '@icoder/sdk';
 
-const client = new iCoDerClient({
-    apiKey: process.env.ICODER_API_KEY,
-    baseUrl: 'https://icoder.example.com',
+const client = new iCoDer({
+    baseURL: process.env.ICODER_BASE_URL,
+    auth: { accessToken: process.env.ICODER_ACCESS_TOKEN },
 });
 
-// 出院结算时自动触发编码审核
+// 服务端工作流在出院结算前生成编码审核建议；不自动写回 HIS。
 async function onDischarge(encounter) {
-    const agent = await client.agents.get('ortho-coding-audit');
+    const { data: review } = await client.runs.runText(
+        'medical-coding-agent',
+        encounter.deidentifiedText,
+        { idempotencyKey: `discharge-${encounter.id}` },
+    );
 
-    const review = await client.agents.messageSend(agent.id, {
-        message: {
-            role: 'user',
-            parts: [
-                { kind: 'text', text: encounter.rawText },
-                { kind: 'data', data: { patientId: encounter.patientId, existingCodes: encounter.codes } }
-            ],
-            messageId: crypto.randomUUID(),
-            kind: 'message',
-        },
-    });
-
-    // 审核结果直接嵌入 HIS 界面
+    // 仅嵌入人工复核工作台；禁止 SDK 自动提交临床/结算写回。
     return {
-        suggestedCodes: review.artifacts[0].data.codes,
-        drgImpact: review.artifacts[1].data.drgImpact,
-        auditReport: review.artifacts[2].data.report,
+        runId: review.run_id,
+        result: review.result,
+        evidence: review.evidence,
+        manualReviewRequired: review.manual_review_required,
+        traceUrl: review.trace_url,
     };
 }
 ```

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="version" content="1.0.0-phase7-gate6">
+  <meta name="demo-name" content="drg-dip">
+  <title>iCoDer Embedded Demo — DRG/DIP 风险分析</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: #f5f5f7; color: #1d1d1f; padding: 24px; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #86868b; margin-bottom: 20px; }
+    .layout { display: flex; gap: 24px; max-width: 1280px; }
+    .sidebar { width: 280px; background: #fff; border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .sidebar h3 { font-size: 13px; margin-bottom: 8px; color: #1d1d1f; }
+    .sidebar label { display: block; font-size: 11px; color: #86868b; margin-top: 10px; }
+    .sidebar input { width: 100%; padding: 6px 10px; border: 1px solid #e5e5ea; border-radius: 6px; font-size: 12px; }
+    .widget-wrap { flex: 1; max-width: 480px; }
+    .clinical-text { flex: 1; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 13px; line-height: 1.7; max-height: 640px; overflow-y: auto; }
+    .clinical-text h3 { font-size: 13px; margin-bottom: 8px; }
+    .clinical-text pre { white-space: pre-wrap; font-family: inherit; color: #1d1d1f; font-size: 12px; }
+    .event-log { position: fixed; bottom: 12px; right: 12px; width: 360px; max-height: 200px; overflow-y: auto; background: rgba(28,28,32,0.94); color: #f5f5f7; font-family: SFMono-Regular, Menlo, monospace; font-size: 11px; padding: 10px; border-radius: 8px; }
+    .event-log .line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .event-log .name { color: #64d2ff; }
+    .event-log .cost { color: #ffd60a; }
+    .event-log .err { color: #ff453a; }
+    .meta { color: #86868b; font-size: 10px; }
+    button { padding: 8px 16px; background: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 12px; width: 100%; }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.4; cursor: default; }
+    .hint { font-size: 11px; color: #86868b; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>DRG Analyzer Agent — 分组合规风险 嵌入演示</h1>
+  <p class="subtitle">Phase 6 Gate 7 · 场景: 脑梗死合并高血压/糖尿病 DRG 分组风险 · Agent: drg-analyzer</p>
+
+  <div class="layout">
+    <div class="sidebar">
+      <h3>HIS/EMR 视图</h3>
+      <label>Backend URL</label>
+      <input id="baseUrl">
+      <label>Access Token (JWT)</label>
+      <input id="token" type="password" placeholder="Bearer JWT">
+      <label>Patient Name</label>
+      <input id="patientName" value="王五">
+      <label>Patient ID</label>
+      <input id="patientId" value="P-2026-003">
+      <label>Encounter ID</label>
+      <input id="encounterId" value="E-20260713-003">
+      <button id="init">初始化 widget + 自动提交 DRG 分析</button>
+      <p class="hint">点击后: auth → configureSession(drg-analyzer + 王五) → 自动 ask 临床文本 → DRG agent 输出分组预测 + 风险标志</p>
+      <p class="hint" style="margin-top:12px;color:#86868b;">iCoDer ADVANTAGE: DRG/DIP 风险结构 — Corti 不具备 (Corti 不针对中国 DRG/DIP)</p>
+    </div>
+
+    <div class="widget-wrap">
+      <icoder-embedded id="assistant"></icoder-embedded>
+    </div>
+
+    <div class="clinical-text">
+      <h3>临床文本 — 急性脑梗死 (合并症复杂)</h3>
+      <pre id="clinicalText">主诉: 突发右侧肢体无力伴言语不清4小时。
+
+现病史: 患者女,72岁,4小时前静息状态下突发右侧肢体无力,上肢不能抬起,下肢不能行走,伴言语含糊,无头痛呕吐,无意识丧失,无抽搐。急诊以"急性脑血管病"收入。
+
+既往史: 高血压病史20年,最高180/110 mmHg,口服"氨氯地平"。2型糖尿病史12年,长期胰岛素治疗。心房颤动病史3年,未规律抗凝。否认冠心病、高脂血症。
+
+查体: BP 175/100 mmHg, P 88次/分(不齐)。嗜睡,混合性失语。双侧瞳孔等大等圆,对光反射灵敏。右侧鼻唇沟变浅,伸舌右偏。右侧上肢肌力1级,下肢2级,肌张力减低。右侧Babinski征(+)。NIHSS评分 14分。
+
+辅助检查:
+- 头颅CT: 左侧大脑中动脉供血区低密度灶, ASPECTS评分 8分
+- 心电图: 心房颤动, 心率 88次/分
+- 空腹血糖 8.6 mmol/L ↑
+- 糖化血红蛋白 8.2% ↑
+- 凝血常规: INR 1.8 (房颤未规律抗凝)
+- D-二聚体 850 μg/L ↑
+
+入院诊断:
+1. 急性脑梗死 (左侧大脑中动脉供血区)
+2. 心房颤动
+3. 高血压病3级 极高危
+4. 2型糖尿病</pre>
+    </div>
+  </div>
+
+  <div class="event-log" id="log">
+    <div class="line">Event log (Phase 6 Gate 3 unified envelope):</div>
+  </div>
+
+  <script type="module">
+    // Phase 7 Gate 1 — load partner config first (env-driven, no secrets).
+    try {
+      await import('/examples/config.js');
+    } catch (e) {
+      console.warn('[demo] config.js load failed; using defaults', e);
+    }
+    const cfg = window.icoderConfig || { baseUrl: '', agentRef: 'drg-analyzer' };
+    const detectedBase = cfg.baseUrl || window.location.origin;
+    document.getElementById('baseUrl').value = detectedBase;
+    const el0 = document.getElementById('assistant');
+    if (el0) el0.setAttribute('baseURL', detectedBase);
+
+    import '/api/embedded/assistant.js';
+
+    const log = document.getElementById('log');
+    function append(line, cls = '') {
+      const div = document.createElement('div');
+      div.className = 'line';
+      div.innerHTML = `<span class="${cls}">${line}</span>`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    const el = document.getElementById('assistant');
+
+    el.addEventListener('embedded-event', (e) => {
+      const { name, payload, meta } = e.detail;
+      const ts = new Date().toLocaleTimeString();
+      const metaSuffix = meta ? ` <span class="meta">eid=${(meta.eventId || '').slice(0, 8)} sid=${(meta.sessionId || '').slice(0, 8)} ctx=${meta.contextId || '∅'}</span>` : '';
+      if (name === 'run.completed') {
+        const traceLink = payload.trace_url
+          ? ` <a href="${payload.trace_url}" target="_blank" rel="noopener" style="color:#64d2ff;">trace ↗</a>`
+          : '';
+        append(`${ts} <span class="name">${name}</span> agent=${payload.agent_id} latency=${payload.latency_ms}ms${traceLink}${metaSuffix}`, '');
+      } else if (name === 'account.creditsConsumed') {
+        append(`${ts} <span class="name">${name}</span> ${payload.currency} ${payload.amount}${metaSuffix}`, 'cost');
+      } else if (name === 'error.triggered') {
+        append(`${ts} <span class="name">${name}</span> ${payload.message}${metaSuffix}`, 'err');
+      } else {
+        append(`${ts} <span class="name">${name}</span>${metaSuffix}`, '');
+      }
+    });
+
+    el.addEventListener('ready', () => append('widget ready'));
+
+    document.getElementById('init').addEventListener('click', async () => {
+      const btn = document.getElementById('init');
+      btn.disabled = true;
+      btn.textContent = '运行中...';
+      try {
+        await el.auth({
+          access_token: document.getElementById('token').value.trim(),
+          token_type: 'bearer',
+          mode: 'stateless',
+        });
+        await el.configureSession({
+          defaultTemplateKey: 'drg-analyzer',
+          defaultLanguage: 'zh-CN',
+          defaultOutputLanguage: 'zh-CN',
+          patientId: document.getElementById('patientId').value,
+          name: document.getElementById('patientName').value,
+          encounterId: document.getElementById('encounterId').value,
+        });
+        await el.configure({
+          features: { aiChat: true, documentFeedback: true, virtualMode: false },
+          locale: { dictationLanguage: 'zh-CN', interfaceLanguage: 'zh-CN' },
+        });
+        el.baseURL = document.getElementById('baseUrl').value.trim();
+        await el.show();
+
+        append('widget 初始化完成,自动提交到 drg-analyzer...');
+        const clinicalText = document.getElementById('clinicalText').textContent;
+        await el.ask(`请基于以下病历进行 DRG/DIP 分组风险分析,识别编码对分组的影响,标记风险点:\n\n${clinicalText}`);
+        append('DRG 分析完成 — 见 widget 输出', '');
+      } catch (e) {
+        append(`failed: ${e.message}`, 'err');
+        btn.disabled = false;
+        btn.textContent = '重试';
+      }
+    });
+  </script>
+</body>
+</html>

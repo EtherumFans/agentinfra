@@ -1,0 +1,418 @@
+{
+  "case_id": "CASE-e1b875087a38",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-e1b875087a38/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The type of cough is not specified (e.g., acute, chronic, productive, non-productive).",
+      "why_it_matters": "Specificity of cough type is important for accurate diagnosis and coding; it may indicate underlying conditions such as infection, asthma, or COPD.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e1b875087a38/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The etiology of the cough is not established; no diagnosis is documented.",
+      "why_it_matters": "Without a diagnosis, coding cannot assign a specific condition; the encounter may be coded as a symptom, which may not reflect the true clinical picture.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e1b875087a38/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of the cough is not documented (e.g., mild, moderate, severe).",
+      "why_it_matters": "Severity is a key dimension for many respiratory conditions and may affect treatment and coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e1b875087a38/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "The clinical significance of the clear lung exam and normal chest X-ray is not correlated with the cough.",
+      "why_it_matters": "The absence of abnormal findings on exam and imaging does not rule out all causes of cough; a clinical correlation is needed to guide further workup or diagnosis.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "双肺清晰。胸片:未见活动性病变。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-e1b875087a38/Q-001",
+      "gap_id": "CASE-e1b875087a38/GAP-001",
+      "topic": "咳嗽类型",
+      "reason": "病历中仅记录'咳嗽1周'，未明确咳嗽的类型（如急性、慢性、干咳或湿咳），需要进一步明确。",
+      "evidence_span": {
+        "document_id": "unknown",
+        "quote": "咳嗽1周",
+        "char_start": 11,
+        "char_end": 15,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者咳嗽的临床类型属于以下哪种？",
+      "response_options": [
+        "A. 急性咳嗽（病程<3周）",
+        "B. 亚急性咳嗽（病程3-8周）",
+        "C. 慢性咳嗽（病程>8周）",
+        "D. 干咳（无痰）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-e1b875087a38/GAP-003",
+      "topic": "咳嗽严重程度",
+      "reason": "病历中未记录咳嗽的严重程度，需要明确。",
+      "query_text": "该患者咳嗽的严重程度如何？",
+      "response_options": [
+        "A. 轻度（偶尔咳嗽，不影响日常活动）",
+        "B. 中度（频繁咳嗽，影响日常活动）",
+        "C. 重度（剧烈咳嗽，影响休息或工作）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are denied and lung examination/imaging is non-acute"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-e1b875087a38/GAP-004",
+      "topic": "临床表现与检查结果的相关性",
+      "reason": "病历中记录双肺清晰和胸片正常，但未解释这些结果与咳嗽症状的相关性。",
+      "query_text": "该患者肺部查体及胸片结果与咳嗽症状的相关性如何解释？",
+      "response_options": [
+        "A. 检查结果与咳嗽症状相符，支持急性上呼吸道感染等自限性疾病",
+        "B. 检查结果与咳嗽症状不符，需进一步评估其他病因",
+        "C. 检查结果正常，但咳嗽可能由非肺部原因引起（如胃食管反流、鼻后滴漏等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "双肺清晰。胸片:未见活动性病变。",
+          "char_start": 54,
+          "char_end": 70,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are denied and lung examination/imaging is non-acute"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-e1b875087a38/GAP-002",
+      "topic": "咳嗽病因",
+      "reason": "病历中未记录咳嗽的病因或相关诊断，需要明确可能的病因。",
+      "query_text": "该患者咳嗽的可能病因或诊断是什么？",
+      "response_options": [
+        "A. 急性上呼吸道感染",
+        "B. 急性支气管炎",
+        "C. 咳嗽变异性哮喘",
+        "D. 胃食管反流性咳嗽",
+        "E. 其他（请注明）",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: one symptom-only clarification per shared evidence span"
+      ],
+      "status": "DEFERRED_SYMPTOM_REFINEMENT",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-e1b875087a38/GAP-001",
+      "topic": "咳嗽类型",
+      "reason": "病历中仅记录'咳嗽1周'，未明确咳嗽的类型（如急性、慢性、干咳或湿咳），需要进一步明确。",
+      "query_text": "该患者咳嗽的临床类型属于以下哪种？",
+      "response_options": [
+        "A. 急性咳嗽（病程<3周）",
+        "B. 亚急性咳嗽（病程3-8周）",
+        "C. 慢性咳嗽（病程>8周）",
+        "D. 干咳（无痰）",
+        "E. 湿咳（有痰）",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-011 (max_five_response_options): response_options count=6 (cap=5)"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "BOUND_RESPONSE_OPTIONS",
+      "replacement_query_id": "Q-001",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "该患者咳嗽的临床类型属于以下哪种？",
+      "rewritten_response_options": [
+        "A. 急性咳嗽（病程<3周）",
+        "B. 亚急性咳嗽（病程3-8周）",
+        "C. 慢性咳嗽（病程>8周）",
+        "D. 干咳（无痰）",
+        "E. 无法确定"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 60岁, 咳嗽1周。否认发热、咳脓痰、咯血、胸痛。既往:高血压。<REDACTED:NAME>:双肺清晰。胸片:未见活动性病变。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "60岁女性",
+      "咳嗽1周",
+      "否认发热、咳脓痰、咯血、胸痛",
+      "既往高血压",
+      "双肺清晰",
+      "胸片未见活动性病变"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinician must document the cough’s type (e.g., acute vs. chronic, productive vs. non-productive) and its underlying etiology or working diagnosis, since a clear lung exam and normal chest X-ray do not rule out conditions like post-nasal drip, GERD, or asthma. Additionally, specify the severity and any functional impact (e.g., sleep disturbance, work limitation) to justify medical necessity, and explicitly state how the negative findings correlate with the clinical picture (e.g., “cough likely viral, given clear lungs and normal CXR”). Without this specificity, the record lacks the clinical detail needed to assign the most precise code reflecting the patient’s true condition.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3382,
+      "tokens": 323
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-7dbf7c2caa66",
+    "gap_identification": "run-6addd089f700",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-4e207a71107c",
+    "query_generation": "run-41d5f796be6b",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=The chart documents a symptom (cough) but lacks a diagnosis, severity, and clini",
+    "query_necessity_gate": "necessary=2;unnecessary=2;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-6134d09adddf",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-d0a852f9a0aa",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-150cd0ca01c2"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-a5fedcc1fe7a",
+    "gap_identification": "trace-5454c6dd4521",
+    "expert_consultation": "trace-f26e5bccc0b2",
+    "query_generation": "trace-e7dcc0d31e72",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-22599bcba491",
+    "semantic_necessity_gate": "trace-274acb7ffb43",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-9f32c72e3012"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2247,
+      "prompt_tokens": 218,
+      "completion_tokens": 94,
+      "total_tokens": 312,
+      "run_id": "run-7dbf7c2caa66",
+      "trace_id": "trace-a5fedcc1fe7a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6224,
+      "prompt_tokens": 1037,
+      "completion_tokens": 600,
+      "total_tokens": 1637,
+      "run_id": "run-6addd089f700",
+      "trace_id": "trace-5454c6dd4521",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6983,
+      "prompt_tokens": 1157,
+      "completion_tokens": 894,
+      "total_tokens": 2051,
+      "run_id": "run-41d5f796be6b",
+      "trace_id": "trace-e7dcc0d31e72",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3382,
+      "prompt_tokens": 179,
+      "completion_tokens": 144,
+      "total_tokens": 323,
+      "run_id": "run-10c12821cb3b",
+      "trace_id": "trace-c3c0d89c32ab",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0341e8a9b2eb",
+      "trace_id": "trace-0588b12ca8d2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-27d22aecf68c",
+      "trace_id": "trace-d68e47448804",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-be554673fd84",
+      "trace_id": "trace-596cf4b64b90",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:40:10.182672Z"
+}

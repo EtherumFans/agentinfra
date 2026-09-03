@@ -9,9 +9,11 @@
  */
 
 import axios from 'axios';
+
 import type {
   RuntimeStatus, DataPolicy, RegistryHealth, FallbackStats, ShadowStats,
   InstalledAgent, RuntimeRunResult, MedicalCodingStatus, RuleEngineStatus,
+  RunTraceResponse,
 } from '../types/runtime';
 
 const api = axios.create({ baseURL: '/api/runtime', timeout: 30000 });
@@ -33,6 +35,238 @@ a2aApi.interceptors.request.use((config) => {
   config.headers['Content-Type'] = 'application/json';
   return config;
 });
+
+// Phase 4-F (2026-07-09): Unified Agent Run client —
+// POST /api/v1/agents/{agent_id}/run — thin facade that routes to
+// CodingRuntimeDispatcher (medical-coding) or ProviderRegistry (others).
+const unifiedRunApi = axios.create({ baseURL: '/api/v1/agents', timeout: 60000 });
+unifiedRunApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers['Content-Type'] = 'application/json';
+  return config;
+});
+
+/** Phase 4-F: response envelope from POST /api/v1/agents/{id}/run.
+ * Uniform across all iCoDer built agents — 13 fields per prompt §9.1. */
+export interface AgentRunResponse {
+  agent_id: string;
+  run_id: string;
+  trace_id: string;
+  runtime_mode: string;
+  latency_ms: number;
+  cost: Record<string, unknown>;
+  billing?: Record<string, unknown>;
+  summary: string;
+  result: Record<string, unknown>;
+  schema_ref: string;
+  result_attestation: string;
+  evidence: Array<Record<string, unknown>>;
+  warnings: string[];
+  manual_review_required: boolean;
+  trace_events: Array<Record<string, unknown>>;
+  error: boolean;
+  error_reason: string;
+  /** Present when the response came from the A2A message stream. */
+  context_id?: string;
+  message_id?: string;
+}
+
+export interface AgentStreamHandlers {
+  signal?: AbortSignal;
+  context_id?: string;
+  onStatus?: (status: Record<string, unknown>) => void;
+  onTextDelta?: (delta: string) => void;
+  onProviderProgress?: (progress: Record<string, unknown>) => void;
+  onToolEvent?: (event: string, payload: Record<string, unknown>) => void;
+  onProviderUsage?: (usage: Record<string, unknown>) => void;
+}
+
+function _mapA2AEnvelopeToAgentRunResponse(
+  agentId: string,
+  envelope: any,
+): AgentRunResponse {
+  if (envelope?.error) {
+    const reason = envelope.error?.data?.details || envelope.error?.message || 'A2A stream failed';
+    return {
+      agent_id: agentId,
+      run_id: '',
+      trace_id: '',
+      runtime_mode: 'a2a_stream',
+      latency_ms: 0,
+      cost: {},
+      summary: reason,
+      result: {},
+      schema_ref: '',
+      result_attestation: '',
+      evidence: [],
+      warnings: [],
+      manual_review_required: true,
+      trace_events: [],
+      error: true,
+      error_reason: reason,
+    };
+  }
+
+  const message = envelope?.result;
+  if (!message || message.kind !== 'message') {
+    throw new Error('A2A stream completed without a message result');
+  }
+  const dataPart = (message.parts || []).find(
+    (part: any) => part?.kind === 'data' && part?.data,
+  );
+  const textPart = (message.parts || []).find(
+    (part: any) => part?.kind === 'text' && typeof part?.text === 'string',
+  );
+  const result = (dataPart?.data && typeof dataPart.data === 'object')
+    ? dataPart.data
+    : {};
+  const metadata = message.metadata || {};
+  const summary = result.summary || textPart?.text || result.markdown || '';
+  const manualReview = Boolean(
+    metadata.manual_review_required
+    || result.manual_review_required
+    || result.human_review?.review_required,
+  );
+
+  return {
+    agent_id: agentId,
+    run_id: metadata.run_id || '',
+    trace_id: metadata.run_id || '',
+    runtime_mode: 'a2a_stream',
+    latency_ms: Number(metadata.provider_latency_ms || 0),
+    cost: {},
+    summary: String(summary || ''),
+    result,
+    schema_ref: String(metadata.output_contract || dataPart?.metadata?.schema_ref || ''),
+    result_attestation: String(
+      metadata.result_attestation || dataPart?.metadata?.result_attestation || '',
+    ),
+    evidence: [],
+    warnings: [],
+    manual_review_required: manualReview,
+    trace_events: [],
+    error: false,
+    error_reason: '',
+    context_id: message.contextId || '',
+    message_id: message.messageId || '',
+  };
+}
+
+function _parseSseBlock(block: string): { event: string; data: string } | null {
+  let event = 'message';
+  const data: string[] = [];
+  for (const line of block.split('\n')) {
+    if (line.startsWith('event:')) event = line.slice(6).trim();
+    if (line.startsWith('data:')) data.push(line.slice(5).trimStart());
+  }
+  return data.length > 0 ? { event, data: data.join('\n') } : null;
+}
+
+async function _streamAgentViaA2A(
+  agentId: string,
+  input: string,
+  handlers: AgentStreamHandlers,
+): Promise<AgentRunResponse> {
+  const shortId = agentId.split('/').pop()!.split('@')[0];
+  const token = localStorage.getItem('access_token') || '';
+  const message: Record<string, unknown> = {
+    role: 'user',
+    messageId: crypto.randomUUID(),
+    parts: [{ kind: 'text', text: input }],
+    metadata: {},
+  };
+  if (handlers.context_id) message.contextId = handlers.context_id;
+
+  const response = await fetch(
+    `/api/icoder/agents/${encodeURIComponent(shortId)}/v1/message:stream`,
+    {
+      method: 'POST',
+      headers: {
+        'A2A-Protocol-Version': '0.3',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: crypto.randomUUID(),
+        method: 'message/stream',
+        params: { message },
+      }),
+      signal: handlers.signal,
+    },
+  );
+
+  if (!response.ok || !response.headers.get('content-type')?.startsWith('text/event-stream')) {
+    let reason = `A2A stream HTTP ${response.status}`;
+    try {
+      const body = await response.json();
+      reason = body?.error?.data?.details || body?.error?.message || body?.detail || reason;
+    } catch {
+      // Stable HTTP error above is sufficient; never echo an HTML proxy body.
+    }
+    throw new Error(reason);
+  }
+  if (!response.body) throw new Error('A2A stream response has no body');
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let finalEnvelope: any = null;
+
+  const consume = (block: string) => {
+    const parsed = _parseSseBlock(block);
+    if (!parsed) return;
+    if (parsed.event === 'data-status-update') {
+      handlers.onStatus?.(JSON.parse(parsed.data));
+    } else if (parsed.event === 'data-provider-progress') {
+      handlers.onProviderProgress?.(JSON.parse(parsed.data));
+    } else if (
+      parsed.event === 'data-tool-call-delta'
+      || parsed.event === 'data-tool-call'
+      || parsed.event === 'data-provider-reset'
+    ) {
+      handlers.onToolEvent?.(parsed.event, JSON.parse(parsed.data));
+    } else if (parsed.event === 'data-provider-usage') {
+      handlers.onProviderUsage?.(JSON.parse(parsed.data));
+    } else if (parsed.event === 'text-delta') {
+      const delta = JSON.parse(parsed.data)?.delta;
+      if (typeof delta === 'string') handlers.onTextDelta?.(delta);
+    } else if (parsed.event === 'data-json') {
+      finalEnvelope = JSON.parse(parsed.data);
+    }
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+    buffer = buffer.replace(/\r\n/g, '\n');
+    let boundary = buffer.indexOf('\n\n');
+    while (boundary >= 0) {
+      consume(buffer.slice(0, boundary));
+      buffer = buffer.slice(boundary + 2);
+      boundary = buffer.indexOf('\n\n');
+    }
+    if (done) break;
+  }
+  if (buffer.trim()) consume(buffer);
+  if (!finalEnvelope) throw new Error('A2A stream ended without data-json');
+
+  const mapped = _mapA2AEnvelopeToAgentRunResponse(shortId, finalEnvelope);
+  // Keep store/service imports lazy: the store imports API types during app
+  // bootstrap, so eager imports here would create a browser-only cycle.
+  import('../store').then(({ useCostStore }) => {
+    import('./api').then(({ billingApi }) => {
+      billingApi.balance().then((billing: any) => {
+        const balance = billing.data?.balance;
+        if (typeof balance === 'number') {
+          useCostStore.getState().syncFromBalance(balance);
+        }
+      }).catch(() => {});
+    });
+  }).catch(() => {});
+  return mapped;
+}
 
 /**
  * Map an A2A JSON-RPC success envelope to RuntimeRunResult.
@@ -135,6 +369,100 @@ function _mapA2AResultToRunResult(agentId: string, envelope: any): RuntimeRunRes
   } as RuntimeRunResult;
 }
 
+/**
+ * Phase 4-F1 (2026-07-10): Map the 13-field AgentRunResponse envelope to the
+ * RuntimeRunResult shape so AgentChatPage's MessageBubble (Copy JSON/Markdown,
+ * Event Inspector link, Rendered/JSON tabs, latency badge) continues to work
+ * without touching the rendering layer.
+ *
+ * The unified endpoint returns a uniform envelope across all iCoDer built
+ * agents. Medical Coding Agent runs via the G001 fast path
+ * (CodingRuntimeDispatcher) and returns ~9-10s on T12. A2A runs route to
+ * InboundHandler + MedCodER 5-stage pipeline and 60s-timeout — we avoid
+ * that path on chat now.
+ */
+function _mapAgentRunResponseToRuntimeRunResult(
+  agentId: string,
+  resp: AgentRunResponse,
+): RuntimeRunResult {
+  const result = (resp.result || {}) as Record<string, unknown>;
+  const evidence = resp.evidence || [];
+  const warnings = resp.warnings || [];
+  const traceEvents = resp.trace_events || [];
+  const traceRefs = (result.trace_refs || {}) as Record<string, unknown>;
+  const codeAssignment = (result.code_assignment || {}) as Record<string, unknown>;
+  const valSummary = (result.validation_summary || {}) as Record<string, unknown>;
+  const humanReview = (result.human_review || {}) as Record<string, unknown>;
+
+  // Audit trail from trace_events (each event has step/latency/expert_id).
+  const audit_trail: any[] = traceEvents.map((ev: any) => ({
+    step: ev.step || ev.event || ev.name || '',
+    result: ev.result || '',
+    payload: ev.payload || ev,
+  }));
+
+  // Evidences — pass through; backend already shapes them per-agent.
+  const evidences: any[] = (evidence as any[]).map((ev: any) => ev);
+
+  return {
+    run_id: resp.run_id || '',
+    agent_ref: `icoder/${agentId}`,
+    status: resp.error ? 'error' : 'success',
+    output: JSON.stringify(result, null, 2),
+    structured: result,
+    primary_diagnosis: (codeAssignment.primary_diagnosis || {
+      code: '',
+      description: '',
+      confidence: 0,
+      category: '',
+      evidence: [],
+    }) as any,
+    secondary_diagnoses: (codeAssignment.secondary_diagnoses || []) as any[],
+    procedures: (codeAssignment.procedures || []) as any[],
+    issues_found: warnings,
+    audit_trail,
+    processing_time_ms: resp.latency_ms || 0,
+    token_usage: { input_tokens: 0, output_tokens: 0 },
+    errors: resp.error ? [resp.error_reason || resp.summary || 'agent run failed'] : [],
+    evidences,
+    mode: resp.runtime_mode,
+    extracted_diagnoses: [],
+    review_conclusion: humanReview.review_conclusion as string | undefined,
+    manual_review_required: resp.manual_review_required,
+    encounter_summary: result.encounter_summary as string | undefined,
+    documentation_gaps: (result.documentation_gaps || []) as any[],
+    uncodable_items: (result.uncodable_items || []) as any[],
+    corti_validation_summary: {
+      passed: valSummary.passed as boolean | undefined,
+      issues_found: warnings,
+      manual_review_required: resp.manual_review_required,
+      rule_set: valSummary.rule_set as string | undefined,
+      fired_rules: (valSummary.fired_rules || []) as any[],
+    },
+    human_review: humanReview as any,
+    trace_refs: { ...traceRefs, trace_id: resp.trace_id } as any,
+    markdown: (result.markdown as string | undefined) || undefined,
+    // Phase 4-F1 additions for chat UI consumption
+    summary: resp.summary,
+    latency_ms: resp.latency_ms,
+    runtime_mode: resp.runtime_mode,
+    cost: resp.cost,
+    trace_id: resp.trace_id,
+    trace_events: traceEvents,
+    error: resp.error,
+    error_reason: resp.error_reason,
+  } as unknown as RuntimeRunResult & {
+    summary: string;
+    latency_ms: number;
+    runtime_mode: string;
+    cost: Record<string, unknown>;
+    trace_id: string;
+    trace_events: Array<Record<string, unknown>>;
+    error: boolean;
+    error_reason: string;
+  };
+}
+
 export const runtimeAgentApi = {
   // ── Status ──
   getStatus: () => api.get<RuntimeStatus>('/status').then(r => r.data),
@@ -160,9 +488,16 @@ export const runtimeAgentApi = {
     api.post<RuntimeRunResult>(`/agents/${encodeURIComponent(agentRef)}/run`, { input }).then(r => r.data),
   /** A2A mainline: POST /api/icoder/agents/{agentId}/v1/message:send.
    * Sends a JSON-RPC 2.0 message/send envelope and projects the v2 8-field
-   * response back to RuntimeRunResult for compatibility with the existing UI. */
-  runAgentViaA2A: (agentId: string, input: string) =>
-    a2aApi.post(`/${encodeURIComponent(agentId)}/v1/message:send`, {
+   * response back to RuntimeRunResult for compatibility with the existing UI.
+   * Phase 4-D: accepts extra `parts` (DataPart for attached JSON context
+   * files via "Add context"). After each run, syncs liveCost from billing
+   * balance delta. */
+  runAgentViaA2A: (agentId: string, input: string, extraParts: any[] = []) => {
+    const parts: any[] = [
+      { kind: 'text', text: input },
+      ...extraParts,
+    ];
+    const runPromise = a2aApi.post(`/${encodeURIComponent(agentId)}/v1/message:send`, {
       jsonrpc: '2.0',
       id: `icoder-${Date.now()}`,
       method: 'message/send',
@@ -170,17 +505,46 @@ export const runtimeAgentApi = {
         message: {
           role: 'user',
           messageId: `msg-${Date.now()}`,
-          parts: [{ kind: 'text', text: input }],
+          parts,
           metadata: {},
         },
       },
-    }).then(r => _mapA2AResultToRunResult(agentId, r.data)),
+    }).then(r => _mapA2AResultToRunResult(agentId, r.data));
+    // Sync live cost after run completes (non-blocking — don't block UI on balance fetch)
+    runPromise.then(() => {
+      // Dynamic import to avoid circular dependency (store imports from services)
+      import('../store').then(({ useCostStore }) => {
+        import('./api').then(({ billingApi }) => {
+          billingApi.balance().then((r: any) => {
+            const bal = r.data?.balance;
+            if (typeof bal === 'number') {
+              useCostStore.getState().syncFromBalance(bal);
+            }
+          }).catch(() => {});
+        });
+      });
+    }).catch(() => {});
+    return runPromise;
+  },
   agentLifecycle: (agentRef: string, action: string) =>
     api.post(`/agents/${encodeURIComponent(agentRef)}/lifecycle`, { action }).then(r => r.data),
 
-  // ── Runs (recent runs overview; full trace at /api/m2a/runs/{id})
+  // ── Runs (recent runs overview; full trace at /api/runtime/runs/{id}/trace)
   listRuns: (agentRef = '', limit = 50) =>
     api.get<{ runs: RuntimeRunResult[]; total: number }>('/runs', { params: { agent_ref: agentRef, limit } }).then(r => r.data),
+
+  // Phase 3-D1 Task 4: RunTrace Viewer — 9-step timeline
+  getRunTrace: (runId: string) =>
+    api.get<RunTraceResponse>(`/runs/${encodeURIComponent(runId)}/trace`).then(r => r.data),
+
+  // Phase 4-G #3: RunHistory list — recent run summaries for the dropdown.
+  // Phase 5 A6: optional `days` param filters by created_at >= now - days.
+  // GET /api/runtime/runs/history?agent_id=X&limit=50&days=30 → {items, total}
+  getRunHistory: (agentId = '', limit = 50, days = 0) =>
+    api.get<{ items: any[]; total: number }>(
+      '/runs/history',
+      { params: { agent_id: agentId, limit, ...(days > 0 ? { days } : {}) } },
+    ).then(r => r.data),
 
   // ── Observability ──
   getFallbackStats: (hours = 24) =>
@@ -202,4 +566,119 @@ export const runtimeAgentApi = {
   validateRules: (ruleSet: string, structuredOutput: Record<string, unknown>, context: Record<string, unknown> = {}) =>
     api.post('/rule-engine/validate', { rule_set: ruleSet, structured_output: structuredOutput, context }).then(r => r.data),
   getRules: () => api.get('/rule-engine/rules').then(r => r.data),
+
+  // ── Phase 4-F (2026-07-09): Unified Agent Run API ──
+  /** A2A SSE mainline used by Agent Hub chat. It opens immediately, accepts
+   * status/text callbacks and returns the same UI envelope as agentRun(). */
+  agentStream: (
+    agentId: string,
+    input: string,
+    handlers: AgentStreamHandlers = {},
+  ) => _streamAgentViaA2A(agentId, input, handlers),
+
+  // POST /api/v1/agents/{agent_id}/run — thin facade that routes any
+  // iCoDer built agent to its appropriate runtime (CodingRuntimeDispatcher
+  // for medical-coding, ProviderRegistry for everything else). Returns a
+  // uniform 13-field envelope consumed by AgentDetailPage's chat UI.
+  //
+  // Phase 5 B-2: accepts both full agent_ref (`icoder/medical-coding-agent@2.0.0`)
+  // and short agent_id (`medical-coding-agent`) — normalizes to short form
+  // since backend `_agent_id_from_ref` expects that. Fixes the 404 when the
+  // URL contains the un-cloned Hub agent_ref (e.g. user clicks "自定义" on a
+  // Hub card rather than "使用智能体" which clones first).
+  agentRun: (
+    agentId: string,
+    input: string,
+    options: {
+      runtime_mode?: string;
+      extra?: Record<string, unknown>;
+      documents?: Array<{
+        document_id: string;
+        text: string;
+        document_version?: string;
+        document_type?: string;
+        normalization?: 'none' | 'NFC' | 'NFKC';
+      }>;
+      upstream_results?: Array<{
+        agent_id: string;
+        result: Record<string, unknown>;
+        run_id: string;
+        schema_ref: string;
+        attestation: string;
+      }>;
+      include_trace?: boolean;
+      include_evidence?: boolean;
+    } = {},
+  ) => {
+    const shortId = agentId.split('/').pop()!.split('@')[0];
+    const body = {
+      input: {
+        text: input,
+        extra: options.extra || {},
+        documents: options.documents || [],
+        upstream_results: options.upstream_results || [],
+      },
+      runtime_mode: options.runtime_mode,
+      include_trace: options.include_trace ?? true,
+      include_evidence: options.include_evidence ?? true,
+    };
+    return unifiedRunApi.post(`/${encodeURIComponent(shortId)}/run`, body).then(
+      r => r.data as AgentRunResponse,
+    );
+  },
+
+  /** Phase 4-F1 (2026-07-10): Unified run path for AgentChatPage — wraps
+   * `agentRun()` and maps the 13-field AgentRunResponse to RuntimeRunResult
+   * so the existing MessageBubble rendering layer keeps working. On
+   * `resp.error=true`, throws a structured error with `error_reason` so the
+   * caller surfaces a structured error bubble instead of silent fail.
+   *
+   * Medical Coding Agent default: fast path (G001,
+   * ~9-10s on T12) — the A2A MedCodER 5-stage path 60s-timeouts.
+   *
+   * Phase 4-G #1 (2026-07-10): After a successful run with a populated
+   * `cost.amount`, push that amount into `useCostStore` so the TopBar live
+   * counter updates immediately (no need to wait for the next billing
+   * balance poll).
+   *
+   * API Client attribution is never accepted from this browser request body.
+   * Machine integrations authenticate with a client-credentials Bearer token;
+   * the backend derives the client identity from that verified token.
+   */
+  runAgentUnified: (
+    agentId: string,
+    input: string,
+    options: {
+      runtime_mode?: string;
+      extra?: Record<string, unknown>;
+      include_trace?: boolean;
+      include_evidence?: boolean;
+    } = {},
+  ) => {
+    const runPromise = runtimeAgentApi
+      .agentRun(agentId, input, options)
+      .then(resp => {
+        if (resp?.error) {
+          const reason = resp.error_reason || resp.summary || 'agent run failed';
+          throw {
+            response: { data: { detail: reason, error_reason: resp.error_reason } },
+            message: reason,
+          };
+        }
+        // Phase 4-G #1: accumulate live cost from the response envelope so
+        // the TopBar counter updates instantly after each run. The backend
+        // computes `cost.amount` from token usage × pricing; if absent (mock
+        // or zero-token runs), fall through to the existing balance-poll
+        // path in `runAgentViaA2A`.
+        const costAmount = typeof resp?.cost?.amount === 'number' ? resp.cost.amount : 0;
+        if (costAmount > 0) {
+          // Dynamic import to avoid circular dep (store imports from services).
+          import('../store').then(({ useCostStore }) => {
+            useCostStore.getState().addCost(costAmount);
+          }).catch(() => {});
+        }
+        return _mapAgentRunResponseToRuntimeRunResult(agentId, resp);
+      });
+    return runPromise;
+  },
 };

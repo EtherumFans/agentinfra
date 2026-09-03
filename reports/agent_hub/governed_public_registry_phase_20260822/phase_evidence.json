@@ -1,0 +1,77 @@
+{
+  "schema_version": "icoder/phase-evidence/v1",
+  "phase": "governed-public-registry-providers",
+  "date": "2026-08-22",
+  "result": "development_slice_passed_pubmed_live_gate_open",
+  "llm": {
+    "provider": "mock_or_not_invoked",
+    "real_credential_used": false,
+    "external_llm_network_used": false
+  },
+  "providers": {
+    "clinical_trials": {
+      "official_host": "clinicaltrials.gov",
+      "api": "GET /api/v2/studies",
+      "live_minimal_verified": true,
+      "live_query_classification": "synthetic_deidentified",
+      "live_query_result": {
+        "returned": 1,
+        "total_available_positive": true,
+        "nct_id_shape_valid": true,
+        "authoritative": false
+      }
+    },
+    "pubmed": {
+      "official_host": "eutils.ncbi.nlm.nih.gov",
+      "api_pipeline": ["ESearch", "ESummary"],
+      "offline_contract_verified": true,
+      "live_minimal_verified": false,
+      "live_gate": "ICODER_NCBI_CONTACT_EMAIL_REQUIRED"
+    },
+    "remaining_gated": ["drugbank", "posos", "web-search"]
+  },
+  "security_contract": {
+    "server_owned_hosts_paths_and_parameters": true,
+    "dns_to_socket_pinning": true,
+    "os_proxy_inheritance": false,
+    "tls_trust": "isolated-certifi",
+    "http_versions": ["HTTP/1.1"],
+    "redirects": "deny",
+    "deidentified_queries_only": true,
+    "phi_detector_fail_closed": true,
+    "agent_supplied_url_or_headers": false,
+    "max_query_chars": 500,
+    "max_results": 20,
+    "response_bytes_bounded": true,
+    "output_field_projection": true,
+    "clinical_authority_claimed": false,
+    "clinical_review_required": true
+  },
+  "runtime_defects_found_and_fixed": [
+    {
+      "defect": "optional h2 package was required by the pinned pool at first live connection",
+      "fix": "pin governed transport to HTTP/1.1"
+    },
+    {
+      "defect": "Windows system TLS context received provider-edge HTTP 403 while isolated httpx trust succeeded",
+      "fix": "use httpx isolated Certifi trust context with trust_env disabled"
+    }
+  ],
+  "verification": [
+    {"suite": "backend_unit_security_corti_contract", "passed": 197, "failed": 0, "warnings": 1, "duration_seconds": 33.66},
+    {"suite": "backend_serial_database_integration", "passed": 77, "failed": 0, "warnings": 7, "duration_seconds": 126.23},
+    {"suite": "backend_startup_e2e", "passed": 6, "failed": 0, "warnings": 1, "duration_seconds": 15.34},
+    {"suite": "clinical_trials_live_minimal", "passed": 1, "failed": 0},
+    {"suite": "javascript_sdk", "passed": 41, "failed": 0},
+    {"suite": "python_sdk", "passed": 48, "failed": 0, "duration_seconds": 51.73},
+    {"suite": "openapi_drift_check", "passed": 1, "failed": 0, "paths": 258}
+  ],
+  "external_gates": [
+    "valid operational NCBI contact email before a PubMed live verification",
+    "CN or cloud exact-host egress approval for each public registry",
+    "hospital privacy, security, legal, and clinical reviewer approval",
+    "licensed DrugBank and POSOS provider contracts",
+    "privacy-preserving web-search provider and dual opt-in",
+    "multi-worker distributed rate and circuit state"
+  ]
+}

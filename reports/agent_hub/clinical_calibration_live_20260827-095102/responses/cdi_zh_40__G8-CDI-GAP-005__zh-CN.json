@@ -1,0 +1,211 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-5cb208a8-9897-4dad-9290-2b234fc6afb2",
+  "trace_id": "trace-584a2259799f4dd6",
+  "trace_url": "/ai-studio/runs/run-5cb208a8-9897-4dad-9290-2b234fc6afb2/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 17746,
+  "cost": {
+    "amount": 0.00095816,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，68岁",
+        "慢性阻塞性肺疾病病史10年",
+        "咳嗽、气促加重3天",
+        "血气分析：pH 7.34，PaCO2 62，PaO2 55",
+        "入院诊断：慢阻肺急性加重"
+      ],
+      "encounter_metadata": {
+        "patient_age": "68岁",
+        "patient_sex": "男性",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "The severity of the acute exacerbation of COPD is not specified (e.g., mild, moderate, severe) and the presence of respiratory failure is not explicitly documented despite abnormal blood gas values.",
+        "why_it_matters": "Coding requires specification of acute exacerbation severity and whether respiratory failure is present, as these affect DRG assignment and severity of illness.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:慢阻肺急性加重",
+          "char_start": 63,
+          "char_end": 75,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "The type of respiratory failure (hypoxemic vs hypercapnic) is not specified, and whether it is acute or acute-on-chronic is not documented.",
+        "why_it_matters": "Specificity of respiratory failure type and acuity is required for accurate coding and to reflect the clinical complexity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "血气:pH 7.34, PaCO2 62, PaO2 55",
+          "char_start": 33,
+          "char_end": 62,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "The etiology of the acute exacerbation (e.g., infection, environmental trigger) is not documented.",
+        "why_it_matters": "Knowing the etiology can affect treatment and coding, especially if an infectious cause is identified.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "咳嗽气促加重3天",
+          "char_start": 24,
+          "char_end": 32,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "The diagnosis of acute exacerbation of COPD is asserted without explicit documentation of symptoms or clinical findings supporting the exacerbation (e.g., increased sputum, wheezing, change in breath sounds)."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the clinician must explicitly document the severity of the acute exacerbation (mild, moderate, or severe) and specify the type of respiratory failure (hypoxemic vs. hypercapnic) as well as whether it is acute or acute-on-chronic, given the abnormal blood gas values. Additionally, the underlying cause of the exacerbation (e.g., bacterial or viral infection, environmental trigger) should be stated to capture the full clinical picture. Without these details, the coding will lack the specificity required to reflect the patient’s true acuity and resource utilization.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2353,
+        "tokens": 318,
+        "run_id": "run-f810e82fefd3",
+        "trace_id": "trace-b638afffae76"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ff5d9e21adc4",
+        "trace_id": "trace-4bcd81a433e9"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-05569f038a5d",
+        "trace_id": "trace-f96748611019"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-497dc1107ea4",
+        "trace_id": "trace-51e7dc32af02"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-5cb208a8-9897-4dad-9290-2b234fc6afb2",
+      "stage_trace": {
+        "encounter_synthesis": "trace-786e752ebaa7",
+        "gap_identification": "trace-733652d06307",
+        "expert_consultation": "trace-e6114fff633e",
+        "query_generation": "trace-68a6d75fdab6",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "trace-cb46a7052f84",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-db24c2435dbb",
+        "semantic_necessity_gate": "trace-52a42bf36d2f",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-9b687b717833"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-2fd9da241736",
+        "gap_identification": "run-ade766cb10ae",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-32136209a79f",
+        "query_generation": "run-5f6dbdc9ea13",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart lacks specification of severity, type of respiratory failure, and etio",
+        "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "run-f1455124dd01",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-4f5670342957",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-2d7d8171650a",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-29ef79d02f5b"
+      },
+      "trace_id": "trace-584a2259799f4dd6"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIxZTVlMmVhZGIxZWEzMTlmMjY5MTI3NTI0ODEwYzU2MjNmOWMwMjY2MmZlYTZiYjIxNzIxM2IzYmFjNTc3ODRiIiwiZSI6MTc4Nzg4MjAxNSwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tNWNiMjA4YTgtOTg5Ny00ZGFkLTkyOTAtMmIyMzRmYzZhZmIyIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.GHGOW1peEfIRNFEfnLJHAVih07ps-fvtiYJthvFWV14",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 17.86
+}

@@ -1,0 +1,302 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-cfa17702-a3fe-4961-863a-33aa7fe42323",
+  "trace_id": "trace-d47e53b7742f4419",
+  "trace_url": "/ai-studio/runs/run-cfa17702-a3fe-4961-863a-33aa7fe42323/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 6729,
+  "cost": {
+    "amount": 0.000374,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1402,
+      "output_tokens": 636
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断明确为急性下壁 STEMI，编码 I21.1 精准。次要诊断高血压、高脂血症证据充分。心衰证据存在但编码精度不足，需人工复核。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "I21.1",
+        "description": "急性透壁性下壁心肌梗死",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "入院诊断: 急性下壁 ST <REDACTED:NAME>型心肌梗死 (STEMI, Killip II 级)",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "心电图: II, III, aVF ST <REDACTED:NAME> 0.3 mV, V1-V4 镜像压低",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "肌钙蛋白 I 8.5 ng/mL (参考 < 0.04)",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I10.x00x002",
+          "description": "高血压",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "既往: 原发性高血压 12 年",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "E78.500",
+          "description": "高脂血症",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "既往: 高脂血症 5 年",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "I50.9",
+          "description": "心力衰竭",
+          "confidence": 0.7,
+          "category": "complication",
+          "evidence": [
+            {
+              "text": "BP 90/60, HR 110, <REDACTED:NAME>湿啰音",
+              "kind": "auto_bootstrap"
+            },
+            {
+              "text": "Killip II 级",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "CODING-PRECISION-001",
+          "message": "心力衰竭编码 I50.9 为未特指编码，病历中 Killip II 级提示急性心衰，但未明确具体类型（如急性肺水肿等），建议进一步明确后使用更精确编码。",
+          "suggestion": "若病历明确为急性心力衰竭，可考虑 I50.9 或进一步细分；若为 Killip II 级（肺部啰音<50%肺野），可考虑 I50.9 或 I50.1（左心室衰竭），需结合病历描述确认。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "CODING-PRECISION-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "WARNING",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断明确为急性下壁 STEMI，编码 I21.1 精准。次要诊断高血压、高脂血症证据充分。心衰证据存在但编码精度不足，需人工复核。"
+    },
+    "trace_refs": {
+      "run_id": "run-cfa17702-a3fe-4961-863a-33aa7fe42323",
+      "stage_trace": [],
+      "rule_fired": [
+        "CODING-PRECISION-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-d47e53b7742f4419"
+    },
+    "codes": [
+      {
+        "code": "I21.1",
+        "system": "ICD-10-CN",
+        "display": "急性透壁性下壁心肌梗死",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "入院诊断: 急性下壁 ST <REDACTED:NAME>型心肌梗死 (STEMI, Killip II 级); 心电图: II, III, aVF ST <REDACTED:NAME> 0.3 mV, V1-V4 镜像压低; 肌钙蛋白 I 8.5 ng/mL (参考 < 0.04)",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10.x00x002",
+        "system": "ICD-10-CN",
+        "display": "高血压",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "既往: 原发性高血压 12 年",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E78.500",
+        "system": "ICD-10-CN",
+        "display": "高脂血症",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "既往: 高脂血症 5 年",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I50.9",
+        "system": "ICD-10-CN",
+        "display": "心力衰竭",
+        "type": "complication",
+        "confidence": 0.7,
+        "evidence": "BP 90/60, HR 110, <REDACTED:NAME>湿啰音; Killip II 级",
+        "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiMGQ0MzIxODFlYzVmZjkyNjZhMzI2NTY4YzVlZGRkZTQ5Yjc5YTFlMmZiZmY2YTBmZTIwYjNmMWZmNmUyZjJmMSIsImUiOjE3ODc4ODI1NjcsIm8iOiJiYzkyZWUwNmFmMGYiLCJyIjoicnVuLWNmYTE3NzAyLWEzZmUtNDk2MS04NjNhLTMzYWE3ZmU0MjMyMyIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.sb0roY3LH_3euofMzfVbuth6_QIqWnyY52E5EBb9s-c",
+  "evidence": [
+    {
+      "code": "I21.1",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "入院诊断: 急性下壁 ST <REDACTED:NAME>型心肌梗死 (STEMI, Killip II 级); 心电图: II, III, aVF ST <REDACTED:NAME> 0.3 mV, V1-V4 镜像压低; 肌钙蛋白 I 8.5 ng/mL (参考 < 0.04)",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I10.x00x002",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "既往: 原发性高血压 12 年",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E78.500",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "既往: 高脂血症 5 年",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "I50.9",
+      "system": "ICD-10-CN",
+      "type": "complication",
+      "text": "BP 90/60, HR 110, <REDACTED:NAME>湿啰音; Killip II 级",
+      "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787796160.4894524,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 360,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787796160.4894524,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787796160.4894524,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787796167.2182407,
+      "duration_ms": 6729,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787796167.2182407,
+      "duration_ms": 6729,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787796167.2182407,
+      "duration_ms": 6729,
+      "metadata": {
+        "code_count": 4
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787796167.2182407,
+      "duration_ms": 6729,
+      "metadata": {
+        "latency_ms": 6729,
+        "code_count": 4
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.25
+}

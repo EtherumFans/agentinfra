@@ -1,0 +1,271 @@
+{
+  "case_id": "CASE-f01ce46e28b7",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-f01ce46e28b7/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性胰腺炎严重程度未明确（如轻症、重症、有无器官衰竭）",
+      "why_it_matters": "严重程度影响编码（如急性胰腺炎伴感染、急性胰腺炎伴坏死等）及治疗决策",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性胰腺炎"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-f01ce46e28b7/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性胰腺炎病因未明确（胆源性、酒精性、高脂血症等）",
+      "why_it_matters": "病因影响编码（如胆源性胰腺炎需编码胆石症）及后续治疗",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:胆石症"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-f01ce46e28b7/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "胰腺肿胀伴渗出未明确具体解剖部位（如胰头、胰体、胰尾）",
+      "why_it_matters": "部位特异性影响编码及临床评估",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "CT:胰腺肿胀伴渗出"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-f01ce46e28b7/Q-001",
+      "gap_id": "CASE-f01ce46e28b7/GAP-002",
+      "topic": "急性胰腺炎病因",
+      "reason": "患者有胆石症病史，但急性胰腺炎的病因未明确。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "既往:胆石症"
+      },
+      "query_text": "请明确急性胰腺炎的病因。",
+      "response_options": [
+        "A. 胆源性",
+        "B. 酒精性",
+        "C. 高脂血症性",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-f01ce46e28b7/Q-002",
+      "gap_id": "CASE-f01ce46e28b7/GAP-003",
+      "topic": "胰腺肿胀渗出部位",
+      "reason": "CT提示胰腺肿胀伴渗出，但未明确具体解剖部位。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "CT:胰腺肿胀伴渗出"
+      },
+      "query_text": "请明确胰腺肿胀伴渗出的具体解剖部位。",
+      "response_options": [
+        "A. 胰头",
+        "B. 胰体",
+        "C. 胰尾",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 55岁, 上腹痛2天, 淀粉酶 580。CT:胰腺肿胀伴渗出。入院诊断:急性胰腺炎。既往:胆石症。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "上腹痛2天",
+      "淀粉酶 580",
+      "CT:胰腺肿胀伴渗出",
+      "入院诊断:急性胰腺炎",
+      "既往:胆石症"
+    ],
+    "encounter_metadata": {
+      "patient_age": "55岁",
+      "patient_sex": "女性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "建议明确急性胰腺炎的严重程度（如是否伴有器官衰竭或局部并发症），并注明病因（如胆源性、酒精性或高脂血症性），同时需在影像报告中具体描述胰腺肿胀及渗出的解剖部位（如胰头、胰体或胰尾），以确保编码的准确性和临床完整性。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2283,
+      "tokens": 221
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-4d1ac8eb9455",
+    "gap_identification": "run-debc5241fc88",
+    "gap_identification_risk_flags": "emitted=0",
+    "expert_consultation": "run-580727186af2",
+    "query_generation": "run-f44f1787588f",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=急性胰腺炎缺乏严重程度和病因的明确记录，影响编码准确性，需要进一步澄清。",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-f558e754bdc8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-4a569d49cb8e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-97a3b4c277e0"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-d69f6d76e8df",
+    "gap_identification": "trace-45058b44749c",
+    "expert_consultation": "trace-a513fbe56c09",
+    "query_generation": "trace-c35a267097fb",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-c5bf5de2513e",
+    "semantic_necessity_gate": "trace-cd825f58cbae",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-3418d18610f6"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4327,
+      "prompt_tokens": 210,
+      "completion_tokens": 87,
+      "total_tokens": 297,
+      "run_id": "run-4d1ac8eb9455",
+      "trace_id": "trace-d69f6d76e8df",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4637,
+      "prompt_tokens": 829,
+      "completion_tokens": 434,
+      "total_tokens": 1263,
+      "run_id": "run-debc5241fc88",
+      "trace_id": "trace-45058b44749c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4289,
+      "prompt_tokens": 893,
+      "completion_tokens": 485,
+      "total_tokens": 1378,
+      "run_id": "run-f44f1787588f",
+      "trace_id": "trace-c35a267097fb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2283,
+      "prompt_tokens": 156,
+      "completion_tokens": 65,
+      "total_tokens": 221,
+      "run_id": "run-e249a88bd35f",
+      "trace_id": "trace-11f6c5cbdb4e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-c2ae8a10d670",
+      "trace_id": "trace-87953764c0e7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-08545ab3a96d",
+      "trace_id": "trace-726aee838058",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-499cd0802712",
+      "trace_id": "trace-da3544052480",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T00:30:48.290922Z"
+}

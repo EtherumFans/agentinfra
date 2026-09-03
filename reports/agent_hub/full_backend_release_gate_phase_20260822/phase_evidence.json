@@ -1,0 +1,114 @@
+{
+  "schema": "icoder.full-backend-release-gate/v1",
+  "generated_at": "2026-08-22T21:45:00+08:00",
+  "phase": "full_default_backend_release_gate_and_runtime_revalidation",
+  "conclusion": {
+    "default_backend_suite": "passed",
+    "development_release_gate": "closed",
+    "visible_agent_runtime_matrix": "26_of_26_launch_candidate_ready",
+    "corti_capability_equivalence": "not_proven",
+    "clinical_production_approval": "not_granted"
+  },
+  "tests": {
+    "final_uninterrupted_default_backend_suite": {
+      "passed": 4996,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "warnings": 573,
+      "duration_seconds": 1435.09,
+      "exit_code": 0
+    },
+    "preceding_full_suite": {
+      "passed": 4995,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 1,
+      "warnings": 573,
+      "duration_seconds": 1487.28,
+      "failure": "model live canary test observed class identity pollution from an unnecessary data_policy module reload"
+    },
+    "module_pollution_regression": {
+      "passed": 19,
+      "failed": 0,
+      "warnings": 10,
+      "duration_seconds": 5.42
+    },
+    "security_regressions": {
+      "passed": 47,
+      "failed": 0,
+      "warnings": 5,
+      "duration_seconds": 25.57
+    },
+    "deployment_preflight_unit": {
+      "passed": 1,
+      "failed": 0,
+      "duration_seconds": 2.72
+    },
+    "deployment_preflight": {
+      "passed": 78,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "runtime_matrix_unit": {
+      "passed": 8,
+      "failed": 0,
+      "duration_seconds": 2.27
+    },
+    "runtime_matrix": {
+      "visible": 26,
+      "launch_candidate_ready": 26,
+      "provider_registry_routes": 21,
+      "dedicated_routes": 5,
+      "legacy_default_routes": 0,
+      "not_ready": 0
+    }
+  },
+  "defects_closed": [
+    "machine idempotency replay is bound to delegated subject and purpose without storing the raw delegated identifier",
+    "invalid URL authority or port input is rejected fail-closed by the SSRF guard",
+    "feedback training authorization grant and revoke audit actions are classified consistently as system audit actions",
+    "cloud, provider, native retriever, recorder and note-completeness tests are hermetic and preserve fail-closed semantics",
+    "localhost concurrency smoke is isolated behind the infra marker instead of entering the hermetic default suite",
+    "provider residency tests no longer reload a shared module and contaminate later model catalog type checks"
+  ],
+  "stability_finding": {
+    "memory_read_or_write_crash_reproduced": false,
+    "uvicorn_exit_minus_one_reproduced": false,
+    "assessment": "The prior uvicorn -1 log is consistent with external process termination, but its exact cause is not proven by the available log."
+  },
+  "data_safety": {
+    "external_llm_allowed": false,
+    "llm_provider": "mock",
+    "real_llm_key_used": false,
+    "native_medcoder_loaded": false,
+    "independent_backend_started": false,
+    "listen_ports_8000_18022": 0,
+    "source_database": {
+      "path": "backend/data/icoder.db",
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "changed_by_phase": false
+    }
+  },
+  "artifacts": [
+    {"path": "backend/app/services/idempotency_service.py", "bytes": 14751, "sha256": "e22f5959d40339e6628868378795a145d26e5782502b116949da93acb9107287"},
+    {"path": "backend/app/api/agent_run.py", "bytes": 121622, "sha256": "22c54f4ab2f486781702f3e42129975d35d59a14677db78066689786e15e5614"},
+    {"path": "backend/app/services/ssrf_guard.py", "bytes": 7729, "sha256": "af8d195ccb93a4f8444db8daa30c49b72ceff3a2ed1b5bb836d56598cff08148"},
+    {"path": "backend/app/services/legacy_tenancy_attribution.py", "bytes": 23580, "sha256": "b41c2d8243340bf3a61ddb2385c2c3ccc96bf482017f68036c250d3c4bf91a3b"},
+    {"path": "backend/scripts/corti_parity/validate_deployment_candidate.py", "bytes": 92702, "sha256": "a32bc24b916967d1afe7c1da48db830dbf51ef0fbecc3f2c281618728d65b96f"},
+    {"path": "reports/deployment/full_backend_release_gate_20260822/deployment_preflight.json", "bytes": 6738, "sha256": "415ca7f427a7031e80854f658673bb3d8bad33341c27399c803edfe7a046c193"},
+    {"path": "reports/agent_hub/full_backend_release_gate_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.json", "bytes": 230658, "sha256": "9ac9e7fea35af276a00bd28db43c2c604f803d146afcc04781d62551c0ed0dff"}
+  ],
+  "open_development_debt": [
+    "573 non-failing warnings remain in the full suite, dominated by dependency deprecations, datetime.utcnow, test JWT key strength and a small number of pytest marker/runtime warnings",
+    "fresh current real-provider 26-Agent happy, adversarial and repeated stability evidence is still absent",
+    "historical real-provider semantic replay remains 22_of_26 against the current reference gate"
+  ],
+  "external_gates": [
+    "independent blinded clinical gold-set review",
+    "hospital HIS EMR PACS and China coding or payment rule integration validation",
+    "Docker or Kubernetes image build, SBOM, vulnerability scan, signature and registry verification",
+    "production cloud KMS, PostgreSQL HA, capacity, disaster recovery and SLA exercise",
+    "penetration testing, legal, licensing, certification and independent reviewer approval"
+  ]
+}

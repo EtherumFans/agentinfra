@@ -19,6 +19,8 @@ Covers:
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -218,6 +220,273 @@ def test_v12_certified_with_real_experts_is_executable_and_production_ready():
     assert p.production_ready is True
 
 
+def test_launch_candidate_gate_separates_dev_readiness_from_production_claim():
+    pack = _minimal_v12_pack(
+        agent_type="certified",
+        backend_provider="icoder.llm-with-tools.v1",
+        backend_config={"tools": {"scope": ["search_icd"]}},
+        output_contract={
+            "schema_ref": "icoder/TestOutput/v1",
+            "required_fields": ["result", "manual_review_required"],
+            "field_types": {
+                "result": "string",
+                "manual_review_required": "boolean",
+            },
+            "field_schemas": {
+                "result": {"type": "string"},
+                "manual_review_required": {"type": "boolean"},
+            },
+        },
+        metrics_required=True,
+        recorder_required=True,
+        human_review_required_when=["low confidence"],
+        example_inputs=[{"text": "synthetic chart"}],
+        example_outputs=[{"result": "review", "manual_review_required": True}],
+    )
+    pack["manifest"]["maturity"] = "mvp"
+    pack["manifest"]["production_ready"] = False
+    pack["permissions"]["production_writeback_blocked"] = True
+
+    p = load_pack(pack)
+
+    assert p.status == PackStatus.EXECUTABLE
+    assert p.launch_candidate_ready is True
+    assert p.launch_candidate_blockers == []
+    # The development gate cannot manufacture a production approval claim.
+    assert pack["manifest"]["production_ready"] is False
+    assert "independent_clinical_quality_validation" in p.external_release_gates
+
+
+def test_launch_candidate_gate_reports_actionable_blockers():
+    p = load_pack(_minimal_v12_pack(agent_type="certified"))
+
+    assert p.status == PackStatus.EXECUTABLE
+    assert p.launch_candidate_ready is False
+    assert "explicit backend_provider or a2a.endpoint is required" in p.launch_candidate_blockers
+    assert "output_contract.schema_ref is required" in p.launch_candidate_blockers
+    assert "metrics_required=true is required" in p.launch_candidate_blockers
+    assert "at least one example_input is required for smoke/E2E tests" in p.launch_candidate_blockers
+    assert "at least one contract-complete example_output is required" in p.launch_candidate_blockers
+
+
+def test_launch_candidate_gate_requires_complete_valid_field_types():
+    pack = _minimal_v12_pack(
+        agent_type="certified",
+        backend_provider="icoder.llm-with-tools.v1",
+        output_contract={
+            "schema_ref": "icoder/TestOutput/v1",
+            "required_fields": ["result", "manual_review_required"],
+            "field_types": {
+                "result": "string",
+                "manual_review_required": "unsupported",
+            },
+        },
+        metrics_required=True,
+        recorder_required=True,
+        human_review_required_when=["low confidence"],
+        example_inputs=[{"text": "synthetic chart"}],
+        example_outputs=[{"result": "review", "manual_review_required": True}],
+    )
+    pack["manifest"]["maturity"] = "mvp"
+    pack["permissions"]["production_writeback_blocked"] = True
+
+    p = load_pack(pack)
+
+    assert p.launch_candidate_ready is False
+    assert any(
+        "unsupported types for: manual_review_required" in blocker
+        for blocker in p.launch_candidate_blockers
+    )
+    assert any(
+        "valid declared field types" in blocker
+        for blocker in p.launch_candidate_blockers
+    )
+
+
+def test_launch_candidate_gate_requires_closed_recursive_schemas_for_all_fields():
+    pack = _minimal_v12_pack(
+        agent_type="certified",
+        backend_provider="icoder.llm-with-tools.v1",
+        output_contract={
+            "schema_ref": "icoder/TestOutput/v2",
+            "required_fields": ["result", "manual_review_required"],
+            "field_types": {
+                "result": "object",
+                "manual_review_required": "boolean",
+            },
+        },
+        metrics_required=True,
+        recorder_required=True,
+        human_review_required_when=["low confidence"],
+        example_inputs=[{"text": "synthetic chart"}],
+        example_outputs=[{
+            "result": {"summary": "review"},
+            "manual_review_required": True,
+        }],
+    )
+    pack["manifest"]["maturity"] = "mvp"
+    pack["permissions"]["production_writeback_blocked"] = True
+
+    missing = load_pack(pack)
+    assert missing.launch_candidate_ready is False
+    assert "output_contract.field_schemas must be an object" in missing.launch_candidate_blockers
+
+    pack["output_contract"]["field_schemas"] = {
+        "result": {
+            "type": "object",
+            "properties": {"summary": {"type": "string"}},
+            "required": ["summary"],
+            "additionalProperties": False,
+        },
+        "manual_review_required": {"type": "boolean"},
+    }
+    valid = load_pack(pack)
+    assert valid.launch_candidate_ready is True
+
+
+def test_launch_candidate_gate_rejects_pure_llm_pack_with_runtime_tools():
+    pack = _minimal_v12_pack(
+        agent_type="certified",
+        backend_provider="icoder.pure-llm.v1",
+        output_contract={
+            "schema_ref": "icoder/TestOutput/v1",
+            "required_fields": ["result", "manual_review_required"],
+            "field_types": {
+                "result": "string",
+                "manual_review_required": "boolean",
+            },
+            "field_schemas": {
+                "result": {"type": "string"},
+                "manual_review_required": {"type": "boolean"},
+            },
+        },
+        metrics_required=True,
+        recorder_required=True,
+        human_review_required_when=["low confidence"],
+        example_inputs=[{"text": "synthetic chart"}],
+        example_outputs=[{"result": "review", "manual_review_required": True}],
+    )
+    pack["manifest"]["maturity"] = "mvp"
+    pack["manifest"]["production_ready"] = False
+    pack["permissions"]["production_writeback_blocked"] = True
+
+    p = load_pack(pack)
+
+    assert p.status == PackStatus.EXECUTABLE
+    assert p.launch_candidate_ready is False
+    assert "pure_llm backend cannot declare runtime tools" in p.launch_candidate_blockers
+
+
+def test_launch_candidate_gate_rejects_declared_placeholder_or_stale_integrity():
+    pack = _minimal_v12_pack(
+        agent_type="certified",
+        backend_provider="icoder.pure-llm.v1",
+        output_contract={
+            "schema_ref": "icoder/TestOutput/v1",
+            "required_fields": ["result", "manual_review_required"],
+        },
+        metrics_required=True,
+        recorder_required=True,
+        human_review_required_when=["low confidence"],
+        example_inputs=[{"text": "synthetic chart"}],
+        example_outputs=[{"result": "review", "manual_review_required": True}],
+    )
+    pack["manifest"]["maturity"] = "mvp"
+    pack["permissions"]["production_writeback_blocked"] = True
+    pack["integrity"] = {"sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"}
+
+    placeholder = load_pack(pack)
+    assert placeholder.launch_candidate_ready is False
+    assert any(
+        "64-character lowercase hex" in blocker
+        for blocker in placeholder.launch_candidate_blockers
+    )
+
+    pack["integrity"] = {"sha256": "0" * 64}
+    stale = load_pack(pack)
+    assert stale.launch_candidate_ready is False
+    assert "integrity.sha256 does not match canonical pack content" in (
+        stale.launch_candidate_blockers
+    )
+
+
+def test_launch_candidate_integrity_ignores_hub_runtime_mtime_metadata():
+    raw = _minimal_v12_pack(
+        agent_type="certified",
+        backend_provider="icoder.llm-with-tools.v1",
+        output_contract={
+            "schema_ref": "icoder/TestOutput/v1",
+            "required_fields": ["result", "manual_review_required"],
+            "field_types": {
+                "result": "string",
+                "manual_review_required": "boolean",
+            },
+            "field_schemas": {
+                "result": {"type": "string"},
+                "manual_review_required": {"type": "boolean"},
+            },
+        },
+        metrics_required=True,
+        recorder_required=True,
+        human_review_required_when=["low confidence"],
+        example_inputs=[{"text": "synthetic chart"}],
+        example_outputs=[{"result": "review", "manual_review_required": True}],
+    )
+    raw["manifest"]["maturity"] = "mvp"
+    raw["manifest"]["production_ready"] = False
+    raw["permissions"]["production_writeback_blocked"] = True
+    canonical = json.dumps(raw, sort_keys=True, ensure_ascii=False, default=str)
+    raw["integrity"] = {"sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest()}
+
+    direct = load_pack(raw)
+    assert direct.launch_candidate_ready is True
+
+    hub_projection = copy.deepcopy(raw)
+    hub_projection["_pack_mtime_iso"] = "12-Aug-2026"
+    projected = load_pack(hub_projection)
+
+    assert projected.launch_candidate_ready is True
+    assert projected.launch_candidate_blockers == []
+
+    # The legacy v1.1 installer must apply the same runtime-metadata exclusion.
+    from icoder_runtime.core.agent_pack_v1 import AgentPackageV1
+
+    legacy_raw = {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "manifest": {"name": "Legacy Test", "version": "1.0.0"},
+        "system_prompt": "You are a test.",
+        "experts": [],
+        "tools": [],
+        "permissions": {"tools": {}},
+        "requirements": {"min_runtime_version": "1.0.0"},
+        "llm_capabilities": {
+            "required_models": [],
+            "supports_tool_calling": False,
+            "supports_json_mode": True,
+        },
+    }
+    legacy_canonical = json.dumps(
+        legacy_raw, sort_keys=True, ensure_ascii=False, default=str
+    )
+    legacy_raw["integrity"] = {
+        "sha256": hashlib.sha256(legacy_canonical.encode("utf-8")).hexdigest()
+    }
+    legacy_raw["_pack_mtime_iso"] = "12-Aug-2026"
+    AgentPackageV1.from_dict(legacy_raw)
+
+
+@pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
+def test_official_pure_llm_packs_do_not_claim_runtime_tools():
+    packs = load_packs_from_dir(OFFICIAL_AGENTS_DIR)
+    offenders = [
+        p.agent_ref
+        for p in packs
+        if p.backend_provider == "icoder.pure-llm.v1" and p.tools
+    ]
+    assert offenders == []
+
+
 def test_v12_tools_ref_normalize_correctly():
     p = load_pack(_minimal_v12_pack())
     t = p.tools[0]
@@ -398,6 +667,18 @@ def test_certified_pure_prompt_is_executable_but_not_production_ready():
     assert any("pure-prompt" in w for w in p.validation_warnings)
 
 
+def test_certified_dedicated_backend_is_not_mislabelled_as_pure_prompt():
+    pack = _minimal_v11_pack(
+        tools=[],
+        experts=[],
+        backend_provider="icoder.governed-test.v1",
+    )
+    p = load_pack(pack)
+
+    assert p.status == PackStatus.EXECUTABLE
+    assert not any("pure-prompt" in warning for warning in p.validation_warnings)
+
+
 # ── Helpers ──
 
 
@@ -472,14 +753,17 @@ def test_discover_v1_files_finds_16_packs():
     if not OFFICIAL_AGENTS_DIR.exists():
         pytest.skip("official_agents dir not present in this checkout")
     files = discover_v1_files(OFFICIAL_AGENTS_DIR)
-    assert len(files) == 16
+    # Phase A1D.5 — A1B-AE Phase added 14 net-new Corti-parity packs.
+    # Previous baseline was 16; current is 30.
+    assert len(files) == 32
 
 
 def test_load_packs_from_dir_loads_all_16():
     if not OFFICIAL_AGENTS_DIR.exists():
         pytest.skip("official_agents dir not present in this checkout")
     packs = load_packs_from_dir(OFFICIAL_AGENTS_DIR)
-    assert len(packs) == 16
+    # Phase A1D.5 — 30 packs now (was 16).
+    assert len(packs) == 32
     # Every pack must have a non-empty agent_ref
     for p in packs:
         assert p.agent_ref, f"{p.source_path} has empty agent_ref"
@@ -537,7 +821,8 @@ def test_load_packs_from_dir_records_parse_error_on_bad_json():
 def test_all_16_official_packs_load_via_new_loader():
     """The big one — every pack on disk must be loadable."""
     packs = load_packs_from_dir(OFFICIAL_AGENTS_DIR)
-    assert len(packs) == 16
+    # Phase A1D.5 — 30 packs now (was 16).
+    assert len(packs) == 32
 
     # We expect this exact distribution per baseline audit:
     by_type = {p.agent_type for p in packs}
@@ -546,9 +831,9 @@ def test_all_16_official_packs_load_via_new_loader():
     assert "internal_engine" in by_type  # was "reference" pre-Phase-3-A
     assert "expert-stub" in by_type
 
-    # The 4 Phase D2 expert-stubs must all be METADATA_ONLY
+    # Phase A1D.5 — 3 expert-stubs (was 4). All METADATA_ONLY.
     expert_stubs = [p for p in packs if p.agent_type == "expert-stub"]
-    assert len(expert_stubs) == 4
+    assert len(expert_stubs) == 3
     assert all(p.status == PackStatus.METADATA_ONLY for p in expert_stubs)
 
     # The internal_engine (MedCodER Coding Review) must be EXECUTABLE
@@ -557,18 +842,19 @@ def test_all_16_official_packs_load_via_new_loader():
     refs = [p for p in packs if p.agent_type == "internal_engine"]
     assert len(refs) == 1
     assert refs[0].status == PackStatus.EXECUTABLE
-    assert refs[0].production_ready is True
+    assert refs[0].production_ready is False
     assert refs[0].expert_count == 4  # 4 atomic experts wired
 
-    # The 10 v1.1 certified packs must all load (no INVALID)
+    # All official Packs have now migrated off the legacy v1.1 format.
     v11 = [p for p in packs if p.format_version == "1.1"]
-    assert len(v11) == 10
+    assert len(v11) == 0
     assert all(p.status != PackStatus.INVALID for p in v11)
 
-    # The v1.2 certified pack (medical-coding-agent) must be EXECUTABLE
+    # v1.2 certified Packs include the governed Denial Appeals baseline.
     v12_cert = [p for p in packs if p.format_version == "1.2" and p.agent_type == "certified"]
-    assert len(v12_cert) == 1
-    assert v12_cert[0].status == PackStatus.EXECUTABLE
+    assert len(v12_cert) == 28
+    v12_cert_exec = [p for p in v12_cert if p.status == PackStatus.EXECUTABLE]
+    assert len(v12_cert_exec) == 26
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
@@ -577,7 +863,7 @@ def test_medcoder_coding_review_is_now_executable():
     packs = load_packs_from_dir(OFFICIAL_AGENTS_DIR)
     ref = next(p for p in packs if "medcoder-coding-review" in p.agent_ref)
     assert ref.status == PackStatus.EXECUTABLE
-    assert ref.production_ready is True
+    assert ref.production_ready is False
     assert ref.expert_count == 4
     assert ref.tool_count == 5
     assert all(t.kind == "v1_2_mcp" for t in ref.tools)
@@ -631,6 +917,7 @@ def test_summary_counts_with_zero_packs():
         "metadata_only": 0,
         "invalid": 0,
         "production_ready": 0,
+        "launch_candidate_ready": 0,
         "experimental": 0,
         "by_type": {},
         "by_format": {},

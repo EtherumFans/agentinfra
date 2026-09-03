@@ -1,0 +1,250 @@
+{
+  "case_id": "CASE-2df499b194e2",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-2df499b194e2/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "CA-125 elevation is documented without clinical correlation or planned workup beyond follow-up.",
+      "why_it_matters": "An abnormal lab value without clinical correlation leaves the clinical significance unclear, affecting coding accuracy and downstream management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肿瘤标志物 CA-125 65 U/mL(参考值 < 35)",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-2df499b194e2/Q-001",
+      "gap_id": "CASE-2df499b194e2/GAP-001",
+      "topic": "CA-125 升高的临床意义及处理计划",
+      "reason": "CA-125 升高但盆腔超声正常，且患者无症状，需明确临床医生对升高原因的判断及后续处理计划。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "肿瘤标志物 CA-125 65 U/mL(参考值 < 35)",
+        "char_start": 18,
+        "char_end": 48,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "肿瘤标志物 CA-125 65 U/mL(参考值 < 35)",
+          "char_start": 18,
+          "char_end": 48,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者 CA-125 升高，盆腔超声未见异常，且无症状。请明确您对该升高的临床判断及处理计划。",
+      "response_options": [
+        "A. 考虑为良性妇科疾病（如子宫内膜异位症、盆腔炎等）所致，建议定期随访",
+        "B. 考虑为恶性肿瘤可能，建议进一步检查（如盆腔增强MRI、肿瘤标志物组合等）",
+        "C. 考虑为生理性或非妇科原因（如肝硬化、胸腹水等）所致，建议相应检查",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [],
+  "chart_excerpt_preview": "患者女性, 60岁, 体检。无症状。肿瘤标志物 CA-125 65 U/mL(参考值 < 35)。盆腔超声:子宫附件正常。既往:绝经5年。建议:随访 CA-125, 妇科会诊。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，60岁，体检，无症状",
+      "肿瘤标志物CA-125升高至65 U/mL（参考值<35）",
+      "盆腔超声示子宫附件正常",
+      "既往绝经5年",
+      "建议随访CA-125及妇科会诊"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "女性",
+      "encounter_type": "体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The documentation lacks clinical context for the CA-125 elevation, as it is isolated without symptoms, imaging abnormalities, or a clear differential diagnosis (e.g., benign gynecologic, peritoneal, or non-gynecologic causes). To support accurate coding, specify whether this is a transient benign finding, a screening result with a defined surveillance plan, or a suspected malignancy requiring further diagnostic evaluation. Additionally, clarify the reason for gynecology referral (e.g., rule out ovarian pathology) and any planned tests (e.g., repeat CA-125, CT, or biopsy) to establish clinical significance.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3578,
+      "tokens": 248
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-6c3c5b5cbe32",
+    "gap_identification": "run-af134f37e3ad",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-45b332b8d873",
+    "query_generation": "run-37507bd08535",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=The chart documents an abnormal CA-125 level but lacks clinical correlation or a",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-89c9d36eca19",
+    "semantic_necessity_gate": "blocked=0;flagged=1;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-c2559d7acb5c",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-730fded622a0"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-1b97d761ffc2",
+    "gap_identification": "trace-d3aedb4aeece",
+    "expert_consultation": "trace-60ca751237d5",
+    "query_generation": "trace-57abb6ecb156",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-b9a494a3a998",
+    "semantic_necessity_gate": "trace-244331289f96",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-7840ec02a8fe"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2430,
+      "prompt_tokens": 226,
+      "completion_tokens": 108,
+      "total_tokens": 334,
+      "run_id": "run-6c3c5b5cbe32",
+      "trace_id": "trace-1b97d761ffc2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3625,
+      "prompt_tokens": 1058,
+      "completion_tokens": 211,
+      "total_tokens": 1269,
+      "run_id": "run-af134f37e3ad",
+      "trace_id": "trace-d3aedb4aeece",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4076,
+      "prompt_tokens": 1016,
+      "completion_tokens": 310,
+      "total_tokens": 1326,
+      "run_id": "run-37507bd08535",
+      "trace_id": "trace-57abb6ecb156",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3578,
+      "prompt_tokens": 128,
+      "completion_tokens": 120,
+      "total_tokens": 248,
+      "run_id": "run-282d3f4440bc",
+      "trace_id": "trace-fd749932dd44",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3a07eacf68f2",
+      "trace_id": "trace-08dcdd2d0aae",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a5c022fe27b0",
+      "trace_id": "trace-f52500075110",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-490f3d6211a4",
+      "trace_id": "trace-9cd93cb9eda4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:36:48.302298Z"
+}

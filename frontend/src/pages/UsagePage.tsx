@@ -1,8 +1,9 @@
-// iCoDer Usage Page — connected to real backend
-// Corti IA: header + period segmented control + 3 metric cards (with
-// icons + prev-period comparison line) + activity history list
-import { Activity, Loader2, ChevronDown, BarChart3, Zap, Clock } from 'lucide-react';
+// iCoDer Usage Page - connected to real backend
+// IA: header + period segmented control + 3 metric cards (with
+// icons + prev-period comparison line) + 30-day daily cost chart (Phase 5 A6) + activity history list
+import { Activity, Loader2, ChevronDown, BarChart3, Zap, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+
 import { useT } from '../i18n';
 import { usageApi, oauthApi } from '../services/api';
 
@@ -69,14 +70,14 @@ export default function UsagePage() {
   );
 
   if (error) return (
-    <div className="bg-muted/20 min-h-screen p-6 text-center">
+    <div className="bg-muted/20 min-h-dvh p-6 text-center">
       <p className="text-destructive mb-4">{error}</p>
       <button onClick={fetchData} className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">重试</button>
     </div>
   );
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">{t.usageTitle}</h2>
         <p className="text-sm text-muted-foreground">{t.usageDesc}</p>
@@ -128,9 +129,9 @@ export default function UsagePage() {
         </div>
       </div>
 
-      {/* Summary cards with comparison (Corti-style: icon + label + value + sub) */}
+      {/* Summary cards with comparison (icon + label + value + sub) */}
       <div className="grid grid-cols-3 gap-4 max-w-3xl mb-8">
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
               <BarChart3 size={14} />
@@ -148,25 +149,25 @@ export default function UsagePage() {
             />
           )}
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center">
               <Zap size={14} />
             </div>
             <p className="text-xs text-muted-foreground">{t.creditsUsed}</p>
           </div>
-          <p className="text-2xl font-bold font-mono text-foreground">¥{summary?.credits_used?.toFixed(2) ?? '0.00'}</p>
+          <p className="text-2xl font-bold font-mono text-foreground">¥{summary?.credits_used?.toFixed(6) ?? '0.000000'}</p>
           <p className="text-xs text-muted-foreground mt-1">过去 {days} 天</p>
           {compareSummary && (
             <ComparisonLine
               label="上期"
-              value={`¥${compareSummary.credits_used.toFixed(2)}`}
+              value={`¥${compareSummary.credits_used.toFixed(6)}`}
               current={summary?.credits_used ?? 0}
               reverse={false}
             />
           )}
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-md bg-blue-500/10 text-blue-600 flex items-center justify-center">
               <Clock size={14} />
@@ -188,10 +189,24 @@ export default function UsagePage() {
         </div>
       </div>
 
+      {/* Phase 5 A6: 30-day daily cost chart (bar chart) */}
+      {summary?.daily_breakdown?.length > 0 && (
+        <div className="bg-background rounded-xl shadow-sm p-5 mb-6 max-w-3xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+              <TrendingUp size={14} />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground">{t.dailyCostChart || '每日成本趋势'}</h3>
+            <span className="text-[10px] text-muted-foreground ml-auto">过去 {days} 天</span>
+          </div>
+          <DailyCostChart data={summary.daily_breakdown} />
+        </div>
+      )}
+
       {/* Activity history */}
-      <div className="max-w-2xl">
+      <div className="w-full">
         <h3 className="text-sm font-semibold text-foreground mb-3">{t.recentActivity}</h3>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+        <div className="bg-background rounded-xl shadow-sm overflow-hidden">
           {history.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">暂无活动</div>
           ) : (
@@ -240,5 +255,61 @@ function ComparisonLine({ label, value, current, reverse }: {
         {pct > 0 ? '↑' : pct < 0 ? '↓' : ''}{Math.abs(pct).toFixed(1)}%
       </span>
     </p>
+  );
+}
+
+/**
+ * Phase 5 A6 — Daily cost bar chart (no chart library).
+ *
+ * Renders a CSS-grid bar chart from `daily_breakdown` returned by A3's
+ * `/usage/summary` endpoint. Each bar's height is proportional to that day's
+ * cost relative to the max in the window. Bars are interactive (hover shows
+ * the exact value + date).
+ */
+function DailyCostChart({ data }: { data: { date: string; cost: number }[] }) {
+  if (!data || data.length === 0) return null;
+  const maxCost = Math.max(...data.map(d => d.cost), 0.0001);
+  const total = data.reduce((sum, d) => sum + d.cost, 0);
+
+  return (
+    <div>
+      <div className="flex items-end gap-[2px] h-32 mb-2" role="img" aria-label="Daily cost chart">
+        {data.map(d => {
+          const heightPct = Math.max((d.cost / maxCost) * 100, 2); // min 2% so zero bars are visible
+          const isToday = d.date === new Date().toISOString().slice(0, 10);
+          return (
+            <div
+              key={d.date}
+              className="flex-1 group relative flex flex-col justify-end"
+              title={`${d.date}: ¥${d.cost.toFixed(6)}`}
+            >
+              {/* Tooltip on hover */}
+              <div className="absolute -top-9 left-1/2 -translate-x-1/2 hidden group-hover:block bg-foreground text-background text-[10px] px-1.5 py-1 rounded whitespace-nowrap z-10 font-mono">
+                {d.date.slice(5)}: ¥{d.cost.toFixed(6)}
+              </div>
+              <div
+                className={`w-full rounded-t-sm transition-all duration-200 ${
+                  isToday ? 'bg-primary' : 'bg-primary/40 group-hover:bg-primary/70'
+                }`}
+                style={{ height: `${heightPct}%` }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      {/* X-axis: first + middle + last date */}
+      <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+        <span>{data[0]?.date.slice(5)}</span>
+        {data.length > 2 && <span>{data[Math.floor(data.length / 2)]?.date.slice(5)}</span>}
+        <span>{data[data.length - 1]?.date.slice(5)}</span>
+      </div>
+      <p className="text-[11px] text-muted-foreground mt-2">
+        累计: <span className="font-mono text-foreground">¥{total.toFixed(6)}</span>
+        {' · '}
+        日均: <span className="font-mono text-foreground">¥{(total / data.length).toFixed(6)}</span>
+        {' · '}
+        最高: <span className="font-mono text-foreground">¥{maxCost.toFixed(6)}</span>
+      </p>
+    </div>
   );
 }

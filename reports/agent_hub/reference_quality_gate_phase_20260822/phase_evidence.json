@@ -1,0 +1,164 @@
+{
+  "schema": "icoder.agent-hub-reference-quality-gate/v1",
+  "generated_at": "2026-08-22T19:44:53.6917302+08:00",
+  "phase": "agent_hub_pack_owned_reference_semantics_and_historical_replay",
+  "conclusion": {
+    "visible_agent_pack_reference_gate": "closed_in_development",
+    "historical_real_provider_replay": "22_of_26_passed_current_pack_reference_semantics",
+    "fresh_current_provider_replay": "open_requires_new_unexposed_temporary_credential",
+    "independent_clinical_gold": "open_external_gate",
+    "corti_private_model_quality_equivalence": "unproven"
+  },
+  "quality_boundary": {
+    "scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold",
+    "visible_agents": 26,
+    "cases": 26,
+    "minimum_assertions_per_agent": 3,
+    "minimum_semantic_discriminators_per_agent": 1,
+    "actual_response_content_copied_to_report": false,
+    "actual_assertion_values_represented_by_sha256": true
+  },
+  "implementation": {
+    "evidence_extractor": {
+      "input_code_partition_exact": true,
+      "input_code_spelling_preserved": true,
+      "new_missing_duplicate_or_substituted_codes_forbidden": true,
+      "corrected_example_rejected_code": "M80.900"
+    },
+    "surgical_registry": {
+      "explicit_anesthesia_is_direct_fact": true,
+      "explicit_negative_complication_is_documented_evidence": true,
+      "missing_fields_exact_absence_only": true,
+      "nonempty_fields_require_same_name_evidence_span": true,
+      "current_contract": "icoder/SurgicalRegistryOutput/v4",
+      "sparse_evidence_span_properties": 7
+    },
+    "contract_registry": {
+      "current_visible_refs_valid": 26,
+      "registered_historical_refs": 103,
+      "new_current_ref": "icoder/SurgicalRegistryOutput/v4",
+      "prior_surgical_refs_preserved": [
+        "icoder/SurgicalRegistryOutput/v1",
+        "icoder/SurgicalRegistryOutput/v2",
+        "icoder/SurgicalRegistryOutput/v3"
+      ]
+    },
+    "example_promotion": {
+      "base_contract_and_safety_source_required": true,
+      "current_pack_reference_semantics_required": true,
+      "all_or_nothing_atomic_write": true,
+      "historical_semantic_regression_overwrite_rejected": true
+    },
+    "source_report_validation": {
+      "required_total": 26,
+      "required_passed": 26,
+      "required_failed": 0,
+      "each_row_evaluation_must_pass": true,
+      "unique_exact_visible_agent_set": true
+    }
+  },
+  "historical_real_provider_replay": {
+    "source_generated_at": "2026-08-15T11:19:10.347443+08:00",
+    "source_base_contract_safety_passed": 26,
+    "source_base_contract_safety_failed": 0,
+    "current_reference_passed": 22,
+    "current_reference_failed": 4,
+    "failed_agents": {
+      "diagnosis-extractor": ["status"],
+      "drg-analyzer": ["rule_authority_status", "billing_authoritative"],
+      "evidence-extractor": ["rejected_candidates"],
+      "surgical-registry": ["anesthesia", "complications"]
+    },
+    "network_used_by_replay": false,
+    "credential_used_by_replay": false,
+    "claim_as_current_provider_quality": false
+  },
+  "tests": {
+    "initial_reference_pack_contract_set": {
+      "passed": 62,
+      "failed": 0,
+      "warnings": 21
+    },
+    "reference_schema_sync_atomicity_preflight_focused": {
+      "passed": 14,
+      "failed": 0
+    },
+    "health_and_real_uvicorn_temporary_database": {
+      "passed": 3,
+      "failed": 0
+    },
+    "agent_hub_related_broad_matrix": {
+      "passed": 718,
+      "skipped": 5,
+      "failed": 0,
+      "warnings": 194,
+      "duration_seconds": 235.18
+    },
+    "runtime_matrix": {
+      "visible": 26,
+      "launch_candidate_ready": 26,
+      "provider_registry_routes": 21,
+      "dedicated_routes": 5,
+      "legacy_default_routes": 0,
+      "not_ready": 0
+    },
+    "deployment_preflight": {
+      "passed": 77,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "recursive_schema_dry_run_changed_agents": 0,
+    "contract_registry_validation_exit_code": 0,
+    "python_compileall_exit_code": 0,
+    "selected_git_diff_check_exit_code": 0
+  },
+  "data_safety": {
+    "external_llm_allowed": false,
+    "llm_provider": "mock",
+    "real_llm_key_used": false,
+    "real_asr_used": false,
+    "native_medcoder_loaded": false,
+    "independent_backend_started": false,
+    "listen_ports_8000_18022": 0,
+    "standalone_sk_pattern_file_count": 0,
+    "source_database": {
+      "path": "backend/data/icoder.db",
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "changed_by_phase": false
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "bytes": 851708,
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe",
+      "changed_by_phase": false
+    }
+  },
+  "artifacts": [
+    {"path": "backend/scripts/corti_parity/agent_hub_reference_quality_cases.json", "bytes": 11591, "sha256": "7473c2179f351ca07f5ec163771ca6c30097f2e45fdaa852e29f6e9746b10287"},
+    {"path": "backend/scripts/corti_parity/run_agent_hub_reference_quality_replay.py", "bytes": 14657, "sha256": "4f4a7508e2237d8794c154011c636d0d90d39c33b366cea2328f05b855c2d54e"},
+    {"path": "backend/scripts/corti_parity/sync_agent_pack_example_outputs.py", "bytes": 9338, "sha256": "86d4f3da064bf85a70d2b86912667e5af5247be6851bb326af04becfecdb47c7"},
+    {"path": "backend/scripts/corti_parity/sync_agent_pack_field_schemas.py", "bytes": 43015, "sha256": "dc39910f58df5918e322574699457f682c7ed13873363bfced4295e693c7dd2f"},
+    {"path": "backend/scripts/corti_parity/validate_deployment_candidate.py", "bytes": 91521, "sha256": "cfeb30484749c39cec04acf9e3ca6196c47bdb90ee5a35e45be07fa198f58bc6"},
+    {"path": "backend/official_agents/evidence_extractor/agent_pack.json", "bytes": 21297, "sha256": "fbf5c22a5acf4c57b8dd67e6c811df1b32d7de68a17849620f00c5b0ad675cf4"},
+    {"path": "backend/official_agents/surgical_registry/agent_pack.json", "bytes": 7061, "sha256": "134f173798c768035a78fc4efe27b1b3d8510c131bad5fc50c7dd3f601e85ccc"},
+    {"path": "backend/official_agents/output_contract_registry.json", "bytes": 804111, "sha256": "74f844bc326322bc1d3b132ed27dd9b5f12504c59bf9102fff4b49eb4c400451"},
+    {"path": "reports/agent_hub/reference_quality_gate_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.json", "bytes": 230658, "sha256": "bb310dc9727565993810ef3e3ef5649a64ca47bb5151088775ef812880547d5e"},
+    {"path": "reports/agent_hub/reference_quality_gate_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.md", "bytes": 7678, "sha256": "a44c457bf0bec38307e1da85469a4dc264589c3b8feb4876e0b9ecac69b56d22"},
+    {"path": "reports/agent_hub/reference_quality_gate_phase_20260822/deployment_preflight/deployment_preflight.json", "bytes": 6662, "sha256": "535ce9fb441f3f698e12ebbe3195225ec63efbe7074ab39d74cb9ca705f4a1ca"},
+    {"path": "reports/agent_hub/reference_quality_gate_phase_20260822/deployment_preflight/deployment_preflight.md", "bytes": 6362, "sha256": "e9b4af0795143b78173d76b591c5140538cf49137f1baf4a596e78513fa32a3d"},
+    {"path": "reports/agent_hub/reference_quality_replay_20260822_historical_real_20260815/agent_hub_reference_quality_replay.json", "bytes": 56172, "sha256": "7192bf51058edd4403639286e7472adbd59a1af9283f109583ef1c885435074e"},
+    {"path": "reports/agent_hub/reference_quality_replay_20260822_historical_real_20260815/agent_hub_reference_quality_replay.md", "bytes": 2438, "sha256": "9e9e3b2584b9342c622d5cedb60cf46d0f33ac2f804620161556866156250ca4"},
+    {"path": "docs/corti_parity/ICODER_AGENT_HUB_REFERENCE_QUALITY_GATE_PHASE_SUMMARY_2026-08-22.md", "bytes": 6431, "sha256": "d1be9af393e9b2b736ba277366148ab7ce0162e06f7a129665c8683c2c01afe1"},
+    {"path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md", "bytes": 35192, "sha256": "a59aee28f369f0bf751b188a421977bcf0c9edfcdaaae62947c798138e6d494c"},
+    {"path": "docs/corti_parity/CORTI_PARITY_STATUS_2026-08-14.md", "bytes": 92984, "sha256": "60817c004645e3cdcff15c9c6def9db7b103f18d64e2599a7b5c318c1929af36"},
+    {"path": "docs/corti_parity/AGENT_HUB_STABILITY_BENCHMARK.md", "bytes": 7047, "sha256": "6eccc61e4387f459a1ae8faaa58a234362cafe1294ec49c3a4fe87abface9c2a"},
+    {"path": "docs/README_INDEX.md", "bytes": 19095, "sha256": "d48aec5ae1997c8ea5988d9ae033cc172aed51192283b9f47f95bc550049bbc7"}
+  ],
+  "limitations": [
+    "Pack-owned synthetic reference semantics are not independent clinician gold.",
+    "The 2026-08-15 replay is historical and does not prove current Provider behavior.",
+    "No fresh real LLM, Corti credits, real ASR, browser automation, Docker, dotnet, Nginx, native ML, cloud or hospital environment was exercised in this phase.",
+    "Corti private prompts, models, clinical datasets, accuracy, reliability, cost and SLA remain unavailable for equivalence proof.",
+    "Hospital authorization, clinical review, legal, licensing, certification and independent security review remain external release gates."
+  ]
+}

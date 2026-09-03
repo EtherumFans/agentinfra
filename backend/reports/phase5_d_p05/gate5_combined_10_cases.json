@@ -1,0 +1,800 @@
+{
+  "checkpoint_b": {
+    "avg_queries_per_case": 0.2,
+    "target_avg_queries_per_case_max": 2.0,
+    "avg_experts_invoked_per_case": 1.0,
+    "target_avg_experts_per_case_max": 1.5,
+    "c09_empty_chart_experts_invoked": 0,
+    "target_c09_empty_chart_experts": 0,
+    "verdict": "PASS"
+  },
+  "stage_drops_total": {
+    "necessity_dropped": 7,
+    "single_dimension_dropped": 2,
+    "claim_evidence_blocked": 19,
+    "semantic_necessity_blocked": 0,
+    "nlq_blocked": 0
+  },
+  "expert_routing_total": {
+    "candidates": 40,
+    "invoked": 10,
+    "skipped_not_needed": 29,
+    "skipped_missing_inputs": 0,
+    "tool_unavailable": 1,
+    "degraded": 0
+  },
+  "cases": [
+    {
+      "case_id": "C01_pneumonia_simple",
+      "status": 200,
+      "elapsed_s": 19.4,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "single_dimension_dropped": 2,
+        "claim_evidence_blocked": 1,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 3,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "根据病历，肺炎的诊断需明确具体类型（如社区获得性肺炎）和部位（如左肺、右肺或双肺），同时应记录严重程度（如重症或轻症）及有无并发症（如胸腔积液、呼吸衰竭），并明确急性程度（如急性肺炎）。这些临床细节的缺失会影响编码的准确性，建议在病程记录中补充完整。",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2964,
+          "tokens": 263
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 2268,
+      "queries": []
+    },
+    {
+      "case_id": "C02_cholecystitis",
+      "status": 200,
+      "elapsed_s": 21.4,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 2,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 2,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 3,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "For accurate coding, the chart should specify the severity of acute cholecystitis (e.g., mild, moderate, or severe), the type of gallstones (e.g., cholesterol or pigment stones), and quantify gallbladder wall thickening (e.g., mild or marked). Additionally, it must clarify whether complications such as gangrene, perforation, or abscess are present.",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3145,
+          "tokens": 236
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 2365,
+      "queries": []
+    },
+    {
+      "case_id": "C03_hypertension_workup",
+      "status": 200,
+      "elapsed_s": 25.7,
+      "completion_state": "BLOCKED",
+      "degraded": false,
+      "final_queries": 1,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 2,
+        "claim_evidence_flagged": 1,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 1,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 2,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 1,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "TOOL_UNAVAILABLE"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "建议明确高血压的分级（如1级、2级或3级）及危险分层（如低危、中危或高危），并说明血压测量方式（诊室血压或动态血压）及是否在未用药状态下测量。同时需进一步评估头晕乏力的可能病因，如是否与血压波动、脑血管病变或其他系统性疾病相关。",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3215,
+          "tokens": 219
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "'分级' score — no deterministic calculator wired",
+          "route_decision": "tool_unavailable",
+          "route_reason": "no_real_tool_wired",
+          "execution_mode": "TOOL_UNAVAILABLE",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 2066,
+      "queries": [
+        {
+          "query_id": "CASE-81400ce2adb7/Q-001",
+          "topic": "血压测量条件",
+          "query_text": "请明确该血压值160/95mmHg的测量方式（诊室血压或动态血压）以及是否在未服用降压药物状态下测量。"
+        }
+      ]
+    },
+    {
+      "case_id": "C04_diabetes_negation",
+      "status": 200,
+      "elapsed_s": 17.9,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 3,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 3,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "The clinical specificity needed includes clarifying whether the 2型糖尿病 diagnosis is confirmed or ruled out, and explicitly linking the polydipsia and polyuria to diabetes if present. Additionally, the hypertension history requires documentation of severity (e.g., stage) and current control status (e.g., blood pressure readings, medication adherence).",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2591,
+          "tokens": 214
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 2133,
+      "queries": []
+    },
+    {
+      "case_id": "C05_fracture_conflict",
+      "status": 200,
+      "elapsed_s": 20.0,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": true,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 3,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 3,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "根据病历中入院诊断、出院诊断、手术记录与初步诊断在骨折侧别上的矛盾，临床需明确患者实际骨折侧别（左侧或右侧），并确认左胸外伤是否包含肋骨骨折或其他损伤。建议补充影像学报告（如胸部CT或X线）以客观记录骨折的具体位置和侧别，同时修正所有诊断记录以保持一致。",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2714,
+          "tokens": 300
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 2117,
+      "queries": []
+    },
+    {
+      "case_id": "C06_appendicitis",
+      "status": 200,
+      "elapsed_s": 11.1,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": true,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 1,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 0,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 3,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "根据病历，急性阑尾炎的病理类型（如单纯性、化脓性、坏疽性等）未明确，这会影响编码的精确性。建议在手术记录或病理报告中补充阑尾的病理诊断，例如是否伴有化脓、坏疽或穿孔等具体特征。",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2614,
+          "tokens": 187
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 1165,
+      "queries": []
+    },
+    {
+      "case_id": "C07_copd_exacerbation",
+      "status": 200,
+      "elapsed_s": 21.3,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 2,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 2,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 3,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "根据病历记录，需明确慢性阻塞性肺疾病急性加重的严重程度分级（如轻度、中度、重度），并基于血气分析结果（pH 7.35, PaCO2 60mmHg）明确是否伴有Ⅱ型呼吸衰竭或失代偿性呼吸性酸中毒。同时，建议补充慢性阻塞性肺疾病的临床分型（如慢性支气管炎型或肺气肿型）、既往肺功能数据及吸烟史等危险因素，以支持更精准的临床评估。",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2783,
+          "tokens": 314
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 2818,
+      "queries": []
+    },
+    {
+      "case_id": "C08_stemi_pci",
+      "status": 200,
+      "elapsed_s": 29.6,
+      "completion_state": "BLOCKED",
+      "degraded": false,
+      "final_queries": 1,
+      "stage_drops": {
+        "necessity_dropped": 2,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 1,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 2,
+        "skipped_not_needed": 2,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "LLM_KNOWLEDGE_ONLY",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "根据病历记录，需明确心肌梗死为初发还是再发，并补充肌钙蛋白I的具体数值及参考范围，以支持急性心肌梗死的诊断和严重程度评估。同时，需明确PCI植入支架的类型（药物洗脱或裸金属），以及胸痛是否持续至入院，这些细节对编码的准确性和临床管理至关重要。",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2553,
+          "tokens": 252
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": true,
+          "rationale": "根据现有病历信息，文献支持急性ST段抬高型心肌梗死（STEMI）的诊断及急诊PCI治疗策略（PMID: 33528824）。但缺乏肌钙蛋白I具体数值、胸痛持续时间及支架类型等细节，可能影响风险分层及预后评估（如再发心梗或支架内血栓风险）。建议补充上述信息以优化二级预防方案（如双联抗血小板疗程选择）。",
+          "route_decision": "needed",
+          "route_reason": "criteria_marker_present",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 1835,
+          "tokens": 279
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 2764,
+      "queries": [
+        {
+          "query_id": "CASE-aa5af0faa677/Q-001",
+          "topic": "胸痛持续时间",
+          "query_text": "胸痛是否持续至入院时？请描述胸痛的持续时间及缓解情况。"
+        }
+      ]
+    },
+    {
+      "case_id": "C09_minimal_info",
+      "status": 200,
+      "elapsed_s": 14.5,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 4,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 0,
+        "skipped_not_needed": 4,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "SKIPPED_NOT_NEEDED",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": false,
+          "rationale": "empty chart — no coding substrate",
+          "route_decision": "not_needed",
+          "route_reason": "empty_chart",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "empty_chart",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "empty_chart",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "empty_chart",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 1888,
+      "queries": []
+    },
+    {
+      "case_id": "C10_peds_pneumonia",
+      "status": 200,
+      "elapsed_s": 17.6,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": true,
+      "final_queries": 0,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "single_dimension_dropped": 0,
+        "claim_evidence_blocked": 1,
+        "claim_evidence_flagged": 0,
+        "semantic_necessity_blocked": 0,
+        "semantic_necessity_flagged": 0,
+        "semantic_necessity_degraded": 0,
+        "nlq_blocked": 0
+      },
+      "expert_routing": {
+        "candidates": 4,
+        "invoked": 1,
+        "skipped_not_needed": 3,
+        "skipped_missing_inputs": 0,
+        "tool_unavailable": 0,
+        "degraded": 0,
+        "modes": {
+          "coding-expert": "LLM_KNOWLEDGE_ONLY",
+          "pubmed-expert": "SKIPPED_NOT_NEEDED",
+          "web-search-expert": "SKIPPED_NOT_NEEDED",
+          "medical-calculator-expert": "SKIPPED_NOT_NEEDED"
+        }
+      },
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "rationale": "The clinical documentation should specify the suspected or confirmed causative organism (e.g., viral, bacterial, or atypical pathogen) for the bronchopneumonia, as this directly impacts treatment and severity assessment. Additionally, clarify if any diagnostic tests (e.g., blood culture, respiratory viral panel) were performed or are pending to support the etiology. Without this specificity, the clinical picture remains incomplete for accurate coding and clinical management.",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3014,
+          "tokens": 180
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      ],
+      "tokens": 1078,
+      "queries": []
+    }
+  ]
+}

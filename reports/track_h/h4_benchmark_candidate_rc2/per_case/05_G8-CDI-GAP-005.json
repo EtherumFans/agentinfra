@@ -1,0 +1,231 @@
+{
+  "case_id": "CASE-0f7d76476463",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-0f7d76476463/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "慢阻肺急性加重的严重程度未明确（如轻度、中度、重度）",
+      "why_it_matters": "严重程度影响治疗决策和编码，如是否需无创通气或ICU监护",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:慢阻肺急性加重"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-0f7d76476463/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性加重的病因未明确（如感染、环境因素等）",
+      "why_it_matters": "病因影响治疗方向（如抗生素使用）和编码准确性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:慢阻肺急性加重"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-0f7d76476463/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "血气分析结果提示呼吸性酸中毒和低氧血症，但未明确是否需氧疗或通气支持",
+      "why_it_matters": "治疗措施和编码需明确呼吸衰竭类型及处理",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "血气:pH 7.34, PaCO2 62, PaO2 55"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "慢性阻塞性肺疾病10年",
+      "咳嗽气促加重3天",
+      "血气: pH 7.34, PaCO2 62, PaO2 55",
+      "入院诊断: 慢阻肺急性加重"
+    ],
+    "encounter_metadata": {
+      "patient_age": "68",
+      "patient_sex": "男",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历记录，需明确慢阻肺急性加重的严重程度分级（如轻度、中度、重度），并说明急性加重的具体病因（如感染、环境因素等）。同时，血气分析显示呼吸性酸中毒和低氧血症，应明确是否已实施氧疗或通气支持及其具体类型（如鼻导管吸氧、无创正压通气等）。这些信息对准确反映病情严重程度和治疗干预至关重要。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2621,
+      "tokens": 261
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-699c46194d7e",
+    "gap_identification": "run-2b27b04091e9",
+    "gap_identification_risk_flags": "emitted=0",
+    "expert_consultation": "run-1ba961b8750d",
+    "query_generation": "run-9be7781647d8",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=慢阻肺急性加重缺乏严重程度和病因的明确描述，血气异常未进一步分类，影响编码和治疗的精确性。",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-b9d0de4945aa",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-26918638ca2c",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-00b07e631d48"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-7aeef2968b53",
+    "gap_identification": "trace-f79c6cbe7978",
+    "expert_consultation": "trace-22ba8cf799e7",
+    "query_generation": "trace-57625a2138d3",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-73a2db4c9f05",
+    "semantic_necessity_gate": "trace-9849b3abc7e3",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-bbdda57ac44b"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4655,
+      "prompt_tokens": 224,
+      "completion_tokens": 99,
+      "total_tokens": 323,
+      "run_id": "run-699c46194d7e",
+      "trace_id": "trace-7aeef2968b53",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5142,
+      "prompt_tokens": 857,
+      "completion_tokens": 457,
+      "total_tokens": 1314,
+      "run_id": "run-2b27b04091e9",
+      "trace_id": "trace-f79c6cbe7978",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5325,
+      "prompt_tokens": 926,
+      "completion_tokens": 580,
+      "total_tokens": 1506,
+      "run_id": "run-9be7781647d8",
+      "trace_id": "trace-57625a2138d3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2621,
+      "prompt_tokens": 170,
+      "completion_tokens": 91,
+      "total_tokens": 261,
+      "run_id": "run-690024735b87",
+      "trace_id": "trace-7d13f6182126",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-990fc5998c89",
+      "trace_id": "trace-689ee8f209c6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1ea7c241bc2f",
+      "trace_id": "trace-836f11c1a1b4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1164f502469a",
+      "trace_id": "trace-2ab71ef46c12",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T00:31:13.173505Z"
+}

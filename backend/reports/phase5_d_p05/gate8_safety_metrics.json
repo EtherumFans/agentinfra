@@ -1,0 +1,193 @@
+{
+  "n_cases": 10,
+  "total_queries_emitted": 4,
+  "total_gaps_detected": 33,
+  "avg_queries_per_case": 0.4,
+  "avg_gaps_per_case": 3.3,
+  "range_conformance": {
+    "in_range": 4,
+    "over_query": 2,
+    "under_query": 4,
+    "in_range_rate": 0.4
+  },
+  "gate_drops": {
+    "necessity_dropped": 2,
+    "single_dim_dropped": 4,
+    "cea_blocked": 23,
+    "cea_claims_extracted": 90,
+    "cea_block_rate": 0.256,
+    "semantic_blocked": 0
+  },
+  "expert_invocation": {
+    "total_invocations": 8,
+    "by_execution_mode": {
+      "LLM_KNOWLEDGE_ONLY": 8,
+      "SKIPPED_NOT_NEEDED": 28,
+      "SKIPPED_MISSING_INPUTS": 3,
+      "TOOL_UNAVAILABLE": 1
+    },
+    "per_case": [
+      {
+        "case_id": "G8-CDI-COMPLETE-011",
+        "invoked": 1
+      },
+      {
+        "case_id": "G8-CDI-COMPLETE-013",
+        "invoked": 0
+      },
+      {
+        "case_id": "G8-CDI-CONFLICT-031",
+        "invoked": 1
+      },
+      {
+        "case_id": "G8-CDI-CONFLICT-033",
+        "invoked": 1
+      },
+      {
+        "case_id": "G8-CDI-GAP-001",
+        "invoked": 1
+      },
+      {
+        "case_id": "G8-CDI-GAP-005",
+        "invoked": 1
+      },
+      {
+        "case_id": "G8-CDI-INSUF-021",
+        "invoked": 0
+      },
+      {
+        "case_id": "G8-CDI-LAB-036",
+        "invoked": 0
+      },
+      {
+        "case_id": "G8-CDI-NEG-026",
+        "invoked": 1
+      },
+      {
+        "case_id": "G8-CDI-NEG-030",
+        "invoked": 2
+      }
+    ],
+    "avg_per_case": 0.8
+  },
+  "over_query_cases": [
+    {
+      "case_id": "G8-CDI-COMPLETE-011",
+      "category": "complete_chart",
+      "final_queries": 1,
+      "expected_range": [
+        0,
+        0
+      ],
+      "range_status": "OVER_QUERY",
+      "query_topics": [
+        "疼痛持续时间"
+      ],
+      "query_texts": [
+        "关于患者腹痛的病程，请描述疼痛的演变特点最符合以下哪项？"
+      ]
+    },
+    {
+      "case_id": "G8-CDI-NEG-030",
+      "category": "negation_history",
+      "final_queries": 3,
+      "expected_range": [
+        0,
+        1
+      ],
+      "range_status": "OVER_QUERY",
+      "query_topics": [
+        "头痛病因",
+        "头痛发作频率",
+        "头痛性质"
+      ],
+      "query_texts": [
+        "根据现有资料，患者头痛的病因考虑为以下哪种？",
+        "请描述患者头痛的发作频率。",
+        "请描述患者头痛的性质。"
+      ]
+    }
+  ],
+  "under_query_cases": [
+    {
+      "case_id": "G8-CDI-CONFLICT-031",
+      "category": "document_conflict",
+      "final_queries": 0,
+      "expected_range": [
+        1,
+        2
+      ],
+      "range_status": "UNDER_QUERY",
+      "query_topics": [
+        "肋骨骨折侧别不一致"
+      ],
+      "query_texts": [
+        "患者入院诊断为左侧肋骨骨折，出院诊断为右侧肋骨骨折，CT报告提示右侧肋骨骨折。请明确是否存在双侧肋骨骨折，或左侧肋骨骨折是否已被排除？"
+      ]
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-033",
+      "category": "document_conflict",
+      "final_queries": 0,
+      "expected_range": [
+        1,
+        2
+      ],
+      "range_status": "UNDER_QUERY",
+      "query_topics": [
+        "高碳酸血症与呼吸衰竭类型",
+        "COPD急性加重病因"
+      ],
+      "query_texts": [
+        "患者血气分析显示PaCO2 56 mmHg，提示高碳酸血症。请明确是否存在呼吸衰竭及其类型（如I型或II型），以及是否与COPD急性加重相关。",
+        "患者COPD急性加重，请明确其可能的病因。"
+      ]
+    },
+    {
+      "case_id": "G8-CDI-GAP-001",
+      "category": "clear_gap",
+      "final_queries": 0,
+      "expected_range": [
+        1,
+        3
+      ],
+      "range_status": "UNDER_QUERY",
+      "query_topics": [],
+      "query_texts": []
+    },
+    {
+      "case_id": "G8-CDI-GAP-005",
+      "category": "clear_gap",
+      "final_queries": 0,
+      "expected_range": [
+        1,
+        2
+      ],
+      "range_status": "UNDER_QUERY",
+      "query_topics": [],
+      "query_texts": []
+    }
+  ],
+  "in_range_cases_summary": [
+    {
+      "case_id": "G8-CDI-COMPLETE-013",
+      "category": "complete_chart",
+      "final_queries": 0
+    },
+    {
+      "case_id": "G8-CDI-INSUF-021",
+      "category": "insufficient_evidence",
+      "final_queries": 0
+    },
+    {
+      "case_id": "G8-CDI-LAB-036",
+      "category": "lab_positive_uncertain",
+      "final_queries": 0
+    },
+    {
+      "case_id": "G8-CDI-NEG-026",
+      "category": "negation_history",
+      "final_queries": 0
+    }
+  ]
+}

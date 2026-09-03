@@ -1,147 +1,579 @@
 {
   "format_version": "1.2",
-  "agent_type": "expert-stub",
-  "agent_ref": "icoder/evidence-extractor@1.0.0",
+  "agent_type": "certified",
+  "agent_ref": "icoder/evidence-extractor@1.1.0",
   "manifest": {
-    "name": "Evidence Extractor",
-    "version": "1.0.0",
-    "description": "Stage 1 of MedCodER 5-stage pipeline. 从病历文本中提取结构化临床事实：诊断事实、手术事实、否定发现、病史条件。输出带证据文本和字符位置的 JSON。LLM 主路径 (DeepSeek json_mode) + 离线 deterministic fallback 兜底。",
+    "name": "证据提及定位智能体",
+    "version": "1.1.0",
+    "description": "基于固定 SHA-256 的本地 ICD-10-CN 目录，为输入候选编码定位代码字面量或目录术语的精确原文 span。仅描述文档可追溯性，不判断临床支持、诊断成立或编码有效性。",
     "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "FileSearch",
     "tags": [
-      "medcoder",
-      "stage-1",
-      "extraction",
-      "rag-prerequisite"
+      "icd-10-cn",
+      "exact-mention",
+      "span-grounding",
+      "governed-assets",
+      "deterministic"
     ],
-    "maturity": "stub",
+    "maturity": "runnable",
     "production_ready": false,
-    "hidden_from_hub": true,
+    "human_review": "required",
+    "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是一个病历证据提取专家。你的任务是：\n1. 从病历中提取所有可编码的诊断事实（含部位、病因、形态）\n2. 提取所有手术/操作事实\n3. 标记否定发现（'否认'、'排除'、'无'等）\n4. 标记既往病史（'X年前'、'既往有'等）\n5. 每个事实必须附带原文引用（evidence_text）和字符位置（char_start, char_end）\n\n输出 JSON:\n{\n  \"diagnosis_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50, \"doc_type\": \"入院记录\"}],\n  \"procedure_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50}],\n  \"negated_findings\": [{\"fact\": \"...\", \"reason\": \"否认\"}],\n  \"historical_conditions\": [{\"fact\": \"...\", \"years_ago\": 5}]\n}",
-  "experts": [
-    {
-      "expert_id": "evidence-extractor",
-      "name": "Evidence Extractor",
-      "role": "primary",
-      "description": "MedCodER Stage 1 — extract diagnosis / procedure / negated / historical facts. LLM gateway (DeepSeek V4) with deterministic offline fallback."
+  "backend_provider": "icoder.governed-evidence-extractor.v1",
+  "backend_config": {
+    "exact_mention_extraction": {
+      "asset_id": "cn.icd10cn.catalog",
+      "version": "observed-local-2026-05-19",
+      "integrity_required": true,
+      "network_required": false,
+      "maximum_input_codes": 20,
+      "maximum_mentions_per_code": 5,
+      "clinical_support_assessed": false,
+      "billing_authoritative": false
     }
-  ],
-  "tools": [
-    {
-      "name": "guard_input",
-      "type": "guard",
-      "stage": "pre-extraction",
-      "ref": "app.icoder.guards.input_guard:guard_input"
-    },
-    {
-      "name": "guard_output",
-      "type": "guard",
-      "stage": "post-extraction",
-      "ref": "app.icoder.guards.output_guard:guard_output"
-    }
-  ],
-  "model": {
-    "primary": "deepseek-v4",
-    "fallback": "deepseek-v4-flash",
-    "temperature": 0.0,
-    "max_tokens": 2048,
-    "json_mode": true
   },
-  "pipeline": {
-    "name": "stage1-extraction",
-    "stages": [
-      {
-        "name": "input_guard",
-        "engine": "guard",
-        "purpose": "PHI redaction + length cap"
-      },
-      {
-        "name": "llm_extract",
-        "engine": "llm",
-        "model": "deepseek-v4",
-        "output": "json",
-        "fallback": "offline_deterministic"
-      },
-      {
-        "name": "output_guard",
-        "engine": "guard",
-        "purpose": "schema validation + char_span sanity check"
-      }
-    ],
-    "upstream_stage": "none (entry point of MedCodER)",
-    "downstream_stage": "stage2-retrieval (index_navigator)"
-  },
+  "system_prompt": "你是 iCoDer 证据提及定位智能体。只对显式提交的最多 20 个候选编码执行本地精确提及定位：匹配原文中的完整代码字面量，或固定 SHA-256 的 ICD-10-CN 目录中该编码的精确中文名称/同义词；候选编码声明区本身必须屏蔽，不得作为证据。所有 evidence_text 必须与 char_span 指向的原文逐字一致。只在同一句明确出现否定、既往、家族史或疑似标记时记录 context_status；current_mention 仅表示未检测到这些显式标记，绝不代表诊断成立。不得进行同义医学推理、缩写扩展、隐含证据判断、临床支持评分、编码有效性判断或新编码生成。目录来源和许可尚待外部复核，所有结果必须人工审核。",
+  "experts": [],
+  "tools": [],
+  "model": null,
   "non_goals": [
-    "不分配 ICD 编码 — 仅提取结构化事实，编码分配由 index_navigator (Stage 2) + code_reconciler (Stage 4) 完成",
-    "不评估最终编码质量 — F1 指标在 e2e_medcoder_validation.py 内部",
-    "不写回 EMR / HIS / 医保结算",
-    "不绕过 PHI redaction",
-    "不输出未脱敏 PHI"
+    "不判断临床支持、诊断概率、因果关系或编码有效性",
+    "不分配、推荐、纠错、替换或补全编码",
+    "不从病历扫描或生成新编码，uncoded_findings 固定为空",
+    "不执行同义医学推理、缩写扩展或间接证据推断",
+    "不写回 EMR / HIS，不绕过 PHI redaction"
   ],
   "output_contract": {
-    "schema_ref": "icoder/EvidenceFacts/v1",
+    "schema_ref": "icoder/CodedEvidence/v11",
     "a2a_parts": [
       "DataPart"
     ],
     "required_fields": [
-      "diagnosis_facts",
-      "procedure_facts",
-      "negated_findings",
-      "historical_conditions"
+      "extraction_status",
+      "input_codes",
+      "input_code_count",
+      "match_basis",
+      "located_mentions",
+      "code_results",
+      "unmatched_codes",
+      "uncoded_findings",
+      "source_version",
+      "limitations",
+      "manual_review_required",
+      "summary",
+      "markdown"
     ],
-    "field_shapes": {
-      "diagnosis_facts[].fact": "str",
-      "diagnosis_facts[].evidence_text": "str",
-      "diagnosis_facts[].char_start": "int",
-      "diagnosis_facts[].char_end": "int",
-      "diagnosis_facts[].doc_type": "str (default 'present_illness')",
-      "procedure_facts[].evidence_text": "str",
-      "negated_findings[].reason": "str (one of 否认/无/未见/排除/未发现)",
-      "historical_conditions[].years_ago": "int | null"
-    }
+    "field_definitions": {
+      "located_mentions": "list[{input_index, code, evidence_text, char_span, matched_term, match_type, context_status, context_rule, clinical_support_assessed=false}]",
+      "code_results": "list[{input_index, code, catalog_status, catalog_display, assignable_catalog_entry, mention_count, result_status, clinical_support_assessed=false, manual_review_prompt}]",
+      "uncoded_findings": "固定空数组；此 Agent 不扫描或生成新编码"
+    },
+    "field_types": {
+      "extraction_status": "string",
+      "input_codes": "array",
+      "input_code_count": "integer",
+      "match_basis": "string",
+      "located_mentions": "array",
+      "code_results": "array",
+      "unmatched_codes": "array",
+      "uncoded_findings": "array",
+      "source_version": "string",
+      "limitations": "array",
+      "manual_review_required": "boolean",
+      "summary": "string",
+      "markdown": "string"
+    },
+    "field_schemas": {
+      "extraction_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "COMPLETED",
+          "INPUT_REQUIRED",
+          "CATALOG_UNAVAILABLE"
+        ]
+      },
+      "input_codes": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32,
+          "minLength": 1
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "input_code_count": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 20
+      },
+      "match_basis": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY"
+      },
+      "located_mentions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "clinical_support_assessed": {
+              "type": "boolean",
+              "const": false
+            },
+            "code": {
+              "type": "string",
+              "maxLength": 32,
+              "minLength": 1
+            },
+            "context_rule": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "context_status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "current_mention",
+                "negated",
+                "historical",
+                "family_history",
+                "suspected"
+              ]
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            },
+            "input_index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 19
+            },
+            "match_type": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "exact_code_literal",
+                "exact_catalog_term"
+              ]
+            },
+            "matched_term": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "char_span",
+            "clinical_support_assessed",
+            "code",
+            "context_rule",
+            "context_status",
+            "evidence_text",
+            "input_index",
+            "match_type",
+            "matched_term"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "code_results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "assignable_catalog_entry": {
+              "type": "boolean"
+            },
+            "catalog_display": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 0
+            },
+            "catalog_status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "found",
+                "not_found",
+                "unavailable"
+              ]
+            },
+            "clinical_support_assessed": {
+              "type": "boolean",
+              "const": false
+            },
+            "code": {
+              "type": "string",
+              "maxLength": 32,
+              "minLength": 1
+            },
+            "input_index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 19
+            },
+            "manual_review_prompt": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "mention_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "result_status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "EXACT_MENTION_FOUND",
+                "NO_EXACT_MENTION",
+                "CODE_NOT_IN_CATALOG",
+                "CATALOG_UNAVAILABLE"
+              ]
+            }
+          },
+          "required": [
+            "assignable_catalog_entry",
+            "catalog_display",
+            "catalog_status",
+            "clinical_support_assessed",
+            "code",
+            "input_index",
+            "manual_review_prompt",
+            "mention_count",
+            "result_status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "unmatched_codes": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32,
+          "minLength": 1
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "uncoded_findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "finding": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "finding",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 0,
+        "minItems": 0
+      },
+      "source_version": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 512,
+          "minLength": 1
+        },
+        "maxItems": 10,
+        "minItems": 1
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "summary": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 1
+      },
+      "markdown": {
+        "type": "string",
+        "maxLength": 20000,
+        "minLength": 1
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_extraction_results",
+        "when": [
+          {
+            "path": "extraction_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "input_codes",
+            "operator": "empty"
+          },
+          {
+            "path": "located_mentions",
+            "operator": "empty"
+          },
+          {
+            "path": "code_results",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "completed_extraction_has_input_codes",
+        "when": [
+          {
+            "path": "extraction_status",
+            "operator": "equals",
+            "value": "COMPLETED"
+          }
+        ],
+        "must": [
+          {
+            "path": "input_codes",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "exact_mentions_are_traceable_not_clinical_support",
+        "for_each": "located_mentions",
+        "when": [
+          {
+            "path": "evidence_text",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "code",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_text",
+            "operator": "non_empty"
+          },
+          {
+            "path": "clinical_support_assessed",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "exact_mention_policy_requires_manual_review",
+        "when": [
+          {
+            "path": "match_basis",
+            "operator": "equals",
+            "value": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "located_mention_matches_input",
+        "for_each": "located_mentions",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ],
+    "cross_agent_relations": [
+      {
+        "id": "input_codes_match_extracted_diagnoses",
+        "local_path": "code_results",
+        "local_item_path": "code",
+        "upstream_agent_id": "diagnosis-extractor",
+        "upstream_path": "diagnoses",
+        "upstream_item_path": "icd10_cn_code",
+        "operator": "local_items_subset_upstream_items",
+        "normalization": "medical_code",
+        "required": false
+      }
+    ]
   },
   "permissions": {
     "key": "evidence-extraction",
-    "name": "证据提取权限",
-    "description": "只读提取，无编码分配",
-    "tools": {
-      "guard_input": "allowed",
-      "guard_output": "allowed",
-      "writeback": "blocked"
-    },
-    "production_writeback_blocked": true
+    "name": "证据提及定位权限",
+    "description": "只读精确提及定位，无临床或编码决策权限",
+    "tools": {},
+    "production_writeback_blocked": true,
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true
   },
   "phi_redaction": "required",
-  "context_required": true,
+  "context_required": false,
   "recorder_required": true,
   "metrics_required": true,
   "requirements": {
     "min_runtime_version": "2.0.0",
-    "icoder_runtime_modules": [
-      "icoder_runtime.core.llm_gateway"
+    "local_assets": [
+      "cn.icd10cn.catalog"
     ]
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-v4",
-        "purpose": "stage1_extraction (with json_mode)"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true,
+    "supports_json_mode": false,
     "supports_mcp_tools": false
   },
   "a2a": {
     "protocol_version": "0.3",
     "endpoint": "/api/icoder/agents/evidence-extractor/v1/message:send",
     "discovery": "/api/icoder/agents",
-    "agent_card_ref": "icoder/evidence-extractor@1.0.0"
+    "agent_card_ref": "icoder/evidence-extractor@1.1.0"
   },
+  "default_runtime_mode": "governed_local_exact_mention_extraction",
+  "available_runtime_modes": [
+    "governed_local_exact_mention_extraction"
+  ],
+  "example_inputs": [
+    {
+      "title": "候选编码声明与病历正文分离",
+      "input_text": "待核查编码：N18.803、E11.900。\n病历文本：诊断：慢性肾脏病3期。既往2型糖尿病。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "extraction_status": "COMPLETED",
+      "input_codes": [
+        "N18.803",
+        "E11.900"
+      ],
+      "input_code_count": 2,
+      "match_basis": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY",
+      "located_mentions": [
+        {
+          "input_index": 0,
+          "code": "N18.803",
+          "evidence_text": "慢性肾脏病3期",
+          "char_span": [
+            31,
+            38
+          ],
+          "matched_term": "慢性肾脏病3期",
+          "match_type": "exact_catalog_term",
+          "context_status": "current_mention",
+          "context_rule": "no_explicit_context_modifier_detected",
+          "clinical_support_assessed": false
+        },
+        {
+          "input_index": 1,
+          "code": "E11.900",
+          "evidence_text": "2型糖尿病",
+          "char_span": [
+            41,
+            46
+          ],
+          "matched_term": "2型糖尿病",
+          "match_type": "exact_catalog_term",
+          "context_status": "historical",
+          "context_rule": "explicit_history_before_mention",
+          "clinical_support_assessed": false
+        }
+      ],
+      "code_results": [
+        {
+          "input_index": 0,
+          "code": "N18.803",
+          "catalog_status": "found",
+          "catalog_display": "慢性肾脏病3期",
+          "assignable_catalog_entry": true,
+          "mention_count": 1,
+          "result_status": "EXACT_MENTION_FOUND",
+          "clinical_support_assessed": false,
+          "manual_review_prompt": "已定位精确提及；这不证明临床支持或编码有效性，需结合完整病历和编码规则人工复核。"
+        },
+        {
+          "input_index": 1,
+          "code": "E11.900",
+          "catalog_status": "found",
+          "catalog_display": "2型糖尿病",
+          "assignable_catalog_entry": true,
+          "mention_count": 1,
+          "result_status": "EXACT_MENTION_FOUND",
+          "clinical_support_assessed": false,
+          "manual_review_prompt": "已定位精确提及；这不证明临床支持或编码有效性，需结合完整病历和编码规则人工复核。"
+        }
+      ],
+      "unmatched_codes": [],
+      "uncoded_findings": [],
+      "source_version": "cn.icd10cn.catalog@observed-local-2026-05-19; authority=source_unverified; license=external_review_required",
+      "limitations": [
+        "只定位精确代码字面量或固定目录术语，不执行同义医学推理、缩写扩展或隐含证据判断。",
+        "current_mention 仅表示未检测到显式否定/既往/家族史/疑似修饰，不代表当前诊断成立。",
+        "目录命中和 assignable_catalog_entry 只描述来源未核验目录结构，不代表本次就诊可编码或可结算。",
+        "不扫描或生成新编码；uncoded_findings 固定为空。"
+      ],
+      "manual_review_required": true,
+      "summary": "处理 2 个输入编码，定位 2 个精确原文提及，0 个编码无精确提及或目录未命中。",
+      "markdown": "# 编码候选精确证据提及定位\n\n**状态：** COMPLETED"
+    }
+  ],
+  "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "cab618db24b513cf9a567368b70454beb8e1293efdb1f0e1d9df8d50245e4374"
   }
 }

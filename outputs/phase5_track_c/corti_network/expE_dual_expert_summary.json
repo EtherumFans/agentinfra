@@ -1,0 +1,22 @@
+{
+  "experiment": "E",
+  "title": "Dual expert (PubMed + Web Search)",
+  "input_summary": "Use both pubmed-expert AND web-search-expert on CHADS-VASc anticoagulation in elderly AF.",
+  "agent_definition_id": "c731e909-d55a-4b86-bbbe-30f3c9e984f0",
+  "conversation_id": "4c2f06c9-6a3e-46a0-a5cf-78fa4d16cbf7",
+  "endpoint": "POST /functions/v1/ai/agents/{conversation_id}",
+  "sse_event_sequence": [
+    "data-status-update (state=working) × 2",
+    "data-status-update (message='Calling expert: pubmed-expert')",
+    "data-status-update (message='Calling expert: web-search-expert')",
+    "data-json (combined web_result[] from both experts)",
+    "text-start",
+    "text-delta (synthesis)",
+    "text-end",
+    "message-metadata (state=completed)",
+    "finish"
+  ],
+  "key_finding": "When user requests multiple experts, LLM autonomously dispatches BOTH in sequence within a single SSE stream. No parallel execution observed (sequential `Calling expert:` events). iCoDer Orchestrator Gate 3 must support this sequential multi-expert dispatch pattern.",
+  "response_size_bytes": 76600,
+  "cross_expert_evidence": "Both pubmed-expert AND web-search-expert events fire before final text-delta synthesis. Confirms LLM-driven conditional multi-tool dispatch (not a static DAG)."
+}

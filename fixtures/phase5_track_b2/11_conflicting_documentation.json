@@ -1,0 +1,50 @@
+{
+  "fixture_id": "11_conflicting_documentation",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "普通外科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者男性,55岁,因「左侧腹股沟可复性包块 1 年,增大 1 月」入院。1 年前发现左侧腹股沟可复性包块,站立时出现,平卧后消失。1 月来包块逐渐增大,坠入阴囊,平卧后回纳困难。既往:慢性便秘 5 年。否认慢性咳嗽、前列腺增生。查体:腹平,左侧腹股沟区见一梨形包块,约 5×3cm,进入阴囊,质软,无明显压痛,平卧推挤可回纳腹腔,压迫内环口包块不再出现。右侧腹股沟区未见异常。入院诊断:左侧腹股沟斜疝。治疗经过:入院第 2 天行腹股沟疝无张力修补术(腹腔镜,TEP 术式)。术中记录:见右侧腹股沟斜疝,疝囊约 4×3cm,内容物为小肠,可回纳,植入聚丙烯补片 10×15cm,手术顺利。出院诊断:右侧腹股沟斜疝;慢性便秘。术后第 1 天恢复可,第 3 天出院。病程记录护士书写笔误:左侧腹股沟斜疝(与主治医师口头确认实际为右侧)。",
+  "structured_context": {
+    "age": 55,
+    "sex": "男",
+    "encounter_type": "inpatient",
+    "admission_type": "择期手术",
+    "primary_complaint": "左侧腹股沟可复性包块 1 年,增大 1 月",
+    "procedure": "腹股沟疝无张力修补术(TEP)",
+    "los_days": 3
+  },
+  "known_facts": [
+    "入院诊断:左侧腹股沟斜疝",
+    "术中记录:右侧腹股沟斜疝",
+    "出院诊断:右侧腹股沟斜疝",
+    "腹股沟疝无张力修补术(TEP)"
+  ],
+  "negated_facts": [
+    "否认慢性咳嗽",
+    "否认前列腺增生"
+  ],
+  "historical_facts": [
+    "慢性便秘 5 年"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "left_right_side_documentation_conflict",
+    "admission_discharge_dx_mismatch",
+    "nursing_note_vs_surgical_record_inconsistency"
+  ],
+  "gold_codes": [
+    "K40.900"
+  ],
+  "not_for_quality_scoring": true,
+  "notes": "Conflict stress test: admission dx = LEFT, surgical/discharge dx = RIGHT, nursing note retains LEFT. Agent should flag documentation inconsistency and request clarification. Set not_for_quality_scoring=true because the correct side is genuinely ambiguous (medical record contains the conflict)."
+}

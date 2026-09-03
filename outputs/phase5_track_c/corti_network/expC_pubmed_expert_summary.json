@@ -1,0 +1,29 @@
+{
+  "experiment": "C",
+  "title": "Force PubMed Expert",
+  "input_summary": "Use pubmed-expert to find recent (2022-2025) PubMed literature on DES vs BMS in elderly STEMI patients.",
+  "agent_definition_id": "c731e909-d55a-4b86-bbbe-30f3c9e984f0",
+  "conversation_id": "4c2f06c9-6a3e-46a0-a5cf-78fa4d16cbf7",
+  "endpoint": "POST /functions/v1/ai/agents/{conversation_id}",
+  "sse_event_types_observed": [
+    "data-status-update (state=working) × 2",
+    "data-status-update (message='Calling expert: pubmed-expert', state=working) × 2",
+    "data-json (pubmed search_results array of web_result items)",
+    "text-start",
+    "text-delta (final synthesis with citations)",
+    "text-end",
+    "message-metadata (state=completed)",
+    "finish"
+  ],
+  "expert_invocation_event_format": "{\"data\":{\"message\":\"Calling expert: <expert-name>\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+  "tool_result_format": "{\"data\":{...expert-specific-payload...},\"type\":\"data-json\"}",
+  "pubmed_response_structure": {
+    "type": "web_result[]",
+    "fields_per_item": ["url", "site.name", "site.favicon_url", "source.provider", "source.retrieved_at", "title", "snippet"],
+    "sample_url": "https://pubmed.ncbi.nlm.nih.gov/38815671/",
+    "sample_title": "A 10-year review of presentation, management and outcomes of STEMI in a high-volume regional Australian tertiary centre."
+  },
+  "key_finding": "PubMed Expert wraps a search MCP tool returning web_result items. Same event protocol as Coding Expert — only the data payload differs. CONFIRMS expert = LLM-conditional dispatch to a set of MCP tools.",
+  "response_size_bytes": 75400,
+  "key_implication": "iCoDer Orchestrator Gate 3 can implement Corti parity with: (1) SSE event stream, (2) `Calling expert: <name>` status events, (3) `data-json` tool result events, (4) LLM decides when to stop calling tools and synthesize text-delta."
+}

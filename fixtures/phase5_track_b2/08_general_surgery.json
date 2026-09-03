@@ -1,0 +1,50 @@
+{
+  "fixture_id": "08_general_surgery",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "普通外科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者男性,28岁,因「转移性右下腹痛 12 小时」入院。12 小时前无明显诱因出现上腹部隐痛,4 小时后转移并固定至右下腹,呈持续性胀痛,伴恶心、呕吐胃内容物 1 次。无发热、腹泻。既往:体健。否认手术史、外伤史。否认药物过敏。查体:T 37.6℃,P 95 次/分,BP 120/75mmHg。腹平,右下腹麦氏点压痛(+),反跳痛(+),腰大肌征(+),闭孔内肌征(-)。血常规:WBC 13.8×10^9/L,N 82%,CRP 50 mg/L。腹部超声:阑尾肿胀,直径 9mm,壁增厚,周围少量渗液。入院诊断:急性阑尾炎。治疗:急诊行腹腔镜阑尾切除术。术中见阑尾位于盲肠后位,长 8cm,直径 1cm,充血水肿明显,表面脓苔附着,未穿孔。逆行切除阑尾,标本送病理。术后病理:急性化脓性阑尾炎,未穿孔。术后第 2 天排气,第 4 天出院。",
+  "structured_context": {
+    "age": 28,
+    "sex": "男",
+    "encounter_type": "inpatient",
+    "admission_type": "急诊手术",
+    "primary_complaint": "转移性右下腹痛 12 小时",
+    "procedure": "腹腔镜阑尾切除术",
+    "los_days": 4
+  },
+  "known_facts": [
+    "急性化脓性阑尾炎",
+    "麦氏点压痛阳性",
+    "腹腔镜阑尾切除术",
+    "阑尾未穿孔"
+  ],
+  "negated_facts": [
+    "无发热腹泻",
+    "否认手术史",
+    "否认药物过敏"
+  ],
+  "historical_facts": [],
+  "missing_information": [],
+  "expected_risks": [
+    "appendix_perforation_risk_post_op",
+    "wound_infection",
+    "intra_abdominal_abscess"
+  ],
+  "gold_codes": [
+    "K35.800",
+    "K35.801"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "Classic appendicitis + lap app; primary K35.800."
+}

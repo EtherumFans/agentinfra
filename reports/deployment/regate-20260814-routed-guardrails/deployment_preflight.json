@@ -1,0 +1,37 @@
+{
+  "schema_version": "icoder.deployment-candidate-preflight/v1",
+  "generated_at": "2026-08-14T11:49:34.605559+00:00",
+  "mode": "static_without_docker_cli",
+  "checks": {
+    "compose_scope_is_explicitly_local": true,
+    "compose_has_required_services": true,
+    "compose_dependencies_are_health_gated": true,
+    "stateful_services_have_healthchecks": true,
+    "backend_image_runs_non_root": true,
+    "backend_image_has_healthcheck": true,
+    "backend_image_excludes_native_ml_stack": true,
+    "ml_worker_image_is_minimal_and_isolated": true,
+    "compose_ml_worker_is_internal_and_fail_closed": true,
+    "ml_assets_are_hash_verified_and_version_aligned": true,
+    "api_compose_exposes_remote_retriever_contract": true,
+    "frontend_image_has_healthcheck": true,
+    "docker_context_excludes_env_files": true,
+    "frontend_tls_and_security_headers_declared": true,
+    "local_frontend_http_is_explicit_and_isolated": true,
+    "ci_e2e_is_fail_closed_and_uses_vault_credential": true,
+    "region_catalog_covers_eu_us_cn": true,
+    "cross_environment_replication_forbidden": true,
+    "all_regions_honestly_unprovisioned": true,
+    "china_region_and_compliance_declared": true,
+    "cloud_template_has_no_live_secret": true,
+    "cloud_template_defaults_to_local": true
+  },
+  "passed": true,
+  "failed_checks": [],
+  "limitations": [
+    "No image was built or started because Docker CLI is unavailable.",
+    "No image vulnerability/SBOM/registry-signature scan was performed.",
+    "No cloud region was provisioned; regions.yaml declares every region enabled=false.",
+    "No disaster recovery, capacity, latency, or availability SLA was exercised."
+  ]
+}

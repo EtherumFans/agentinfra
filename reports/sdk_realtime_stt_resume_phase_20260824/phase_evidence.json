@@ -1,0 +1,95 @@
+{
+  "schema_version": "icoder.realtime-stt-resume-phase/v1",
+  "generated_at": "2026-08-24T02:16:47.0773827+08:00",
+  "status": "passed",
+  "release_version": "1.0.0-beta.30",
+  "source": {
+    "revision": "4fc31b3c012c49d09c6b3b01d3c67e25049efe98",
+    "tree_state": "dirty"
+  },
+  "tests": {
+    "backend_realtime_stt": {
+      "passed": 20,
+      "failed": 0
+    },
+    "javascript_sdk": {
+      "passed": 78,
+      "failed": 0
+    },
+    "python_sdk": {
+      "passed": 82,
+      "failed": 0
+    },
+    "dotnet_sdk_net8": {
+      "passed": 65,
+      "failed": 0
+    },
+    "dotnet_sdk_net10": {
+      "passed": 65,
+      "failed": 0
+    },
+    "release_candidate_validator": {
+      "passed": 5,
+      "failed": 0
+    },
+    "deployment_preflight": {
+      "passed": 84,
+      "failed": 0
+    }
+  },
+  "e2e": {
+    "evidence": "reports/sdk_realtime_stt_resume_phase_20260824/e2e_evidence.json",
+    "transport": "real_loopback_websocket",
+    "api_processes": 2,
+    "sdk_sessions": 3,
+    "forced_disconnects": 3,
+    "resume_connections": 6,
+    "sessions_with_reconnect": 3,
+    "authenticated_tenant_token": true,
+    "temporary_database": "created_migrated_removed",
+    "synthetic_non_audio_bytes_only": true
+  },
+  "release_candidate": {
+    "manifest": "C:/codex-artifacts/release-candidate-b30-stt-final2.json",
+    "artifact_directory": "C:/codex-artifacts/release-b30-stt-final2",
+    "publication_performed": false,
+    "artifacts": [
+      {
+        "path": "icoder-sdk-1.0.0-beta.30.tgz",
+        "size_bytes": 66785,
+        "sha256": "5a15a65d4c64291ebf3f6bcc6f46ab50631e94b280ac3d9b7f77f8f15178254c"
+      },
+      {
+        "path": "icoder_sdk-1.0.0b30-py3-none-any.whl",
+        "size_bytes": 52050,
+        "sha256": "59f3039cae1cb7cb897dd910d16b0667ed819f6e6623941de01cfcf468064357"
+      },
+      {
+        "path": "iCoDer.Sdk.1.0.0-beta.30.nupkg",
+        "size_bytes": 394934,
+        "sha256": "defd68cbcad0a02653da4a6c5ed102469362818a5e8c7a76c10f339d902576d2"
+      },
+      {
+        "path": "iCoDer.Sdk.1.0.0-beta.30.snupkg",
+        "size_bytes": 84001,
+        "sha256": "3930f0de15a7f03e0630d1f4853e3332498cdcc3af14c9525414fe363e8a0211"
+      }
+    ]
+  },
+  "safety": {
+    "real_audio_used": false,
+    "real_stt_provider_used": false,
+    "real_llm_used": false,
+    "clinical_payload_captured": false,
+    "credential_environment_present_after_test": false,
+    "related_processes_remaining": 0,
+    "temporary_e2e_directories_remaining": 0,
+    "protected_database": {
+      "path": "backend/data/icoder.db",
+      "size_bytes": 8536064,
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "matches_baseline": true
+    }
+  },
+  "scope_limit": "This phase proves bounded client-replay transport recovery only; it does not prove real ASR quality, Corti feature parity, clinical safety, production capacity, or external compliance gates."
+}

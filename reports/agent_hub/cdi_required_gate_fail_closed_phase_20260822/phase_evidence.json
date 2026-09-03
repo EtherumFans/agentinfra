@@ -1,0 +1,93 @@
+{
+  "schema_version": "icoder.cdi-required-gate-fail-closed/v1",
+  "generated_at": "2026-08-22T16:06:09+08:00",
+  "result": "passed_with_real_model_clinical_and_external_release_gates_open",
+  "implementation": {
+    "test_stub_requires_explicit_switch_and_pytest_runtime": true,
+    "degraded_required_safety_gates_are_structured": true,
+    "claim_evidence_alignment_degradation_is_tracked": true,
+    "semantic_necessity_degradation_is_tracked": true,
+    "rest_degradation_http_status": 503,
+    "rest_degradation_persists_case": false,
+    "rest_degradation_publishes_clinical_result": false,
+    "rest_degradation_publishes_attestation": false,
+    "a2a_degradation_http_status": 503,
+    "a2a_degradation_publishes_result": false,
+    "a2a_degradation_publishes_attestation": false,
+    "degradation_audit_is_tenant_owned": true,
+    "audit_persistence_failure_is_fail_closed": true
+  },
+  "tests": {
+    "focused": {
+      "passed": 95,
+      "failed": 0,
+      "duration_seconds": 2.36
+    },
+    "final_cdi_expanded": {
+      "passed": 341,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 6.48
+    },
+    "initial_expanded_diagnostic": {
+      "passed": 334,
+      "failed": 1,
+      "failure": "legacy test import leaked ICODER_CDI_FORCE_STUB_FOR_TESTS into the process environment",
+      "resolved_by": "the real-runner REST regression explicitly removes the test-only switch before exercising fail-closed behavior"
+    },
+    "deployment_preflight": {
+      "passed": 67,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "openapi": {
+      "paths": 269,
+      "schemas": 288,
+      "bytes": 842015,
+      "drift": false
+    },
+    "credential_scan": {
+      "deepseek_shaped_key_files": 0,
+      "hardcoded_deepseek_assignment_files": 0
+    },
+    "real_llm_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "independent_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change": false,
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged": true,
+    "cutover_performed": false
+  },
+  "artifacts": {
+    "runtime_matrix": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/current/agent_hub_runtime_matrix.json",
+      "sha256": "0e4cb75433af9c6af2d680d0b6af28cdd6ff1e9897b3366cff71ddc3648d7865"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/cdi_required_gate_fail_closed_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "47dae7464cf4a5ada684a9ce163c87fabcee58a1d52b02d8b6054a7097c3c352"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_CDI_REQUIRED_GATE_FAIL_CLOSED_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "c49ee5935acbd695ff5ce9a4614df9ee7c81eb8f2817e57da9bd8e860c4e2f27"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604"
+    }
+  },
+  "limitations": [
+    "The phase proves required-gate publication safety; it does not prove real-model semantic or clinical quality.",
+    "The complete visible-Agent real-model happy, adversarial, repetition, and Chinese clinical scenario matrix still requires a rotated credential, explicit budget, and independent clinical review.",
+    "No dotnet, Docker, or Nginx CLI is available locally; those build and runtime gates remain CI or external-environment work.",
+    "Hospital integration, authoritative patient consent, licensed China coding and DRG/DIP data, cloud infrastructure, legal, certification, penetration testing, and independent reviewers remain external gates."
+  ]
+}

@@ -1,0 +1,476 @@
+{
+  "case_id": "CASE-2f76332d05e8",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-2f76332d05e8/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "慢性肾病未明确分期或严重程度",
+      "why_it_matters": "慢性肾病（CKD）的分期（如CKD 3期）是编码和风险调整的关键，影响疾病严重程度和预后评估。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "慢性肾病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2f76332d05e8/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "高脂血症未明确类型（如高胆固醇血症、高甘油三酯血症）",
+      "why_it_matters": "不同类型的高脂血症编码不同，明确类型有助于准确编码和治疗。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "高脂血症",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2f76332d05e8/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压未明确是否有靶器官损害或并发症",
+      "why_it_matters": "高血压的并发症（如心力衰竭、视网膜病变）影响编码和严重程度，需明确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "原发性高血压",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2f76332d05e8/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病未明确是否有并发症或控制情况",
+      "why_it_matters": "糖尿病的并发症（如肾病、视网膜病变）和血糖控制情况影响编码和严重程度。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "2型糖尿病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-2f76332d05e8/Q-001",
+      "gap_id": "CASE-2f76332d05e8/GAP-001",
+      "topic": "慢性肾病分期或严重程度",
+      "reason": "病历中提及慢性肾病，但未明确分期或严重程度，影响病情评估。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "慢性肾病",
+        "char_start": 65,
+        "char_end": 69,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "慢性肾病",
+          "char_start": 65,
+          "char_end": 69,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "患者病历中提及慢性肾病，请明确其分期或严重程度。",
+      "response_options": [
+        "A. 慢性肾病1期",
+        "B. 慢性肾病2期",
+        "C. 慢性肾病3期",
+        "D. 慢性肾病4期",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-2f76332d05e8/Q-002",
+      "gap_id": "CASE-2f76332d05e8/GAP-002",
+      "topic": "高脂血症类型",
+      "reason": "病历中提及高脂血症，但未明确具体类型。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "高脂血症",
+        "char_start": 71,
+        "char_end": 75,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "高脂血症",
+          "char_start": 71,
+          "char_end": 75,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "患者病历中提及高脂血症，请明确其具体类型。",
+      "response_options": [
+        "A. 高胆固醇血症",
+        "B. 高甘油三酯血症",
+        "C. 混合型高脂血症",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-2f76332d05e8/Q-003",
+      "gap_id": "CASE-2f76332d05e8/GAP-004",
+      "topic": "糖尿病并发症或控制情况",
+      "reason": "病历中提及2型糖尿病，但未明确并发症或控制情况。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "2型糖尿病",
+        "char_start": 24,
+        "char_end": 29,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "2型糖尿病",
+          "char_start": 24,
+          "char_end": 29,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "患者有2型糖尿病，请明确其并发症及血糖控制情况。",
+      "response_options": [
+        "A. 无并发症，血糖控制良好",
+        "B. 无并发症，血糖控制不佳",
+        "C. 有微血管并发症（如视网膜病变、肾病、神经病变）",
+        "D. 有大血管并发症（如冠心病、脑血管病）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-2f76332d05e8/GAP-001",
+      "topic": "慢性肾病分期或严重程度",
+      "reason": "病历中提及慢性肾病，但未明确分期或严重程度，影响病情评估。",
+      "query_text": "患者病历中提及慢性肾病，请明确其分期或严重程度。",
+      "response_options": [
+        "A. 慢性肾病1期",
+        "B. 慢性肾病2期",
+        "C. 慢性肾病3期",
+        "D. 慢性肾病4期",
+        "E. 慢性肾病5期",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "慢性肾病",
+          "char_start": 65,
+          "char_end": 69,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-011 (max_five_response_options): response_options count=6 (cap=5)"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "BOUND_RESPONSE_OPTIONS",
+      "replacement_query_id": "Q-001",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "患者病历中提及慢性肾病，请明确其分期或严重程度。",
+      "rewritten_response_options": [
+        "A. 慢性肾病1期",
+        "B. 慢性肾病2期",
+        "C. 慢性肾病3期",
+        "D. 慢性肾病4期",
+        "E. 无法确定"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-2f76332d05e8/GAP-003",
+      "topic": "高血压靶器官损害或并发症",
+      "reason": "病历中提及原发性高血压，但未明确是否有靶器官损害或并发症。",
+      "query_text": "患者有原发性高血压，请明确是否存在靶器官损害或并发症。",
+      "response_options": [
+        "A. 无靶器官损害",
+        "B. 有心脏损害（如左心室肥厚）",
+        "C. 有肾脏损害（如蛋白尿）",
+        "D. 有脑血管损害（如脑卒中）",
+        "E. 有视网膜损害",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "原发性高血压",
+          "char_start": 16,
+          "char_end": 22,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'",
+        "NLQ-011 (max_five_response_options): response_options count=6 (cap=5)"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-2f76332d05e8/GAP-004",
+      "topic": "糖尿病并发症或控制情况",
+      "reason": "病历中提及2型糖尿病，但未明确并发症或控制情况。",
+      "query_text": "患者有2型糖尿病，请明确其并发症及血糖控制情况。",
+      "response_options": [
+        "A. 无并发症，血糖控制良好",
+        "B. 无并发症，血糖控制不佳",
+        "C. 有微血管并发症（如视网膜病变、肾病、神经病变）",
+        "D. 有大血管并发症（如冠心病、脑血管病）",
+        "E. 有足部并发症",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "2型糖尿病",
+          "char_start": 24,
+          "char_end": 29,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-011 (max_five_response_options): response_options count=6 (cap=5)"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "BOUND_RESPONSE_OPTIONS",
+      "replacement_query_id": "Q-004",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "患者有2型糖尿病，请明确其并发症及血糖控制情况。",
+      "rewritten_response_options": [
+        "A. 无并发症，血糖控制良好",
+        "B. 无并发症，血糖控制不佳",
+        "C. 有微血管并发症（如视网膜病变、肾病、神经病变）",
+        "D. 有大血管并发症（如冠心病、脑血管病）",
+        "E. 无法确定"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 入院诊断:原发性高血压, 2型糖尿病。用药记录:二甲双胍, 缬沙坦, 胰岛素。病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。出院诊断:高血压, 糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "原发性高血压",
+      "2型糖尿病",
+      "慢性肾病",
+      "高脂血症",
+      "用药: 二甲双胍, 缬沙坦, 胰岛素"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "慢性肾病和高脂血症在病程记录中提及，但缺乏支持性证据（如实验室值、影像学或专科会诊）。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the chart must specify the stage of chronic kidney disease (e.g., based on eGFR or albuminuria) and whether it is attributed to hypertension or diabetes, as this directly affects severity and comorbidity capture. Additionally, clarify the type of hyperlipidemia (e.g., pure hypercholesterolemia vs. mixed) and document any hypertensive target-organ damage (e.g., left ventricular hypertrophy, retinopathy) or diabetic complications (e.g., neuropathy, retinopathy, nephropathy) and current glycemic control status. Without these details, the discharge diagnoses remain too vague to reflect the true clinical complexity.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3397,
+      "tokens": 295
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-a8c07271c3b3",
+    "gap_identification": "run-2ddfcb1929b9",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-36a6fefd7d10",
+    "query_generation": "run-9b883cd9b9ee",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=4;llm_complete=False;llm_reasoning=该图表仅列出诊断和用药，缺乏关键细节，如慢性肾病分期、糖尿病并发症、高血压靶器官损害等，这些对于准确编码和临床管理至关重要。",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;rewrite_attempted=0;rewrite_accepted=0;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=0;flagged=0;final_count=4",
+    "claim_evidence_alignment_gate::run_id": "run-fa11aa7cfb22",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=4",
+    "semantic_necessity_gate::run_id": "run-63db70730ffe",
+    "query_compliance_gate": ";passed=3;blocked=1",
+    "specialist_trace_emit": "run-fb72484e0f80"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-788e855eb831",
+    "gap_identification": "trace-483c23bf1b9c",
+    "expert_consultation": "trace-c9c14b331e9e",
+    "query_generation": "trace-e50eea491a66",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-afaae02c8bf4",
+    "semantic_necessity_gate": "trace-21ffa7b4a6e9",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-cb4559feefe0"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2812,
+      "prompt_tokens": 232,
+      "completion_tokens": 88,
+      "total_tokens": 320,
+      "run_id": "run-a8c07271c3b3",
+      "trace_id": "trace-788e855eb831",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6462,
+      "prompt_tokens": 1045,
+      "completion_tokens": 643,
+      "total_tokens": 1688,
+      "run_id": "run-2ddfcb1929b9",
+      "trace_id": "trace-483c23bf1b9c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6754,
+      "prompt_tokens": 1135,
+      "completion_tokens": 822,
+      "total_tokens": 1957,
+      "run_id": "run-9b883cd9b9ee",
+      "trace_id": "trace-e50eea491a66",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3397,
+      "prompt_tokens": 170,
+      "completion_tokens": 125,
+      "total_tokens": 295,
+      "run_id": "run-1cca58fb3539",
+      "trace_id": "trace-8619e74c467d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-324e912d68b5",
+      "trace_id": "trace-177071d59798",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d71a8511c8af",
+      "trace_id": "trace-ab544522cc21",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-91485986db91",
+      "trace_id": "trace-171d88b16a43",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:11:18.427208Z"
+}

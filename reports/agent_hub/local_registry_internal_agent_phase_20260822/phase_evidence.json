@@ -1,0 +1,63 @@
+{
+  "schema_version": "icoder/phase-evidence/v1",
+  "phase": "local-registry-and-internal-agent-connectors",
+  "date": "2026-08-22",
+  "result": "development_slice_passed_external_gates_open",
+  "llm": {
+    "provider": "mock_or_controlled_fake",
+    "real_credential_used": false,
+    "external_network_used": false
+  },
+  "registry_adapter": {
+    "startup_wired": true,
+    "local_keys": [
+      "interviewing",
+      "medical-calculator",
+      "medical-coding",
+      "memory"
+    ],
+    "externally_gated_keys": [
+      "clinical-trials",
+      "drugbank",
+      "posos",
+      "pubmed",
+      "web-search"
+    ],
+    "medical_coding_mcp_handler_reuse": true,
+    "scoped_operations_default_deny": true,
+    "explicit_capability_allowlist_required_when_enabled": true,
+    "live_external_provider_verified": false
+  },
+  "internal_agent_adapter": {
+    "startup_wired": true,
+    "operations": ["SendMessage", "delegate", "run"],
+    "tenant_target_revalidated_at_execution": true,
+    "child_run_created": true,
+    "result_attestation_preserved": true,
+    "server_owned_input_channel_guard": true,
+    "runtime_cycle_guard": true,
+    "max_depth": 8,
+    "real_llm_verified_this_phase": false
+  },
+  "additional_security_fix": {
+    "cloud_explicit_empty_secret_fails_closed": true
+  },
+  "verification": [
+    {"suite": "backend_unit_security_contract", "passed": 188, "failed": 0, "warnings": 1, "duration_seconds": 23.59},
+    {"suite": "backend_serial_database_integration", "passed": 76, "failed": 0, "warnings": 7, "duration_seconds": 121.48},
+    {"suite": "backend_startup_e2e", "passed": 6, "failed": 0, "warnings": 1, "duration_seconds": 8.13},
+    {"suite": "javascript_sdk", "passed": 41, "failed": 0},
+    {"suite": "python_sdk", "passed": 48, "failed": 0, "duration_seconds": 53.59},
+    {"suite": "openapi_drift_check", "passed": 1, "failed": 0, "paths": 258, "bytes": 765977},
+    {"suite": "python_compileall_changed_runtime", "passed": 1, "failed": 0}
+  ],
+  "external_gates": [
+    "licensed DrugBank and Posos provider contracts",
+    "governed live PubMed, ClinicalTrials.gov, and privacy-preserving web-search adapters",
+    "persistent semantic Memory actor and retention contract",
+    "delegated machine scope for scoped medical-coding registry operations",
+    "real-provider multi-Agent quality testing under an explicit budget",
+    "Redis or equivalent multi-worker recursion, circuit, concurrency, and session state",
+    "cloud, hospital, clinical, legal, certification, and independent reviewer approval"
+  ]
+}

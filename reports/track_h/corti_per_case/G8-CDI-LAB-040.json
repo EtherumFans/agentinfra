@@ -1,0 +1,561 @@
+{
+  "case_id": "G8-CDI-LAB-040",
+  "group": "lab_positive_uncertain",
+  "variant": "",
+  "session_id": "5cd02fcc-5bc9-4c5e-b72c-8ca2d609ac32",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 30.94,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "Mild dyslipidemia in low-risk patient — already managed; agent should not generate statin-query"
+  },
+  "text_length": 4844,
+  "first_token_at_s": 4.07,
+  "last_token_at_s": 30.94,
+  "event_count": 13,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"codes\":[{\"alternatives\":[{\"code\":\"E78.2\",\"display\":\"Mixed hyperlipidemia\"}],\"code\":\"E78.5\",\"display\":\"Hyperlipidemia, unspecified\",\"evidences\":[{\"contextIndex\":0,\"end\":37,\"start\":0,\"text\":\"5",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E78.5\",\"code_system\":\"icd-10-cm\",\"description\":\"Hyperlipidemia, unspecified\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelines\"",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z00.00\",\"code_system\":\"icd-10-cm\",\"description\":\"Encounter for general adult medical examination without abnormal findings\",\"next_steps\":[{\"reason\":\"Read coding conv",
+    "message|{\"data\":{\"codes\":[\"ICD\"],\"content\":\"Guidelines for \\nOutpatient Services \\nThese coding guidelines for outpatient diagnoses have been approved for use by hospitals/ providers in \\ncoding and reporting",
+    "message|{\"id\":\"4a489d6e-f1e1-40ae-a5ee-1cf6685ffc9b\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 55-year-old male seen for a health examination.\\n- Documented as asymptomatic with “no chronic disease history.”\\n- Lipid panel is abnormal: “TC 5.8, LDL-C 3.6, HDL-C 1",
+    "message|{\"id\":\"4a489d6e-f1e1-40ae-a5ee-1cf6685ffc9b\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e9-9d46-73c3-9015-299dcc4d549b\",\"taskId\":\"019f55e9-9d46-732a-a0cc-425ce2de7cb9\",\"credits\":0.0847,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.0847},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "codes": [
+        {
+          "alternatives": [
+            {
+              "code": "E78.2",
+              "display": "Mixed hyperlipidemia"
+            }
+          ],
+          "code": "E78.5",
+          "display": "Hyperlipidemia, unspecified",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 37,
+              "start": 0,
+              "text": "55-year-old male, health examination."
+            },
+            {
+              "contextIndex": 0,
+              "end": 202,
+              "start": 178,
+              "text": "Diagnosis: dyslipidemia."
+            }
+          ],
+          "system": "icd10cm-outpatient"
+        },
+        {
+          "alternatives": [
+            {
+              "code": "Z01.89",
+              "display": "Encounter for other specified special examinations"
+            }
+          ],
+          "code": "Z00.00",
+          "display": "Encounter for general adult medical examination without abnormal findings",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 37,
+              "start": 0,
+              "text": "55-year-old male, health examination."
+            }
+          ],
+          "system": "icd10cm-outpatient"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "See related codes and alternatives around each predicted code",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions and rules",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Confirm each code is assignable and check instructional notes",
+          "tool": "verify"
+        }
+      ],
+      "potential_codes": [],
+      "usage": null
+    },
+    {
+      "assignable": true,
+      "code": "E78.5",
+      "code_system": "icd-10-cm",
+      "description": "Hyperlipidemia, unspecified",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "E78",
+        "description": "Disorders of lipoprotein metabolism and other lipidemias"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "E78.0",
+          "description": "Pure hypercholesterolemia"
+        },
+        {
+          "assignable": true,
+          "code": "E78.1",
+          "description": "Pure hyperglyceridemia"
+        },
+        {
+          "assignable": true,
+          "code": "E78.2",
+          "description": "Mixed hyperlipidemia"
+        },
+        {
+          "assignable": true,
+          "code": "E78.3",
+          "description": "Hyperchylomicronemia"
+        },
+        {
+          "assignable": false,
+          "code": "E78.4",
+          "description": "Other hyperlipidemia"
+        },
+        {
+          "assignable": true,
+          "code": "E78.6",
+          "description": "Lipoprotein deficiency"
+        },
+        {
+          "assignable": false,
+          "code": "E78.7",
+          "description": "Disorders of bile acid and cholesterol metabolism"
+        },
+        {
+          "assignable": false,
+          "code": "E78.8",
+          "description": "Other disorders of lipoprotein metabolism"
+        },
+        {
+          "assignable": true,
+          "code": "E78.9",
+          "description": "Disorder of lipoprotein metabolism, unspecified"
+        }
+      ],
+      "total_related": 9
+    },
+    {
+      "assignable": true,
+      "code": "Z00.00",
+      "code_system": "icd-10-cm",
+      "description": "Encounter for general adult medical examination without abnormal findings",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z00.0",
+        "description": "Encounter for general adult medical examination"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z00.01",
+          "description": "Encounter for general adult medical examination with abnormal findings"
+        }
+      ],
+      "total_related": 1
+    },
+    {
+      "codes": [
+        "ICD"
+      ],
+      "content": "Guidelines for \nOutpatient Services \nThese coding guidelines for outpatient diagnoses have been approved for use by hospitals/ providers in \ncoding and reporting hospital-based outpatient services and provider-based office visits. Guidelines in \nSection I, Conventions, general coding guidelines and chapter-specific guidelines, should also be applied \nfor outpatient services and office visits. \n \nInformation about the use of certain abbreviations, punctuation, symbols, and other conventions used in \nthe ICD-10-CM Tabular List (code numbers and titles), can be found in Section IA of these guidelines, \nunder “Conventions Used in the Tabular List.” Section I.B. contains general guidelines that apply to the \nentire classification. Section I.C. contains chapter-specific guidelines that correspond to the chapters as \nthey are arranged in the classification. Information about the correct sequence to use in finding a code is \nalso described in Section I. \n \nThe terms encounter and visit are often used interchangeably in describing outpatient service contacts and, \ntherefore, appear together in these guidelines without distinguishing one from the other. \n \nThough the conventions and general guidelines apply to all settings, coding guidelines for outpatient and \nprovider reporting of diagnoses will vary in a number of instances from those for inpatient diagnoses, \nrecognizing that: \n \nThe Uniform Hospital Discharge Data Set (UHDDS) definition of principal diagnosis does not \napply to hospital-based outpatient services and provider-based office visits. \n \nCoding guidelines for inconclusive diagnoses (probable, suspected, rule out, etc.) were developed \nfor inpatient reporting and do not apply to outpatients.",
+      "id": "icd-10-cm_section_IV",
+      "kind": "rule",
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "number": "IV",
+      "path": [],
+      "scope": "universal",
+      "sections": [
+        {
+          "codes": [
+            "ICD"
+          ],
+          "content": "In the outpatient setting, the term first-listed diagnosis is used in lieu of principal diagnosis. \n \nIn determining the first-listed diagnosis the coding conventions of ICD-10-CM, as well as the \ngeneral and disease specific guidelines take precedence over the outpatient guidelines. \n \nDiagnoses often are not established at the time of the initial encounter/visit. It may take two or \nmore visits before the diagnosis is confirmed. \n \nThe most critical rule involves beginning the search for the correct code assignment through the \nAlphabetic Index. Never begin searching initially in the Tabular List as this will lead to coding \nerrors.",
+          "id": "icd-10-cm_section_IV_A",
+          "kind": "rule",
+          "number": "IVA",
+          "path": [],
+          "scope": "universal",
+          "sections": [
+            {
+              "codes": [],
+              "content": "When a patient presents for outpatient surgery (same day surgery), code the reason for \nthe surgery as the first-listed diagnosis (reason for the encounter), even if the surgery is \nnot performed due to a contraindication.",
+              "id": "icd-10-cm_section_IV_A_1",
+              "kind": "rule",
+              "number": "IVA1",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Outpatient Surgery"
+            },
+            {
+              "codes": [],
+              "content": "When a patient is admitted for observation for a medical condition, assign a code for the \nmedical condition as the first-listed diagnosis. \n \nWhen a patient presents for outpatient surgery and develops complications requiring \nadmission to observation, code the reason for the surgery as the first reported diagnosis \n(reason for the encounter), followed by codes for the complications as secondary \ndiagnoses.",
+              "id": "icd-10-cm_section_IV_A_2",
+              "kind": "rule",
+              "number": "IVA2",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Observation Stay"
+            }
+          ],
+          "title": "Selection of first-listed condition"
+        },
+        {
+          "codes": [
+            "Z00",
+            "Z99",
+            "U00",
+            "U85",
+            "A00.0",
+            "T88.9"
+          ],
+          "content": "Z00-Z99, U00-U85 \nThe appropriate code(s) from A00.0 through T88.9, Z00-Z99 and U00-U85 must be used to \nidentify diagnoses, symptoms, conditions, problems, complaints, or other reason(s) for the \nencounter/visit.",
+          "id": "icd-10-cm_section_IV_B",
+          "kind": "rule",
+          "number": "IVB",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Codes from A00.0 through T88.9, Z00-Z99, U00-U85"
+        },
+        {
+          "codes": [
+            "ICD"
+          ],
+          "content": "-CM diagnosis codes \nFor accurate reporting of ICD-10-CM diagnosis codes, the documentation should describe the \npatient’s condition, using terminology which includes specific diagnoses as well as symptoms, \nproblems, or reasons for the encounter. There are ICD-10-CM codes to describe all of these.",
+          "id": "icd-10-cm_section_IV_C",
+          "kind": "rule",
+          "number": "IVC",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Accurate reporting of ICD-10-CM diagnosis codes"
+        },
+        {
+          "codes": [
+            "ICD",
+            "R00",
+            "R99"
+          ],
+          "content": "signs \nCodes that describe symptoms and signs, as opposed to diagnoses, are acceptable for reporting \npurposes when a diagnosis has not been established (confirmed) by the provider. Chapter 18 of \nICD-10-CM, Symptoms, Signs, and Abnormal Clinical and Laboratory Findings Not Elsewhere \nClassified (codes R00-R99) contain many, but not all codes for symptoms.",
+          "id": "icd-10-cm_section_IV_D",
+          "kind": "rule",
+          "number": "IVD",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Codes that describe symptoms and signs"
+        },
+        {
+          "codes": [
+            "ICD",
+            "Z00",
+            "Z99"
+          ],
+          "content": "a disease or injury \nICD-10-CM provides codes to deal with encounters for circumstances other than a disease or \ninjury. The Factors Influencing Health Status and Contact with Health Services codes (Z00-\nZ99) are provided to deal with occasions when circumstances other than a disease or injury are \nrecorded as diagnosis or problems. \nSee Section I.C.21. Factors influencing health status and contact with health services.",
+          "id": "icd-10-cm_section_IV_E",
+          "kind": "rule",
+          "number": "IVE",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Encounters for circumstances other than a disease or injury"
+        },
+        {
+          "codes": [],
+          "content": "",
+          "id": "icd-10-cm_section_IV_F",
+          "kind": "rule",
+          "number": "IVF",
+          "path": [],
+          "scope": "universal",
+          "sections": [
+            {
+              "codes": [
+                "ICD"
+              ],
+              "content": "3, 4, 5, 6 or 7 characters \nICD-10-CM is composed of codes with 3, 4, 5, 6 or 7 characters. Codes with three \ncharacters are included in ICD-10-CM as the heading of a category of codes that may be \nfurther subdivided by the use of fourth, fifth, sixth or seventh characters to provide \ngreater specificity.",
+              "id": "icd-10-cm_section_IV_F_1",
+              "kind": "rule",
+              "number": "IVF1",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "ICD-10-CM codes with 3, 4, 5, 6 or 7 characters"
+            },
+            {
+              "codes": [],
+              "content": "characters required for a code \nA three-character code is to be used only if it is not further subdivided. A code is invalid \nif it has not been coded to the full number of characters required for that code, including \nthe 7th character, if applicable.",
+              "id": "icd-10-cm_section_IV_F_2",
+              "kind": "rule",
+              "number": "IVF2",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Use of full number of characters required for a code"
+            },
+            {
+              "codes": [],
+              "content": "Code to the highest level of specificity when supported by the medical record \ndocumentation.",
+              "id": "icd-10-cm_section_IV_F_3",
+              "kind": "rule",
+              "number": "IVF3",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Highest level of specificity"
+            }
+          ],
+          "title": "Level of Detail in Coding"
+        },
+        {
+          "codes": [
+            "ICD"
+          ],
+          "content": "the diagnosis, condition, problem, or other \nreason for encounter/visit \nList first the ICD-10-CM code for the diagnosis, condition, problem, or other reason for \nencounter/visit shown in the medical record to be chiefly responsible for the services provided. \nList additional codes that describe any coexisting conditions. In some cases, the first-listed \ndiagnosis may be a symptom when a diagnosis has not been established (confirmed) by the \nprovider.",
+          "id": "icd-10-cm_section_IV_G",
+          "kind": "rule",
+          "number": "IVG",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "ICD-10-CM code for the diagnosis, condition, problem, or other reason for encounter/visit"
+        },
+        {
+          "codes": [],
+          "content": "Do not code diagnoses documented as “probable”, “suspected,” “questionable,” “rule out,” \n“compatible with,” “consistent with,” or “working diagnosis” or other similar terms indicating \nuncertainty. Rather, code the condition(s) to the highest degree of certainty for that \nencounter/visit, such as symptoms, signs, abnormal test results, or other reason for the visit. \n \nPlease note: This differs from the coding practices used by short-term, acute care, long-term \ncare and psychiatric hospitals.",
+          "id": "icd-10-cm_section_IV_H",
+          "kind": "rule",
+          "number": "IVH",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Uncertain diagnosis"
+        },
+        {
+          "codes": [],
+          "content": "Chronic diseases treated on an ongoing basis may be coded and reported as many times as the \npatient receives treatment and care for the condition(s).",
+          "id": "icd-10-cm_section_IV_I",
+          "kind": "rule",
+          "number": "IVI",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Chronic diseases"
+        },
+        {
+          "codes": [
+            "Z80",
+            "Z87"
+          ],
+          "content": "coexist \nCode all documented conditions that coexist at the time of the encounter/visit and that require \nor affect patient care, treatment or management. Do not code conditions that were previously \ntreated and no longer exist. However, history codes (categories Z80-Z87) may be used as \nsecondary codes if the historical condition or family history has an impact on current care or \ninfluences treatment.",
+          "id": "icd-10-cm_section_IV_J",
+          "kind": "rule",
+          "number": "IVJ",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Code all documented conditions that coexist"
+        },
+        {
+          "codes": [
+            "Z01.89"
+          ],
+          "content": "For patients receiving diagnostic services only during an encounter/visit, sequence first the \ndiagnosis, condition, problem, or other reason for encounter/visit shown in the medical record \nto be chiefly responsible for the outpatient services provided during the encounter/visit. Codes \nfor other diagnoses (e.g., chronic conditions) may be sequenced as additional diagnoses. \n \nFor encounters for routine laboratory/radiology testing in the absence of any signs, symptoms, \nor associated diagnosis, assign Z01.89, Encounter for other specified special examinations. If \nroutine testing is performed during the same encounter as a test to evaluate a sign, symptom, or \ndiagnosis, it is appropriate to assign both the Z code and the code describing the reason for the \nnon-routine test. \n \nFor outpatient encounters for diagnostic tests that have been interpreted by a physician, and the \nfinal report is available at the time of coding, code any confirmed or definitive diagnosis(es) \ndocumented in the interpretation. Do not code related signs and symptoms as additional \ndiagnoses. \n \nPlease note: This differs from the coding practice in the hospital inpatient setting regarding \nabnormal findings on test results.",
+          "id": "icd-10-cm_section_IV_K",
+          "kind": "rule",
+          "number": "IVK",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Patients receiving diagnostic services only"
+        },
+        {
+          "codes": [],
+          "content": "For patients receiving therapeutic services only during an encounter/visit, sequence first the \ndiagnosis, condition, problem, or other reason for encounter/visit shown in the medical record \nto be chiefly responsible for the outpatient services provided during the encounter/visit. Codes \nfor other diagnoses (e.g., chronic conditions) may be sequenced as additional diagnoses. \n \nThe only exception to this rule is that when the primary reason for the admission/encounter is \nchemotherapy or radiation therapy, the appropriate Z code for the service is listed first, and the \ndiagnosis or problem for which the service is being performed listed second.",
+          "id": "icd-10-cm_section_IV_L",
+          "kind": "rule",
+          "number": "IVL",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Patients receiving therapeutic services only"
+        },
+        {
+          "codes": [
+            "Z01.81"
+          ],
+          "content": "For patients receiving preoperative evaluations only, sequence first a code from subcategory \nZ01.81, Encounter for pre-procedural examinations, to describe the pre-op consultations. \nAssign a code for the condition to describe the reason for the surgery as an additional diagnosis. \nCode also any findings related to the pre-op evaluation.",
+          "id": "icd-10-cm_section_IV_M",
+          "kind": "rule",
+          "number": "IVM",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Patients receiving preoperative evaluations only"
+        },
+        {
+          "codes": [],
+          "content": "For ambulatory surgery, code the diagnosis for which the surgery was performed. If the \npostoperative diagnosis is known to be different from the preoperative diagnosis at the time the \ndiagnosis is confirmed, select the postoperative diagnosis for coding, since it is the most \ndefinitive.",
+          "id": "icd-10-cm_section_IV_N",
+          "kind": "rule",
+          "number": "IVN",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Ambulatory surgery"
+        },
+        {
+          "codes": [],
+          "content": "See Section I.C.15. Routine outpatient prenatal visits.",
+          "id": "icd-10-cm_section_IV_O",
+          "kind": "rule",
+          "number": "IVO",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Routine outpatient prenatal visits"
+        },
+        {
+          "codes": [
+            "Z00.0",
+            "Z00.12"
+          ],
+          "content": "with abnormal findings \nThe subcategories for encounters for general medical examinations, Z00.0- and encounter for \nroutine child health examination, Z00.12-, provide codes for with and without abnormal \nfindings. Should a general medical examination result in an abnormal finding, the code for \ngeneral medical examination with abnormal finding should be assigned as the first-listed \ndiagnosis. An examination with abnormal findings refers to a condition/diagnosis that is newly \nidentified or a change in severity of a chronic condition (such as uncontrolled hypertension, or \nan acute exacerbation of chronic obstructive pulmonary disease) during a routine physical \nexamination. A secondary code for the abnormal finding should also be coded.",
+          "id": "icd-10-cm_section_IV_P",
+          "kind": "rule",
+          "number": "IVP",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Encounters for general medical examinations with abnormal findings"
+        },
+        {
+          "codes": [],
+          "content": "See Section I.C.21. Factors influencing health status and contact with health services, \nScreening",
+          "id": "icd-10-cm_section_IV_Q",
+          "kind": "rule",
+          "number": "IVQ",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Encounters for routine health screenings"
+        }
+      ],
+      "title": "Diagnostic Coding and Reporting Guidelines for Outpatient Services"
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e9-9d46-73c3-9015-299dcc4d549b",
+    "taskId": "019f55e9-9d46-732a-a0cc-425ce2de7cb9",
+    "credits": 0.0847,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 55-year-old male seen for a health examination.\n- Documented as asymptomatic with “no chronic disease history.”\n- Lipid panel is abnormal: “TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2.”\n- Assessment lists “Diagnosis: dyslipidemia.”\n- Plan documents “diet and exercise, repeat in 3 months.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Health exam abnormal findings status is not aligned with the documented abnormal lipids.\n- Why it matters: The note documents a general health examination and also documents abnormal laboratory findings/diagnosis. For coding specificity, the encounter may need distinction between general exam with vs without abnormal findings.\n- Evidence quote: “health examination” and “Lipids: TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2.” and “Diagnosis: dyslipidemia.”\n- Minimal clarification needed: Whether this prev"
+      },
+      {
+        "idx": 2,
+        "text": "Dyslipidemia lacks type/specification.\n- Why it matters: “Dyslipidemia” supports unspecified hyperlipidemia, but the available code set includes more specific related categories such as mixed hyperlipidemia when clinically documented. Specificity should come from provider documentation, not coder inference.\n- Evidence quote: “Diagnosis: dyslipidemia.”\n- Minimal clarification needed: Type of lipid disorder, if clinically known and intended to be documented."
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Preventive exam abnormal findings status"
+      },
+      {
+        "idx": 2,
+        "text": "Dyslipidemia specificity"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity, possible diagnosis/encounter code distinctions, and query opportunities. Accepted: need to clarify preventive exam abnormal findings status and dyslipidemia specificity; accepted related coding specificity around E78.5 vs more specific lipid disorder categories and Z00.00 vs Z00.01 distinction. Rejected: any attempt to assign a more specific lipid diagnosis from labs alone, because the excerpt only explicitly documents “dyslipidemia.”\n- AMBOSS Expert: Not consulted. Reason: no clinical criteria clarification was necessary to identify the conservative CDI gaps present in this excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no current external compliance guidance was required beyond the coding-oriented output already obtained.\n\nCoding note:\n- Based on the excerpt alone, “dyslipidemia” supports unspecified hyperlipidemia documentation unless the provider further specifies the type.\n- For the exam code, clarification is warranted because documented abnormal findings are present in the note.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 55-year-old male seen for a health examination.\n- Documented as asymptomatic with “no chronic disease history.”\n- Lipid panel is abnormal: “TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2.”\n- Assessment lists “Diagnosis: dyslipidemia.”\n- Plan documents “diet and exercise, repeat in 3 months.”\n\nDocumentation Gaps:\n1. Health exam abnormal findings status is not aligned with the documented abnormal lipids.\n- Why it matters: The note documents a general health examination and also documents abnormal laboratory findings/diagnosis. For coding specificity, the encounter may need distinction between general exam with vs without abnormal findings.\n- Evidence quote: “health examination” and “Lipids: TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2.” and “Diagnosis: dyslipidemia.”\n- Minimal clarification needed: Whether this preventive/general exam should be documented as with abnormal findings.\n\n2. Dyslipidemia lacks type/specification.\n- Why it matters: “Dyslipidemia” supports unspecified hyperlipidemia, but the available code set includes more specific related categories such as mixed hyperlipidemia when clinically documented. Specificity should come from provider documentation, not coder inference.\n- Evidence quote: “Diagnosis: dyslipidemia.”\n- Minimal clarification needed: Type of lipid disorder, if clinically known and intended to be documented.\n\nProposed Provider Queries:\n1. Topic: Preventive exam abnormal findings status\n- Reason query is needed: The note documents a health examination plus abnormal lipid findings and a diagnosis, but does not explicitly state whether the exam should be characterized as with abnormal findings.\n- Evidence quote: “health examination”; “Lipids: TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2.”; “Diagnosis: dyslipidemia.”\n- Non-leading query text: “For this health examination, please clarify whether the encounter should be documented as a general adult examination with abnormal findings based on the documented lipid abnormalities, or as an examination without abnormal findings.”\n- Suggested response options:\n  - General adult examination with abnormal findings\n  - General adult examination without abnormal findings\n  - Other, please specify\n  - Clinically undetermined / unable to determine\n\n2. Topic: Dyslipidemia specificity\n- Reason query is needed: The diagnosis is documented only as “dyslipidemia,” and the record does not specify the type of lipid disorder.\n- Evidence quote: “Diagnosis: dyslipidemia.”\n- Non-leading query text: “Please clarify the type of dyslipidemia, if clinically known and intended for this encounter documentation.”\n- Suggested response options:\n  - Hyperlipidemia, unspecified\n  - Mixed hyperlipidemia\n  - Pure hypercholesterolemia\n  - Pure hypertriglyceridemia\n  - Other disorder of lipoprotein metabolism, please specify\n  - Clinically undetermined / unable to determine\n\nCoding Specificity Checklist:\n- For the preventive exam, specify whether it is with or without abnormal findings.\n- For dyslipidemia, specify the type if clinically known and documented.\n- If any lipid abnormality is not being diagnosed/managed, make that explicit to avoid ambiguity.\n- Ensure the final assessment and plan support any condition reported for coding.\n\nRisk Flags:\n- Potential coding conflict: a general “health examination” is documented alongside abnormal lipid findings and “Diagnosis: dyslipidemia,” so “without abnormal findings” may not be the best-supported preventive exam characterization.\n- No evidence in the excerpt supports querying additional chronic conditions, hypertension, obesity, or symptomatic cardiovascular disease.\n- “10-year cardiovascular risk: 5%” is documented, but risk score alone does not create a separate diagnosis query opportunity from the excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity, possible diagnosis/encounter code distinctions, and query opportunities. Accepted: need to clarify preventive exam abnormal findings status and dyslipidemia specificity; accepted related coding specificity around E78.5 vs more specific lipid disorder categories and Z00.00 vs Z00.01 distinction. Rejected: any attempt to assign a more specific lipid diagnosis from labs alone, because the excerpt only explicitly documents “dyslipidemia.”\n- AMBOSS Expert: Not consulted. Reason: no clinical criteria clarification was necessary to identify the conservative CDI gaps present in this excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no current external compliance guidance was required beyond the coding-oriented output already obtained.\n\nCoding note:\n- Based on the excerpt alone, “dyslipidemia” supports unspecified hyperlipidemia documentation unless the provider further specifies the type.\n- For the exam code, clarification is warranted because documented abnormal findings are present in the note."
+}

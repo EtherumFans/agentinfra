@@ -1,4 +1,5 @@
 # iCoDer - Audit Log Model
+from datetime import datetime
 from typing import Optional
 from sqlalchemy import String, JSON, Text, DateTime, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
@@ -32,3 +33,47 @@ class AuditLog(Base, TimestampMixin):
     model_version: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     tool_calls_made: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     tokens_used: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    # ── Phase A1A Gate 2 §2: tenancy classification ──────────────────
+    # MODERN | LEGACY_TENANT_KNOWN | LEGACY_TENANT_UNKNOWN | QUARANTINED
+    # See alembic 016.
+    #
+    # ── Phase A1A Gate 3.1 §3 — extended taxonomy ──
+    # Plus MODERN_SYSTEM (intentional system-scope audit event, e.g.
+    # api_client.authentication_rejected) and the three-way split of
+    # LEGACY_TENANT_KNOWN into VERIFIED | INFERRED | AMBIGUOUS.
+    # See alembic 017 + app.services.legacy_tenancy_attribution.
+    tenancy_classification: Mapped[Optional[str]] = mapped_column(
+        String(32), nullable=True, index=True,
+    )
+
+    # ── Phase A1A Gate 3.1 §4 — attribution provenance ──────────────
+    tenancy_attribution_source: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True,
+        comment=(
+            "modern_write_path | api_client_binding | session_binding | "
+            "context_binding | request_correlation | user_membership_latest "
+            "| user_membership_at_time | user_single_membership_history | "
+            "security_event | no_user_id_no_candidate | user_id_no_membership"
+        ),
+    )
+    tenancy_attribution_confidence: Mapped[Optional[str]] = mapped_column(
+        String(16), nullable=True,
+        comment="verified | inferred | ambiguous | none",
+    )
+    tenancy_attribution_migration: Mapped[Optional[str]] = mapped_column(
+        String(8), nullable=True,
+        comment="Which migration last touched this row's attribution (016 or 017).",
+    )
+    tenancy_attributed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True,
+        comment="When the attribution was last computed.",
+    )
+    tenancy_original_org_id: Mapped[Optional[str]] = mapped_column(
+        String(12), nullable=True,
+        comment="Original organization_id before backfill; NULL means it was always NULL.",
+    )
+    tenancy_candidate_count: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True,
+        comment="How many candidate orgs were considered.",
+    )

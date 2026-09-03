@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import os
 import re
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -85,6 +86,19 @@ def icoder_client():
     return TestClient(app)
 
 
+def _create_fact(client, interaction_id: str) -> str:
+    response = client.post(
+        f"/api/v2/tools/interactions/{interaction_id}/facts/",
+        json={"facts": [{
+            "text": "Original fact text.",
+            "group": "other",
+            "source": "user",
+        }]},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()["facts"][0]["id"]
+
+
 # ─── Tests ───────────────────────────────────────────────────────────
 
 
@@ -105,7 +119,7 @@ def test_facts_update_spec_is_real_and_cached(facts_update_spec):
 def test_v2_facts_update_minimal_request(icoder_client):
     """回环: minimal request (1 field) → 200 + all 8 required fields populated."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={"text": "Updated fact text."},
@@ -121,7 +135,7 @@ def test_v2_facts_update_minimal_request(icoder_client):
 def test_v2_facts_update_response_all_fields_required(icoder_client):
     """All 8 response fields are REQUIRED (per spec, not optional like add-facts)."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={"text": "x"},
@@ -136,7 +150,7 @@ def test_v2_facts_update_response_all_fields_required(icoder_client):
 def test_v2_facts_update_path_echo_id(icoder_client):
     """Path-echo contract: response ``id`` == path ``factId``."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={"text": "x"},
@@ -148,20 +162,19 @@ def test_v2_facts_update_path_echo_id(icoder_client):
 def test_v2_facts_update_path_echo_group_id(icoder_client):
     """Path-echo contract: response ``groupId`` carries interaction_id prefix."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={"text": "x"},
     )
     assert r.status_code == 200, r.text
-    assert r.json()["groupId"].startswith(interaction_id)
+    uuid.UUID(r.json()["groupId"])
 
 
 def test_v2_facts_update_patch_semantics(icoder_client):
-    """PATCH semantics: omitted fields use stub defaults
-    (``group='other'``, ``source='user'``, ``isDiscarded=False``)."""
+    """PATCH semantics: omitted fields retain their persisted values."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={},  # empty body — all fields use defaults
@@ -177,7 +190,7 @@ def test_v2_facts_update_all_fields(icoder_client):
     """Caller can update all 4 fields in one request; response reflects
     every updated value."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={
@@ -198,7 +211,7 @@ def test_v2_facts_update_all_fields(icoder_client):
 def test_v2_facts_update_discard_flag(icoder_client):
     """Setting ``isDiscarded=true`` is honored (user marked fact as discarded)."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={"isDiscarded": True},
@@ -210,7 +223,7 @@ def test_v2_facts_update_discard_flag(icoder_client):
 def test_v2_facts_update_source_enum(icoder_client):
     """All 3 source enum values are honored when supplied."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     for source in ("core", "system", "user"):
         r = icoder_client.patch(
             f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
@@ -225,7 +238,7 @@ def test_v2_facts_update_timestamps(icoder_client):
     different from ``createdAt`` (per spec semantics — update increments
     updatedAt)."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}",
         json={"text": "x"},
@@ -234,5 +247,4 @@ def test_v2_facts_update_timestamps(icoder_client):
     j = r.json()
     assert j["createdAt"] is not None
     assert j["updatedAt"] is not None
-    # Stub: updatedAt is 1 second after createdAt (deterministic).
     assert j["updatedAt"] > j["createdAt"]

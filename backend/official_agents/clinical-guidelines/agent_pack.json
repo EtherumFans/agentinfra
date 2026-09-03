@@ -1,0 +1,1610 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/clinical-guidelines@1.1.0",
+  "manifest": {
+    "name": "临床指南评估智能体",
+    "name_en": "Clinical Guidelines Agent",
+    "version": "1.1.0",
+    "description": "使用医院批准指南包中的显式条款、确定性规则和病例记录事实，执行可追溯的逐项比较；不联网、不推断临床事实、不生成治疗建议。",
+    "category": "clinical-governance",
+    "category_display": "Clinical Governance / 临床治理",
+    "icon": "ListChecks",
+    "tags": [
+      "corti-parity",
+      "china-localized",
+      "guideline-locked",
+      "declared-rule-comparison",
+      "evidence-first",
+      "human-review-required"
+    ],
+    "maturity": "runnable",
+    "production_ready": false,
+    "hidden_from_hub": false,
+    "use_case": "clinical_governance",
+    "human_review": "required"
+  },
+  "system_prompt": "你是中国医疗场景的受治理临床指南评估智能体。你只能使用输入中明确提供、经医院批准、带版本和来源的指南条款、确定性评估规则与病例事实。只支持 PRESENT、EQUALS 和 TIME_WINDOW_HOURS 比较。不得联网检索或验证指南，不得使用模型记忆，不得推断诊断、适用性、未记录行为或临床意义，不得提出治疗建议。逐项输出精确来源与病例证据，缺失、冲突、领域不匹配或人群不匹配时必须 NOT_ASSESSABLE 并要求人工复核。",
+  "model": null,
+  "backend_provider": "icoder.governed-clinical-guidelines.v1",
+  "backend_config": {},
+  "experts": [],
+  "tools": [],
+  "permissions": {
+    "key": "clinical-guidelines",
+    "name": "临床指南评估智能体默认权限",
+    "description": "只读比较明确指南规则与已记录事实，不执行治疗决策、处罚、发布或系统写回。",
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/ClinicalGuidelinesOutput/v6",
+    "required_fields": [
+      "guideline_status",
+      "clinical_question",
+      "guideline_domain",
+      "guideline_source",
+      "guideline_population",
+      "patient_population",
+      "documentation_scope",
+      "guideline_source_eligible_for_review",
+      "source_authenticity_status",
+      "source_currency_verified",
+      "applicability_status",
+      "document_consistency_status",
+      "evaluation_method",
+      "guideline_criteria",
+      "documented_facts",
+      "documentation_conflicts",
+      "criteria_checked",
+      "aligned_items",
+      "deviations",
+      "not_assessable_items",
+      "overall_assessment",
+      "guideline_availability_status",
+      "evidence_citations",
+      "evidence_items",
+      "missing_required_fields",
+      "missing_source_metadata",
+      "missing_patient_information",
+      "limitations",
+      "guideline_retrieval_performed",
+      "web_search_performed",
+      "clinical_inference_performed",
+      "clinical_significance_assessed",
+      "treatment_recommendations_generated",
+      "external_knowledge_used",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "field_types": {
+      "guideline_status": "string",
+      "clinical_question": "object",
+      "guideline_domain": "object",
+      "guideline_source": "object",
+      "guideline_population": "object",
+      "patient_population": "object",
+      "documentation_scope": "object",
+      "guideline_source_eligible_for_review": "boolean",
+      "source_authenticity_status": "string",
+      "source_currency_verified": "boolean",
+      "applicability_status": "string",
+      "document_consistency_status": "string",
+      "evaluation_method": "string",
+      "guideline_criteria": "array",
+      "documented_facts": "array",
+      "documentation_conflicts": "array",
+      "criteria_checked": "array",
+      "aligned_items": "array",
+      "deviations": "array",
+      "not_assessable_items": "array",
+      "overall_assessment": "string",
+      "guideline_availability_status": "string",
+      "evidence_citations": "array",
+      "evidence_items": "array",
+      "missing_required_fields": "array",
+      "missing_source_metadata": "array",
+      "missing_patient_information": "array",
+      "limitations": "array",
+      "guideline_retrieval_performed": "boolean",
+      "web_search_performed": "boolean",
+      "clinical_inference_performed": "boolean",
+      "clinical_significance_assessed": "boolean",
+      "treatment_recommendations_generated": "boolean",
+      "external_knowledge_used": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "guideline_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "INPUT_REQUIRED",
+          "SOURCE_REVIEW_REQUIRED",
+          "APPLICABILITY_REVIEW_REQUIRED",
+          "READY_FOR_REVIEW"
+        ]
+      },
+      "clinical_question": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "guideline_domain": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "guideline_source": {
+        "type": "object",
+        "properties": {
+          "approval_date": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "approval_organization": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "approval_status": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "domain_match": {
+            "type": "boolean"
+          },
+          "publication_date": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "scope": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "source_organization": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "source_url": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "title": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "approval_date",
+          "approval_organization",
+          "approval_status",
+          "domain_match",
+          "publication_date",
+          "scope",
+          "source_organization",
+          "source_url",
+          "title",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "guideline_population": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "patient_population": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "documentation_scope": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "guideline_source_eligible_for_review": {
+        "type": "boolean"
+      },
+      "source_authenticity_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "USER_DOCUMENTED_METADATA_ONLY_NOT_INDEPENDENTLY_VERIFIED"
+      },
+      "source_currency_verified": {
+        "type": "boolean",
+        "const": false
+      },
+      "applicability_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NOT_ASSESSABLE",
+          "DOCUMENTED_POPULATION_MATCH",
+          "DOCUMENTED_POPULATION_MISMATCH_OR_MISSING"
+        ]
+      },
+      "document_consistency_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NOT_ASSESSED",
+          "NO_CONFLICTS_DETECTED",
+          "CONFLICTS_DETECTED"
+        ]
+      },
+      "evaluation_method": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "DECLARED_RULES_DETERMINISTIC_COMPARISON"
+      },
+      "guideline_criteria": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "guideline_text": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "criterion_id",
+            "evidence_ref",
+            "guideline_text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "documented_facts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_value": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "fact_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_document": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_value",
+            "evidence_ref",
+            "evidence_text",
+            "fact_id",
+            "field",
+            "source_document"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "documentation_conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "documented_values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100,
+              "minItems": 2
+            },
+            "source_documents": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100,
+              "minItems": 2
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100,
+              "minItems": 2
+            }
+          },
+          "required": [
+            "field",
+            "documented_values",
+            "source_documents",
+            "evidence_refs"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "criteria_checked": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "assessment": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "MET",
+                "NOT_MET",
+                "NOT_ASSESSABLE"
+              ]
+            },
+            "citations": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "computed_value": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "criterion_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "deviations": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evaluation_rule": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "guideline_criteria": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "observed_evidence": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "documented_value": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "field": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "source_document": {
+                    "type": "string",
+                    "maxLength": 32768
+                  }
+                },
+                "required": [
+                  "documented_value",
+                  "field",
+                  "source_document"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 20,
+              "minItems": 0
+            },
+            "patient_evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 20,
+              "minItems": 0
+            },
+            "rule_evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_criterion_evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "uncertainty": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "assessment",
+            "citations",
+            "computed_value",
+            "criterion_id",
+            "deviations",
+            "evaluation_rule",
+            "guideline_criteria",
+            "observed_evidence",
+            "patient_evidence_refs",
+            "rule_evidence_ref",
+            "source_criterion_evidence_ref",
+            "uncertainty"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "aligned_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "documented_alignment": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "criterion_id",
+            "documented_alignment"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "deviations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "documented_deviation": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "criterion_id",
+            "documented_deviation"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "not_assessable_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "criterion_id",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "overall_assessment": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "MET",
+          "NOT_MET",
+          "NOT_ASSESSABLE"
+        ]
+      },
+      "guideline_availability_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "SOURCE_NOT_PROVIDED",
+          "DOCUMENTED_SOURCE_NOT_ELIGIBLE",
+          "DOCUMENTED_GUIDELINE_APPLICABILITY_UNCONFIRMED",
+          "DOCUMENTED_GUIDELINE_AVAILABLE"
+        ]
+      },
+      "evidence_citations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "guideline_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_title": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_url": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_version": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "criterion_id",
+            "evidence_ref",
+            "guideline_text",
+            "source_title",
+            "source_url",
+            "source_version"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "clinical_question",
+                "guideline_domain",
+                "source_title",
+                "source_version",
+                "publication_date",
+                "approval_status",
+                "approval_date",
+                "approval_organization",
+                "source_organization",
+                "source_url",
+                "guideline_population",
+                "patient_population",
+                "source_scope",
+                "documentation_scope",
+                "guideline_criteria",
+                "evaluation_rules",
+                "documented_facts"
+              ]
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "field",
+            "label",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 300,
+        "minItems": 0
+      },
+      "missing_required_fields": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "missing_source_metadata": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "missing_patient_information": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 8,
+        "minItems": 6
+      },
+      "guideline_retrieval_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "web_search_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_inference_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_significance_assessed": {
+        "type": "boolean",
+        "const": false
+      },
+      "treatment_recommendations_generated": {
+        "type": "boolean",
+        "const": false
+      },
+      "external_knowledge_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_guideline_assessment",
+        "when": [
+          {
+            "path": "guideline_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "overall_assessment",
+            "operator": "equals",
+            "value": "NOT_ASSESSABLE"
+          },
+          {
+            "path": "aligned_items",
+            "operator": "empty"
+          },
+          {
+            "path": "deviations",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "source_review_required_has_no_guideline_conclusion",
+        "when": [
+          {
+            "path": "guideline_status",
+            "operator": "equals",
+            "value": "SOURCE_REVIEW_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "guideline_source_eligible_for_review",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "overall_assessment",
+            "operator": "equals",
+            "value": "NOT_ASSESSABLE"
+          }
+        ]
+      },
+      {
+        "id": "applicability_review_required_has_no_guideline_conclusion",
+        "when": [
+          {
+            "path": "guideline_status",
+            "operator": "equals",
+            "value": "APPLICABILITY_REVIEW_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "overall_assessment",
+            "operator": "equals",
+            "value": "NOT_ASSESSABLE"
+          },
+          {
+            "path": "not_assessable_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "ready_guideline_requires_eligible_source_and_bound_inputs",
+        "when": [
+          {
+            "path": "guideline_status",
+            "operator": "equals",
+            "value": "READY_FOR_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "guideline_source_eligible_for_review",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "applicability_status",
+            "operator": "equals",
+            "value": "DOCUMENTED_POPULATION_MATCH"
+          },
+          {
+            "path": "missing_required_fields",
+            "operator": "empty"
+          },
+          {
+            "path": "missing_source_metadata",
+            "operator": "empty"
+          },
+          {
+            "path": "guideline_criteria",
+            "operator": "non_empty"
+          },
+          {
+            "path": "documented_facts",
+            "operator": "non_empty"
+          },
+          {
+            "path": "criteria_checked",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "unmet_guideline_requires_deviation",
+        "when": [
+          {
+            "path": "overall_assessment",
+            "operator": "equals",
+            "value": "NOT_MET"
+          }
+        ],
+        "must": [
+          {
+            "path": "deviations",
+            "operator": "non_empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "unmet_criterion_requires_deviation",
+        "for_each": "criteria_checked",
+        "when": [
+          {
+            "path": "assessment",
+            "operator": "equals",
+            "value": "NOT_MET"
+          }
+        ],
+        "must": [
+          {
+            "path": "deviations",
+            "operator": "non_empty"
+          },
+          {
+            "path": "citations",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "unassessable_criterion_requires_uncertainty",
+        "for_each": "criteria_checked",
+        "when": [
+          {
+            "path": "assessment",
+            "operator": "equals",
+            "value": "NOT_ASSESSABLE"
+          }
+        ],
+        "must": [
+          {
+            "path": "uncertainty",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "governed_guideline_never_claims_external_authority",
+        "when": [
+          {
+            "path": "evaluation_method",
+            "operator": "equals",
+            "value": "DECLARED_RULES_DETERMINISTIC_COMPARISON"
+          }
+        ],
+        "must": [
+          {
+            "path": "source_authenticity_status",
+            "operator": "equals",
+            "value": "USER_DOCUMENTED_METADATA_ONLY_NOT_INDEPENDENTLY_VERIFIED"
+          },
+          {
+            "path": "source_currency_verified",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "guideline_retrieval_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "web_search_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_inference_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_significance_assessed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "treatment_recommendations_generated",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "external_knowledge_used",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "governed_guideline_comparison_is_review_only",
+        "when": [
+          {
+            "path": "evaluation_method",
+            "operator": "equals",
+            "value": "DECLARED_RULES_DETERMINISTIC_COMPARISON"
+          }
+        ],
+        "must": [
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "clinical_guidelines_evidence_matches_input",
+        "for_each": "evidence_items",
+        "text_path": "text",
+        "span_path": "char_span"
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": [
+      "official_agents.clinical_guidelines.agent",
+      "icoder_runtime.backends.governed_clinical_guidelines_provider"
+    ]
+  },
+  "non_goals": [
+    "不替代临床医生、质控专家、指南委员会或伦理委员会判断",
+    "不联网检索、抓取、选择或验证指南",
+    "不把用户填写的来源元数据冒充独立真实性或最新版本验证",
+    "不推断诊断、未记录诊疗行为、患者人群适用性或临床意义",
+    "不提出治疗建议，不自动处罚、发布、修改病历或写回"
+  ],
+  "human_review_required_when": [
+    "every guideline assessment before clinical, quality-management, audit or peer-review action",
+    "guideline source, version, domain, population, rule, patient fact or documentation consistency is incomplete or conflicting"
+  ],
+  "example_inputs": [
+    {
+      "title": "按医院批准指南评估 VTE 风险流程",
+      "input_text": "临床问题：住院患者VTE风险评估时限\n指南领域：hospital-internal://clinical-guidelines\n指南名称：本院《住院患者VTE防治规范》\n指南版本：2026.1\n发布日期：2026-07-01\n医院批准状态：已批准\n医院批准日期：2026-07-15\n批准机构：示例医院医疗质量管理委员会\n来源机构：示例医院\n来源网址：hospital-internal://clinical-guidelines/vte/2026.1\n指南适用人群：成年住院患者\n病例适用人群：成年住院患者\n指南范围：完整\n病例文档范围：入院记录与VTE评估记录\n指南条款：\nC1|所有成年住院患者应在入院24小时内完成VTE风险评估\n评估规则：\nC1|TIME_WINDOW_HOURS|入院时间|VTE风险评估完成时间|24\n病例事实：\n入院记录|入院时间=2026-08-01 10:00\nVTE评估记录|VTE风险评估完成时间=2026-08-02 16:00",
+      "extra": {
+        "language": "zh-CN",
+        "source_policy": "hospital_approved_declared_rules_only"
+      }
+    }
+  ],
+  "metadata": {
+    "created_at": "2026-08-09",
+    "updated_at": "2026-08-24",
+    "author": "iCoDer",
+    "corti_match": "clinical-guidelines-agent",
+    "audit_note": "Governed local declared-rule comparison; Corti domain retrieval, source validation, multi-document synthesis and clinical significance remain unverified gaps."
+  },
+  "built_by": "icoder",
+  "example_outputs": [
+    {
+      "guideline_status": "READY_FOR_REVIEW",
+      "clinical_question": {
+        "documented_text": "住院患者VTE风险评估时限",
+        "evidence_ref": "clinical-guidelines-evidence-1"
+      },
+      "guideline_domain": {
+        "documented_text": "hospital-internal://clinical-guidelines",
+        "evidence_ref": "clinical-guidelines-evidence-2"
+      },
+      "guideline_source": {
+        "title": {
+          "documented_text": "本院《住院患者VTE防治规范》",
+          "evidence_ref": "clinical-guidelines-evidence-3"
+        },
+        "version": {
+          "documented_text": "2026.1",
+          "evidence_ref": "clinical-guidelines-evidence-4"
+        },
+        "publication_date": {
+          "documented_text": "2026-07-01",
+          "evidence_ref": "clinical-guidelines-evidence-5"
+        },
+        "approval_status": {
+          "documented_text": "已批准",
+          "evidence_ref": "clinical-guidelines-evidence-6"
+        },
+        "approval_date": {
+          "documented_text": "2026-07-15",
+          "evidence_ref": "clinical-guidelines-evidence-7"
+        },
+        "approval_organization": {
+          "documented_text": "示例医院医疗质量管理委员会",
+          "evidence_ref": "clinical-guidelines-evidence-8"
+        },
+        "source_organization": {
+          "documented_text": "示例医院",
+          "evidence_ref": "clinical-guidelines-evidence-9"
+        },
+        "source_url": {
+          "documented_text": "hospital-internal://clinical-guidelines/vte/2026.1",
+          "evidence_ref": "clinical-guidelines-evidence-10"
+        },
+        "scope": {
+          "documented_text": "完整",
+          "evidence_ref": "clinical-guidelines-evidence-13"
+        },
+        "domain_match": true
+      },
+      "guideline_population": {
+        "documented_text": "成年住院患者",
+        "evidence_ref": "clinical-guidelines-evidence-11"
+      },
+      "patient_population": {
+        "documented_text": "成年住院患者",
+        "evidence_ref": "clinical-guidelines-evidence-12"
+      },
+      "documentation_scope": {
+        "documented_text": "入院记录与VTE评估记录",
+        "evidence_ref": "clinical-guidelines-evidence-14"
+      },
+      "guideline_source_eligible_for_review": true,
+      "source_authenticity_status": "USER_DOCUMENTED_METADATA_ONLY_NOT_INDEPENDENTLY_VERIFIED",
+      "source_currency_verified": false,
+      "applicability_status": "DOCUMENTED_POPULATION_MATCH",
+      "document_consistency_status": "NO_CONFLICTS_DETECTED",
+      "evaluation_method": "DECLARED_RULES_DETERMINISTIC_COMPARISON",
+      "guideline_criteria": [
+        {
+          "criterion_id": "C1",
+          "guideline_text": "所有成年住院患者应在入院24小时内完成VTE风险评估",
+          "evidence_ref": "clinical-guidelines-evidence-15"
+        }
+      ],
+      "documented_facts": [
+        {
+          "fact_id": "fact-1",
+          "source_document": "入院记录",
+          "field": "入院时间",
+          "documented_value": "2026-08-01 10:00",
+          "evidence_text": "入院记录|入院时间=2026-08-01 10:00",
+          "evidence_ref": "clinical-guidelines-evidence-17"
+        },
+        {
+          "fact_id": "fact-2",
+          "source_document": "VTE评估记录",
+          "field": "VTE风险评估完成时间",
+          "documented_value": "2026-08-02 16:00",
+          "evidence_text": "VTE评估记录|VTE风险评估完成时间=2026-08-02 16:00",
+          "evidence_ref": "clinical-guidelines-evidence-18"
+        }
+      ],
+      "documentation_conflicts": [],
+      "criteria_checked": [
+        {
+          "criterion_id": "C1",
+          "guideline_criteria": "所有成年住院患者应在入院24小时内完成VTE风险评估",
+          "evaluation_rule": "C1|TIME_WINDOW_HOURS|入院时间|VTE风险评估完成时间|24",
+          "observed_evidence": [
+            {
+              "field": "入院时间",
+              "documented_value": "2026-08-01 10:00",
+              "source_document": "入院记录"
+            },
+            {
+              "field": "VTE风险评估完成时间",
+              "documented_value": "2026-08-02 16:00",
+              "source_document": "VTE评估记录"
+            }
+          ],
+          "assessment": "NOT_MET",
+          "computed_value": "30小时",
+          "deviations": "已记录时间间隔为30小时，超过声明规则阈值24小时。",
+          "uncertainty": "仅比较用户提供的记录时间与声明阈值，未验证临床适用性或记录真实性。",
+          "citations": "C1",
+          "source_criterion_evidence_ref": "clinical-guidelines-evidence-15",
+          "rule_evidence_ref": "clinical-guidelines-evidence-16",
+          "patient_evidence_refs": [
+            "clinical-guidelines-evidence-17",
+            "clinical-guidelines-evidence-18"
+          ]
+        }
+      ],
+      "aligned_items": [],
+      "deviations": [
+        {
+          "criterion_id": "C1",
+          "documented_deviation": "已记录时间间隔为30小时，超过声明规则阈值24小时。"
+        }
+      ],
+      "not_assessable_items": [],
+      "overall_assessment": "NOT_MET",
+      "guideline_availability_status": "DOCUMENTED_GUIDELINE_AVAILABLE",
+      "evidence_citations": [
+        {
+          "criterion_id": "C1",
+          "source_title": "本院《住院患者VTE防治规范》",
+          "source_version": "2026.1",
+          "source_url": "hospital-internal://clinical-guidelines/vte/2026.1",
+          "guideline_text": "所有成年住院患者应在入院24小时内完成VTE风险评估",
+          "evidence_ref": "clinical-guidelines-evidence-15"
+        }
+      ],
+      "evidence_items": [
+        {
+          "evidence_id": "clinical-guidelines-evidence-1",
+          "field": "clinical_question",
+          "label": "临床问题",
+          "text": "住院患者VTE风险评估时限",
+          "char_span": [
+            5,
+            18
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-2",
+          "field": "guideline_domain",
+          "label": "指南领域",
+          "text": "hospital-internal://clinical-guidelines",
+          "char_span": [
+            24,
+            63
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-3",
+          "field": "source_title",
+          "label": "指南名称",
+          "text": "本院《住院患者VTE防治规范》",
+          "char_span": [
+            69,
+            84
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-4",
+          "field": "source_version",
+          "label": "指南版本",
+          "text": "2026.1",
+          "char_span": [
+            90,
+            96
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-5",
+          "field": "publication_date",
+          "label": "发布日期",
+          "text": "2026-07-01",
+          "char_span": [
+            102,
+            112
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-6",
+          "field": "approval_status",
+          "label": "医院批准状态",
+          "text": "已批准",
+          "char_span": [
+            120,
+            123
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-7",
+          "field": "approval_date",
+          "label": "医院批准日期",
+          "text": "2026-07-15",
+          "char_span": [
+            131,
+            141
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-8",
+          "field": "approval_organization",
+          "label": "批准机构",
+          "text": "示例医院医疗质量管理委员会",
+          "char_span": [
+            147,
+            160
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-9",
+          "field": "source_organization",
+          "label": "来源机构",
+          "text": "示例医院",
+          "char_span": [
+            166,
+            170
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-10",
+          "field": "source_url",
+          "label": "来源网址",
+          "text": "hospital-internal://clinical-guidelines/vte/2026.1",
+          "char_span": [
+            176,
+            226
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-11",
+          "field": "guideline_population",
+          "label": "指南适用人群",
+          "text": "成年住院患者",
+          "char_span": [
+            234,
+            240
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-12",
+          "field": "patient_population",
+          "label": "病例适用人群",
+          "text": "成年住院患者",
+          "char_span": [
+            248,
+            254
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-13",
+          "field": "source_scope",
+          "label": "指南范围",
+          "text": "完整",
+          "char_span": [
+            260,
+            262
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-14",
+          "field": "documentation_scope",
+          "label": "病例文档范围",
+          "text": "入院记录与VTE评估记录",
+          "char_span": [
+            270,
+            282
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-15",
+          "field": "guideline_criteria",
+          "label": "指南条款",
+          "text": "所有成年住院患者应在入院24小时内完成VTE风险评估",
+          "char_span": [
+            292,
+            318
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-16",
+          "field": "evaluation_rules",
+          "label": "评估规则",
+          "text": "C1|TIME_WINDOW_HOURS|入院时间|VTE风险评估完成时间|24",
+          "char_span": [
+            325,
+            365
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-17",
+          "field": "documented_facts",
+          "label": "病例事实",
+          "text": "入院记录|入院时间=2026-08-01 10:00",
+          "char_span": [
+            372,
+            398
+          ]
+        },
+        {
+          "evidence_id": "clinical-guidelines-evidence-18",
+          "field": "documented_facts",
+          "label": "病例事实",
+          "text": "VTE评估记录|VTE风险评估完成时间=2026-08-02 16:00",
+          "char_span": [
+            399,
+            435
+          ]
+        }
+      ],
+      "missing_required_fields": [],
+      "missing_source_metadata": [],
+      "missing_patient_information": [],
+      "limitations": [
+        "仅评估明确标题字段、结构化病例事实和用户提供的确定性评估规则。",
+        "未联网检索指南，未独立验证来源真实性、许可、批准权限、版本时效或是否为最新版本。",
+        "精确人群文本匹配不等于临床适用性判断；不推断诊断、病情、禁忌证或未记录行为。",
+        "只支持 PRESENT、EQUALS 和 TIME_WINDOW_HOURS 规则；未提供或冲突事实返回 NOT_ASSESSABLE。",
+        "偏差表示记录事实与声明规则不一致，不表示医疗错误，也不评估临床意义或建议治疗。",
+        "结果仅供临床治理人工复核，不自动处罚、发布、修改病历或写回系统。"
+      ],
+      "guideline_retrieval_performed": false,
+      "web_search_performed": false,
+      "clinical_inference_performed": false,
+      "clinical_significance_assessed": false,
+      "treatment_recommendations_generated": false,
+      "external_knowledge_used": false,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "sample-run",
+        "provider_trace_refs": [
+          "sample-run:governed-clinical-guidelines"
+        ]
+      }
+    }
+  ],
+  "integrity": {
+    "sha256": "5663705ce5a11c0abb8786e6f110a64c375d2dd447e68d1f1f8dbcda46eff996"
+  }
+}

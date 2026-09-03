@@ -1,0 +1,67 @@
+{
+  "schema_version": "icoder.agent-hub-execution-truth-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_execution_truth_gate_passed",
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "provider_registry_routes": 21,
+    "dedicated_routes": 5,
+    "legacy_default_routes": 0,
+    "structural_launch_candidates": 26,
+    "external_llm_dependent": 25,
+    "local_only_execution": 1,
+    "semantic_live_e2e_verified": 0,
+    "production_ready_verified": 0,
+    "tests_passed": 9,
+    "tests_failed": 0
+  },
+  "offline_api_e2e": {
+    "profile": "empty_credentials_mock_provider_external_llm_disabled_native_medcoder_disabled",
+    "happy_cases": 26,
+    "adversarial_cases": 26,
+    "tests_passed": 52,
+    "tests_failed": 0,
+    "local_semantic_execution": 2,
+    "safe_fail_closed_executions": 50,
+    "unsafe_or_invalid": 0,
+    "trace_lookup_verified": 52,
+    "prompt_canary_leaks": 0,
+    "capability_claim": "offline_safety_and_orchestration_only"
+  },
+  "remediation": {
+    "issue": "CDI provider-unavailable path returned a safe failure without a queryable RunTrace",
+    "change": "emit content-free user_message_received and failed completion events",
+    "verified": true
+  },
+  "regression": {
+    "tests_passed": 29,
+    "tests_failed": 0
+  },
+  "corti_prebuilt_agent_parity": {
+    "catalog_mapped": 20,
+    "development_verified": 20,
+    "china_profile_declared": 20,
+    "clinical_quality_verified": 0,
+    "production_ready_verified": 0
+  },
+  "deployment_preflight": {
+    "checks_passed": 81,
+    "checks_failed": 0
+  },
+  "protected_state": {
+    "development_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_ports_open": 0,
+    "python_or_uvicorn_processes": 0,
+    "credential_used": false,
+    "temporary_test_databases_remaining": [
+      "backend/data/test_execution_truth.db",
+      "backend/data/test_execution_truth_regression.db"
+    ],
+    "temporary_cleanup_status": "test schemas dropped; host policy rejected file deletion"
+  },
+  "limitations": [
+    "No current 26-Agent real-provider semantic E2E was executed.",
+    "No independent clinical gold-standard evaluation was executed.",
+    "No production cloud, hospital, legal, regulatory, security certification or SRE gate is satisfied by this phase."
+  ]
+}

@@ -9,6 +9,7 @@ Stores the raw PHI separately from the Context lifecycle so that:
 from __future__ import annotations
 
 import hashlib
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -16,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .context_id import is_valid_context_id
 from .context_isolation import ContextIsolationError
-from .db_models import OriginalInputAuditRow
+from .db_models import ContextRow, OriginalInputAuditRow
 
 
 def hash_original_input(raw: str) -> str:
@@ -39,6 +40,7 @@ class ContextAudit:
         context_id: str,
         original_input: str,
         *,
+        organization_id: str | None = None,
         retention_days: int = 90,
         audit_id: str | None = None,
         now: datetime | None = None,
@@ -54,9 +56,21 @@ class ContextAudit:
                 context_id=context_id,
             )
         now = now or datetime.now(timezone.utc)
+        context = await self._session.get(ContextRow, context_id)
+        resolved_organization_id = (
+            organization_id
+            if organization_id is not None
+            else context.organization_id if context is not None else None
+        )
         row = OriginalInputAuditRow(
-            id=audit_id or hash_original_input(f"{context_id}:{now.isoformat()}"),
+            # Wall-clock timestamps are not unique identifiers.  In particular,
+            # Windows may return the same ``datetime.now`` value for consecutive
+            # writes, which previously caused a primary-key collision and lost
+            # the second audit event.  Keep caller-supplied IDs for replay/import
+            # flows and use an independent UUID for ordinary runtime writes.
+            id=audit_id or str(uuid.uuid4()),
             context_id=context_id,
+            organization_id=resolved_organization_id,
             original_input=original_input,
             created_at=now,
             retention_until=now + timedelta(days=retention_days),

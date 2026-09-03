@@ -1,0 +1,159 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-538f4420-a993-4e9a-b0f8-9de5a4bff178",
+  "trace_id": "trace-3980156ec2884f6d",
+  "trace_url": "/ai-studio/runs/run-538f4420-a993-4e9a-b0f8-9de5a4bff178/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 3814,
+  "cost": {
+    "amount": 0.00022246,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，50岁",
+        "急性阑尾炎切除术后10年",
+        "目前无症状",
+        "否认腹痛、发热、恶心、呕吐",
+        "查体正常",
+        "诊断：阑尾切除术后状态"
+      ],
+      "encounter_metadata": {
+        "patient_age": "50岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": false
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "no coding-relevant gaps survived earlier gates",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-7ea9ce1d47c9",
+        "trace_id": "trace-60c5dd7178c2"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-67f267481bb3",
+        "trace_id": "trace-32368d8331ee"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a6fef0f9ebe7",
+        "trace_id": "trace-615d7cd0c32f"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-35ef9d9aef24",
+        "trace_id": "trace-2066bec17ed0"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-538f4420-a993-4e9a-b0f8-9de5a4bff178",
+      "stage_trace": {
+        "encounter_synthesis": "trace-132287ccb612",
+        "gap_identification": "trace-8cd54a62c157",
+        "expert_consultation": "trace-e54ef276e810",
+        "query_generation": "",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-d7d19e97c667",
+        "semantic_necessity_gate": "trace-e657a3bc282c",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-9d14c5e74f78"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-e096fe76be1e",
+        "gap_identification": "run-d7da5e3a69e8",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-cf6121e7c7a5",
+        "query_generation": "",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a post-operative status after appendectomy with no current s",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-393797ccae29",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-98ed315c7b16",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-b2f58d0effba"
+      },
+      "trace_id": "trace-3980156ec2884f6d"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJlNDM4MzFlYTk0NTE1MzhhYzlmNTg1MmI3YWUzM2I3YjIzYTZlYzkyN2Y0NTA4MzY0MDAyOTJlZmRhM2ZkZTkwIiwiZSI6MTc4Nzg4NzQ3OSwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tNTM4ZjQ0MjAtYTk5My00ZTlhLWIwZjgtOWRlNWE0YmZmMTc4IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.IILzusLtRWt5t61cO8XrgNEzK8iICM5a_BziecPz3eY",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.057
+}

@@ -1,0 +1,396 @@
+{
+  "case_id": "CASE-7d0f6f43648f",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-7d0f6f43648f/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血的病因未明确，需要进一步说明是缺铁性贫血还是其他类型，以及便潜血阳性的临床意义。",
+      "why_it_matters": "贫血的病因和类型对编码和临床管理至关重要，缺铁性贫血需要明确病因（如消化道出血），便潜血阳性提示可能存在消化道出血，需要进一步检查。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:贫血",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-7d0f6f43648f/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "便潜血阳性的临床相关性未建立，需要明确是否与贫血相关，以及计划进行的检查。",
+      "why_it_matters": "便潜血阳性是异常实验室发现，需要临床解释和后续工作，否则影响编码和患者管理。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "便潜血阳性",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-7d0f6f43648f/Q-001",
+      "gap_id": "CASE-7d0f6f43648f/GAP-002",
+      "topic": "便潜血阳性的临床意义及检查计划",
+      "reason": "便潜血阳性与贫血可能相关，但未明确其临床意义及后续检查计划。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "便潜血阳性",
+        "char_start": 45,
+        "char_end": 50,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "便潜血阳性",
+          "char_start": 45,
+          "char_end": 50,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "患者便潜血阳性，结合贫血表现，请明确便潜血阳性的临床意义及计划进行的检查：",
+      "response_options": [
+        "A. 考虑消化道出血，计划行胃镜和肠镜检查",
+        "B. 考虑消化道出血，计划行粪便培养和寄生虫检查",
+        "C. 考虑消化道出血，计划行腹部CT检查",
+        "D. 考虑消化道出血，计划行消化道钡餐检查",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-7d0f6f43648f/Q-002",
+      "gap_id": "CASE-7d0f6f43648f/GAP-001",
+      "topic": "贫血类型",
+      "reason": "明确贫血的类型对于临床管理至关重要，但当前记录仅提及贫血，未明确具体类型。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:贫血",
+        "char_start": 51,
+        "char_end": 58,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:贫血",
+          "char_start": 51,
+          "char_end": 58,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据患者的实验室检查（Hb 65, MCV 72, 血清铁 4.5, 铁蛋白 8），请明确贫血的类型：",
+      "response_options": [
+        "A. 缺铁性贫血",
+        "B. 巨幼细胞性贫血",
+        "C. 慢性病性贫血",
+        "D. 其他类型",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-7d0f6f43648f/GAP-001",
+      "topic": "贫血病因分型",
+      "reason": "患者存在小细胞低色素性贫血，血清铁和铁蛋白降低，但便潜血阳性，需明确贫血的具体病因类型。",
+      "query_text": "根据患者的实验室检查（Hb 65, MCV 72, 血清铁 4.5, 铁蛋白 8）及便潜血阳性，请明确贫血的病因分类：",
+      "response_options": [
+        "A. 缺铁性贫血，考虑与消化道失血相关",
+        "B. 缺铁性贫血，病因待查，需进一步检查",
+        "C. 慢性病贫血",
+        "D. 其他类型贫血",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:贫血",
+          "char_start": 51,
+          "char_end": 58,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['etiology', 'type']"
+      ],
+      "status": "REWRITE_CANDIDATE_GENERATED",
+      "detected_axes": [
+        "etiology",
+        "type"
+      ],
+      "replacement_query_id": "Q-001-type",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "rewrite_attempt_reasons": [],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-7d0f6f43648f/GAP-002",
+      "topic": "便潜血阳性的临床意义及检查计划",
+      "reason": "便潜血阳性与贫血可能相关，但未明确其临床意义及后续检查计划。",
+      "query_text": "患者便潜血阳性，结合贫血表现，请明确便潜血阳性的临床意义及计划进行的检查：",
+      "response_options": [
+        "A. 考虑消化道出血，计划行胃镜和肠镜检查",
+        "B. 考虑消化道出血，计划行粪便培养和寄生虫检查",
+        "C. 考虑消化道出血，计划行腹部CT检查",
+        "D. 考虑消化道出血，计划行消化道钡餐检查",
+        "E. 其他",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "便潜血阳性",
+          "char_start": 45,
+          "char_end": 50,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-011 (max_five_response_options): response_options count=6 (cap=5)"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "BOUND_RESPONSE_OPTIONS",
+      "replacement_query_id": "Q-002",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "患者便潜血阳性，结合贫血表现，请明确便潜血阳性的临床意义及计划进行的检查：",
+      "rewritten_response_options": [
+        "A. 考虑消化道出血，计划行胃镜和肠镜检查",
+        "B. 考虑消化道出血，计划行粪便培养和寄生虫检查",
+        "C. 考虑消化道出血，计划行腹部CT检查",
+        "D. 考虑消化道出血，计划行消化道钡餐检查",
+        "E. 无法确定"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 60岁, 乏力1月。Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。便潜血阳性。入院诊断:贫血。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，60岁，乏力1月",
+      "血红蛋白65，平均红细胞体积72",
+      "血清铁4.5，铁蛋白8",
+      "便潜血阳性",
+      "入院诊断：贫血"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "入院诊断'贫血'有实验室支持，但未明确类型，且便潜血阳性未解释，可能暗示缺铁性贫血但未明确。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the documentation must specify the anemia type (e.g., iron deficiency anemia) and explicitly link it to the positive fecal occult blood as the likely cause, including the clinical significance of the blood loss. Additionally, clarify the planned diagnostic workup (e.g., endoscopy/colonoscopy) to establish the source of bleeding and confirm the anemia’s etiology, as this directly impacts the specificity of the final diagnosis.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3714,
+      "tokens": 238
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-7695bfef13a7",
+    "gap_identification": "run-9b495b74f95d",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-5114f213e410",
+    "query_generation": "run-175ba1523ab7",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=贫血的诊断缺乏病因和类型的具体说明，便潜血阳性未进行临床相关性解释，需要进一步明确才能编码。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_dimension_rewrite": "run-a1bf9b4874b5",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=1;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-912d1e0df8a5",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-0343a75ad6ec",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-354f010006ec"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-0284f97645ed",
+    "gap_identification": "trace-3736b41f994d",
+    "expert_consultation": "trace-ef1ee1ed6d09",
+    "query_generation": "trace-21921b8c70a1",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-a6ef0a0378ad",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-61118232a75c",
+    "semantic_necessity_gate": "trace-aa960ac2b275",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-a137c339a788"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2713,
+      "prompt_tokens": 215,
+      "completion_tokens": 95,
+      "total_tokens": 310,
+      "run_id": "run-7695bfef13a7",
+      "trace_id": "trace-0284f97645ed",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6535,
+      "prompt_tokens": 1035,
+      "completion_tokens": 443,
+      "total_tokens": 1478,
+      "run_id": "run-9b495b74f95d",
+      "trace_id": "trace-3736b41f994d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5578,
+      "prompt_tokens": 1060,
+      "completion_tokens": 493,
+      "total_tokens": 1553,
+      "run_id": "run-175ba1523ab7",
+      "trace_id": "trace-21921b8c70a1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3973,
+      "prompt_tokens": 686,
+      "completion_tokens": 238,
+      "total_tokens": 924,
+      "run_id": "run-a1bf9b4874b5",
+      "trace_id": "trace-a6ef0a0378ad",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3714,
+      "prompt_tokens": 151,
+      "completion_tokens": 87,
+      "total_tokens": 238,
+      "run_id": "run-a54bf7220a57",
+      "trace_id": "trace-cb6fada02562",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6e040f732f32",
+      "trace_id": "trace-6069c49c1da1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-674afa2ac925",
+      "trace_id": "trace-4cd0af23db32",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6c4304532c1d",
+      "trace_id": "trace-4898a33cb52d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:00:54.797374Z"
+}

@@ -61,6 +61,44 @@ def _send_message(client, text: str, metadata: dict | None = None):
     )
 
 
+def test_governed_connector_runtime_is_wired_during_application_lifespan(client):
+    runtime = client.app.state.connector_runtime
+    assert client.app.state.connector_executor is runtime.executor
+    assert runtime.executor._remote_transport is runtime.transport
+    assert runtime.executor._credential_resolver is not None
+    assert runtime.executor._contextual_registry_invoker is runtime.registry_adapter
+    assert runtime.executor._contextual_agent_invoker is runtime.agent_adapter
+    assert runtime.executor._policy_authorizer is not None
+    health = client.get("/api/health")
+    assert health.status_code == 200
+    connector_health = health.json()["connector_runtime"]
+    assert connector_health["configured"] is True
+    assert connector_health["dns_socket_pinning"] is True
+    assert connector_health["os_proxy_inheritance"] is False
+    assert connector_health["tls_trust"] == "isolated-certifi"
+    assert connector_health["http_versions"] == ["HTTP/1.1"]
+    assert connector_health["live_external_verified"] is False
+    assert "medical-coding" in connector_health["registry_adapter"]["local_keys"]
+    assert "pubmed" in connector_health["registry_adapter"]["public_keys"]
+    assert "clinical-trials" in connector_health["registry_adapter"]["public_keys"]
+    assert "drugbank" in connector_health["registry_adapter"]["externally_gated_keys"]
+    assert connector_health["registry_adapter"]["public_provider"][
+        "deidentified_queries_only"
+    ] is True
+    external = connector_health["registry_adapter"]["external_provider"]
+    assert external["keys"] == ["drugbank", "posos", "web-search"]
+    assert external["deidentified_queries_only"] is True
+    assert external["contract"] == "icoder.external-registry.gateway-response/v1"
+    assert "gateway_url" not in repr(external)
+    memory = connector_health["registry_adapter"]["memory_store"]
+    assert memory["patient_phi_storage_allowed"] is False
+    assert memory["authority_class"] == "authenticated_user_self_service"
+    assert memory["patient_authority_verified"] is False
+    assert memory["semantic_provider"]["identifiers_sent"] is False
+    assert memory["semantic_provider"]["native_ml_in_api_process"] is False
+    assert connector_health["internal_agent_adapter"]["cycle_guard"] is True
+
+
 # ─── 1. LLM credential hard-fail ─────────────────────────────────────
 
 

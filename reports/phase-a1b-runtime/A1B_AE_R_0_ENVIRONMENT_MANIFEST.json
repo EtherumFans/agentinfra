@@ -1,0 +1,109 @@
+{
+  "charter": "A1B-AE-R.0",
+  "captured_at": "2026-07-22T12:55:56Z",
+  "git": {
+    "verified_head_sha": "85a5c9abc40fd85648e45343de6d3e1924cdd5a2",
+    "verified_head_short": "85a5c9a",
+    "verified_head_subject": "audit/phase-a1b: A1B-AE.11 — phase terminal reconciliation (PARTIAL_A1B_AE_AGENT_EXPERT_CAPABILITY_AND_TECH_DEBT_RECONCILIATION_FILED)",
+    "branch": "phase-a1b/agent-expert-runtime-verification",
+    "worktree_path": "E:/Corti4C-agent-expert-runtime",
+    "worktree_git_version": "2.50.1.windows.1",
+    "remote_tracking": "none (local-only branch)",
+    "predecessor_worktree": "E:/Corti4C (phase-a1a/emergency-containment @ 3d50b11) — NOT modified by this phase",
+    "sibling_worktree": "E:/Corti4C-agent-expert (phase-a1b/agent-expert-clean-room @ 85a5c9a or later if INDEX backfills landed) — NOT modified by this phase",
+    "tags_preexisting": [
+      "audit/phase-a0.1r-baseline",
+      "audit/phase-a1a-gate4-pre4r-b3ea064",
+      "audit/phase-a1a-gate4r-closure-24967da"
+    ]
+  },
+  "host": {
+    "os": "Windows 10 Home China 10.0.19045",
+    "shell": "bash (Git for Windows)",
+    "python": "3.12.3",
+    "node": "v22.20.0",
+    "package_manager_python": "pip",
+    "package_manager_node": "npm"
+  },
+  "baseline_counts_inherited_from_a1b_ae_terminal": {
+    "pack_dirs_official_agents": 32,
+    "pack_dirs_dual_named_pairs": 3,
+    "dual_named_pairs_detail": [
+      "code_validation AND code-validation",
+      "compliance_guardrail AND compliance-guardrail",
+      "note_completeness AND note-completeness"
+    ],
+    "api_route_files": 41,
+    "internal_expert_files_in_services": 12,
+    "service_files": 67,
+    "model_files_in_app_models": 29,
+    "frontend_ts_tsx": 70,
+    "agent_catalog_files": 7,
+    "alembic_migrations_head": "023",
+    "alembic_migrations_inherited_head_at_a1b_ae_terminal": "023 (Migration 022 Expert Registry + Migration 023 Agent canonical_key backfill)"
+  },
+  "baseline_test_results": {
+    "combined_suite_pass_count": 258,
+    "combined_suite_fail_count": 1,
+    "combined_suite_skip_count": 2,
+    "combined_suite_wall_clock_seconds": 76.21,
+    "pre_existing_failure": "tests/test_api/test_a1a_gate3r_8_regression_security_negative.py::test_L11_migration_head_is_020_on_fresh_db (stale assertion: expects Migration 021, actual 023)",
+    "evidence_file": "A1B_AE_R_0_BASELINE_TEST_RESULTS.txt"
+  },
+  "inherited_state_5_tuple": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": "CONTRADICTED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "GATE4_ACCEPTANCE_STATUS": "REOPENED",
+    "CORTI_PARITY_VERDICT": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "mutated_by_a1b_ae_r": false,
+    "full_detail_file": "A1B_AE_R_0_BASELINE_STATE_5_TUPLE.json"
+  },
+  "execution_mode": {
+    "CLAUDE_CODE_EXECUTION_MODE": "HUMAN_OPERATION_SIMULATION_REQUIRED",
+    "protocol_file": "../phase-a1b/A1B_AE_0_HUMAN_OPERATION_PROTOCOL.md (inherited; A1B-AE-R applies the same protocol)",
+    "primary_evidence": "headed-browser observation + sanitized HAR + visible-text snapshots + SHA-256 + DB secondary verification",
+    "forbidden_primary_evidence": [
+      "headless crawler",
+      "static source-code inspection alone",
+      "direct DB writes to fake user operations",
+      "batch curl loop",
+      "API 200 as sole success criterion",
+      "marketing-copy inference"
+    ]
+  },
+  "external_api_test_strategy": {
+    "decision": "REAL_CALL_ONCE_THEN_RECORDED_FIXTURE",
+    "user_approved_on": "2026-07-22 (plan-time AskUserQuestion)",
+    "applies_to": [
+      "PubMed E-utilities (https://eutils.ncbi.nlm.nih.gov/entrez/eutils/)",
+      "ClinicalTrials.gov v2 API (https://clinicaltrials.gov/api/v2/)"
+    ],
+    "capture_artefact_location": "reports/phase-a1b-runtime/evidence/api_captures/",
+    "fixture_replay_mode": "VCR-style (no network on subsequent runs)",
+    "rationale": "Preserves real-call artefact (SHA-256 + timestamp + sanitized query) as primary evidence; CI-stable on replay."
+  },
+  "commit_granularity": {
+    "decision": "MULTIPLE_COMMITS_PER_SUB_GATE_FOR_R1_R3_R5",
+    "user_approved_on": "2026-07-22 (plan-time AskUserQuestion)",
+    "one_commit_each": ["R.0", "R.2", "R.4", "R.6"],
+    "multiple_commits": {
+      "R.1": ["R.1.a Task state machine + ThreadAuthRegistry DB migration", "R.1.b Context scrub + cross-tenant tests", "R.1.c (optional) end-to-end DeepSeek"],
+      "R.3": ["R.3.a PubMed + ClinicalTrials + VCR fixtures", "R.3.b MCP tools/list + tools/call + SSRF"],
+      "R.5": ["R.5.a UI pages (ExpertsPage + NewAgentPage extend)", "R.5.b 10 browser journeys + evidence"]
+    },
+    "estimated_total_commits": "11-13"
+  },
+  "forbidden_operations": [
+    "git push",
+    "git merge --no-ff to master",
+    "git commit --amend (any ancestor, including 85a5c9a)",
+    "git rebase",
+    "git reset --hard",
+    "git add -A / git add . / git commit -a",
+    "force-push (any branch, any tag)",
+    "modify master / origin/master",
+    "delete audit branches or audit tags",
+    "weaken JWT/tenant boundary/encryption/redaction/egress/retention to pass tests"
+  ]
+}

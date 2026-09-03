@@ -1,0 +1,338 @@
+{
+  "case_id": "CASE-2e34a6368fe3",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-2e34a6368fe3/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "食欲下降和体重减轻的病因未明确，需要进一步检查以确定诊断。",
+      "why_it_matters": "食欲下降和体重减轻是非特异性症状，可能由多种疾病引起，如恶性肿瘤、内分泌疾病、消化系统疾病等。缺乏病因诊断会影响编码的准确性和临床治疗的针对性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "食欲下降1月, 体重减轻5kg",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2e34a6368fe3/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确食欲下降和体重减轻的严重程度或对患者功能状态的影响。",
+      "why_it_matters": "严重程度信息有助于评估病情紧急性和资源利用，影响编码和医疗决策。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "食欲下降1月, 体重减轻5kg",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2e34a6368fe3/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确症状的起病形式（急性或慢性）和演变过程。",
+      "why_it_matters": "时间信息有助于区分急性或慢性疾病，影响诊断和治疗方案。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "食欲下降1月",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-2e34a6368fe3/Q-001",
+      "gap_id": "CASE-2e34a6368fe3/GAP-003",
+      "topic": "症状的起病形式和演变过程",
+      "reason": "未明确症状的起病形式（急性或慢性）和演变过程。",
+      "evidence_span": {
+        "document_id": "chart_001",
+        "quote": "食欲下降1月",
+        "char_start": 11,
+        "char_end": 17,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart_001",
+          "quote": "食欲下降1月",
+          "char_start": 11,
+          "char_end": 17,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "患者食欲下降和体重减轻的起病形式及演变过程如何？",
+      "response_options": [
+        "A. 急性起病，症状持续加重",
+        "B. 慢性起病，症状逐渐加重",
+        "C. 慢性起病，症状时好时坏",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "q_gap_1",
+      "gap_id": "CASE-2e34a6368fe3/GAP-001",
+      "topic": "食欲下降和体重减轻的病因",
+      "reason": "患者食欲下降1月、体重减轻5kg，但病因未明确，需进一步检查以确定诊断。",
+      "query_text": "患者食欲下降1月、体重减轻5kg，可能的病因包括哪些？",
+      "response_options": [
+        "A. 消化系统疾病（如慢性胃炎、消化性溃疡、肿瘤等）",
+        "B. 内分泌代谢性疾病（如糖尿病、甲状腺功能亢进等）",
+        "C. 精神心理因素（如抑郁、焦虑等）",
+        "D. 其他原因（如慢性感染、药物副作用等）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart_001",
+          "quote": "食欲下降1月, 体重减轻5kg",
+          "char_start": 11,
+          "char_end": 26,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the chart defers diagnosis to further evaluation"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "q_gap_2",
+      "gap_id": "CASE-2e34a6368fe3/GAP-002",
+      "topic": "食欲下降和体重减轻的严重程度及功能影响",
+      "reason": "未明确食欲下降和体重减轻的严重程度或对患者功能状态的影响。",
+      "query_text": "患者食欲下降和体重减轻对日常活动能力及营养状况的影响程度如何？",
+      "response_options": [
+        "A. 轻度影响，日常生活基本正常",
+        "B. 中度影响，需部分协助",
+        "C. 重度影响，需完全依赖他人",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart_001",
+          "quote": "食欲下降1月, 体重减轻5kg",
+          "char_start": 11,
+          "char_end": 26,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the chart defers diagnosis to further evaluation"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 70岁, 食欲下降1月, 体重减轻5kg。<REDACTED:NAME>明显异常。建议进一步检查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，70岁",
+      "食欲下降1月",
+      "体重减轻5kg",
+      "建议进一步检查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "70岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "使用'明显异常'这一模糊术语，未具体说明异常内容，可能掩盖临床结论。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "需明确食欲下降和体重减轻的潜在病因（如消化系统、内分泌、肿瘤或感染性病变），并记录已排除或待查的具体诊断方向；同时量化体重减轻的百分比（如5kg占原体重的比例）及对日常活动、营养摄入和自理能力的影响，以反映功能状态。还需描述症状为急性起病（1月内）还是慢性渐进，并补充食欲减退的伴随症状（如恶心、腹痛、吞咽困难）及体重下降的时间曲线，以支持病因推断和严重度分级。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3462,
+      "tokens": 257
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-a734a37e25f9",
+    "gap_identification": "run-995ea3e0218b",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-844d910ae994",
+    "query_generation": "run-00688859aeb1",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=该图表仅记录了非特异性症状和模糊的异常发现，未提供具体诊断、病因或严重程度，无法支持准确的编码和临床决策。",
+    "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=course;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-8405f43c9aa8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-19aa5f0382ce",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-21f9e839dca7"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-e6b98723450a",
+    "gap_identification": "trace-e40386fd657d",
+    "expert_consultation": "trace-a1fc65c837a2",
+    "query_generation": "trace-8e2503d00cc4",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-15d1875067a2",
+    "semantic_necessity_gate": "trace-ca52f0cadc2e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-30806c3c38f4"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2860,
+      "prompt_tokens": 203,
+      "completion_tokens": 75,
+      "total_tokens": 278,
+      "run_id": "run-a734a37e25f9",
+      "trace_id": "trace-e6b98723450a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5554,
+      "prompt_tokens": 1003,
+      "completion_tokens": 536,
+      "total_tokens": 1539,
+      "run_id": "run-995ea3e0218b",
+      "trace_id": "trace-e40386fd657d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6260,
+      "prompt_tokens": 1205,
+      "completion_tokens": 705,
+      "total_tokens": 1910,
+      "run_id": "run-00688859aeb1",
+      "trace_id": "trace-8e2503d00cc4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3462,
+      "prompt_tokens": 143,
+      "completion_tokens": 114,
+      "total_tokens": 257,
+      "run_id": "run-ed9776b01033",
+      "trace_id": "trace-83aa0a025647",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-56e9c4e83632",
+      "trace_id": "trace-6335af3964f6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-03cf69375b6f",
+      "trace_id": "trace-295b9bbc8f37",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-46227d057894",
+      "trace_id": "trace-458ff15e3bc5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:31:48.312046Z"
+}

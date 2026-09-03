@@ -282,6 +282,11 @@ class MedicalCodingOutputSchema:
     provider: str = ""  # Which provider produced this
     model: str = ""
     is_mock: bool = False
+    degraded_reason: str = ""
+    # Provider-returned accounting for this inference call. The historical
+    # ``cost_usd`` name is retained for compatibility; platform pricing is CNY.
+    token_usage: dict[str, int] = field(default_factory=dict)
+    cost_usd: float = 0.0
 
     # Repair-loop tracking (Phase 2 of F1 0.76 → 0.85+)
     # Defaults preserve backward compatibility — old callers that construct
@@ -329,6 +334,9 @@ class MedicalCodingOutputSchema:
             "provider": self.provider,
             "model": self.model,
             "is_mock": self.is_mock,
+            "degraded_reason": self.degraded_reason,
+            "token_usage": dict(self.token_usage),
+            "cost_usd": self.cost_usd,
             "repair_attempted": self.repair_attempted,
             "repair_success": self.repair_success,
             "repair_rounds": self.repair_rounds,
@@ -372,7 +380,13 @@ class MedicalCodingOutputSchema:
             notes=data.get("notes", ""),
             provider=provider,
             model=data.get("model", data.get("_meta", {}).get("provider", "")),
-            is_mock=is_mock,
+            is_mock=bool(is_mock or data.get("is_mock", False)),
+            degraded_reason=data.get("degraded_reason", ""),
+            token_usage={
+                "input_tokens": int((data.get("token_usage") or {}).get("input_tokens", 0) or 0),
+                "output_tokens": int((data.get("token_usage") or {}).get("output_tokens", 0) or 0),
+            },
+            cost_usd=float(data.get("cost_usd", 0.0) or 0.0),
             repair_attempted=data.get("repair_attempted", False),
             repair_success=data.get("repair_success", False),
             repair_rounds=data.get("repair_rounds", 0),
@@ -405,6 +419,35 @@ class MedicalCodingOutputSchema:
             provider=provider_name,
             model="medical-coding/mock",
             is_mock=True,
+        )
+
+    @classmethod
+    def failure_result(
+        cls,
+        provider_name: str,
+        *,
+        reason: str = "runtime_unavailable",
+        issue_code: str = "RUNTIME_UNAVAILABLE",
+    ) -> "MedicalCodingOutputSchema":
+        """Return an empty, explicit failure without synthetic clinical codes."""
+        return cls(
+            review_conclusion="FAIL",
+            primary_diagnosis=DiagnosisEntry(),
+            secondary_diagnoses=[],
+            procedures=[],
+            issues_found=[CodingIssue(
+                severity="critical",
+                code=issue_code,
+                message="Medical coding inference did not complete.",
+                suggestion="Check the configured runtime and retry; manual review is required.",
+            )],
+            manual_review_required=True,
+            confidence=0.0,
+            notes="Medical coding runtime failed closed.",
+            provider=provider_name,
+            model="",
+            is_mock=True,
+            degraded_reason=reason,
         )
 
 
@@ -662,7 +705,11 @@ class MedicalCodingAgentOutputV2:
         validation = ValidationSummary(
             passed=not legacy.issues_found,
             issues_found=list(legacy.issues_found),
-            manual_review_required=legacy.manual_review_required,
+            # The public Medical Coding Pack is review-required in every
+            # outcome.  Keep the nested v8 contract aligned with the
+            # authoritative runtime policy even when a provider returns
+            # ``manual_review_required=false`` for an otherwise clean case.
+            manual_review_required=True,
             rule_set="MedCodERRetrievalRuleSet",
             fired_rules=[i.code for i in legacy.issues_found if i.code],
         )
@@ -767,7 +814,9 @@ class PromptLLMAdapter(CodingEngineAdapter):
         context: dict[str, Any] | None = None,
     ) -> MedicalCodingOutputSchema:
         if not self._gateway:
-            return MedicalCodingOutputSchema.mock_result("prompt_llm_adapter")
+            return MedicalCodingOutputSchema.failure_result(
+                "prompt_llm_adapter", reason="gateway_unavailable"
+            )
 
         full_messages = [{"role": "system", "content": self._system_prompt}] + list(messages)
         try:
@@ -777,7 +826,9 @@ class PromptLLMAdapter(CodingEngineAdapter):
             data = json.loads(output) if isinstance(output, str) else output
             return MedicalCodingOutputSchema.from_dict(data, provider="prompt_llm_adapter")
         except Exception:
-            return MedicalCodingOutputSchema.mock_result("prompt_llm_adapter")
+            return MedicalCodingOutputSchema.failure_result(
+                "prompt_llm_adapter", reason="llm_or_schema_failure"
+            )
 
     def health_check(self) -> dict:
         return {"engine": self.name, "status": "configured" if self._gateway else "no_gateway"}

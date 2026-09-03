@@ -1,0 +1,66 @@
+{
+  "schema_version": "icoder.stream-media-decoder-phase/v1",
+  "date": "2026-08-24",
+  "status": "development_verified",
+  "decoder_contract": {
+    "external_subprocess": true,
+    "client_controls_executable_or_arguments": false,
+    "audio_transport": "stdin_only",
+    "stdout_discarded": true,
+    "stderr_discarded": true,
+    "protocol_allowlist": ["pipe"],
+    "application_credentials_inherited": false,
+    "threads": 1,
+    "probe_bytes": 1048576,
+    "analyze_microseconds": 1000000,
+    "decoded_audio_frames": 1,
+    "maximum_single_allocation_bytes": 67108864,
+    "default_timeout_seconds": 3,
+    "timeout_process_killed_and_reaped": true,
+    "cloud_header_only_mode_allowed": false
+  },
+  "tests": {
+    "backend_combined": {"passed": 119, "failed": 0},
+    "javascript_sdk": {"passed": 87, "failed": 0},
+    "python_sdk": {"passed": 91, "failed": 0},
+    "dotnet_net8": {"passed": 72, "failed": 0},
+    "dotnet_net10": {"passed": 72, "failed": 0},
+    "migration_and_schema": {"passed": 19, "failed": 0},
+    "release_validator": {"passed": 5, "failed": 0},
+    "deployment_preflight": {"passed": 88, "failed": 0}
+  },
+  "e2e": {
+    "three_sdk_and_malformed_media": "three_sdk_e2e_evidence.json",
+    "multiworker_recovery": "multiworker_e2e_evidence.json",
+    "valid_silent_ogg_opus_sessions": 3,
+    "plausible_header_but_undecodable_sessions": 1,
+    "malformed_media_error": "AUDIO_DECODE_INVALID",
+    "malformed_media_close_code": 4400,
+    "malformed_media_reached_asr": false,
+    "malformed_media_reached_retention": false,
+    "real_patient_audio_used": false,
+    "real_stt_used": false,
+    "real_llm_used": false
+  },
+  "release_candidate": {
+    "version": "1.0.0-beta.33",
+    "published": false,
+    "manifest": "C:\\codex-artifacts\\release-b33-stream-media-decoder-final\\release-candidate-b33-stream-media-decoder-final.json"
+  },
+  "docker": {
+    "dockerfile_declares_ffmpeg": true,
+    "cli_available_on_audit_host": false,
+    "image_built_or_scanned": false
+  },
+  "safety_audit": {
+    "protected_database_size_bytes": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_unchanged": true,
+    "alembic_head": "056",
+    "remaining_backend_processes": 0,
+    "remaining_phase_temp_directories": 0,
+    "llm_key_environment_present": false,
+    "secret_pattern_found_in_phase_scope": false
+  },
+  "external_gates_remain_open": true
+}

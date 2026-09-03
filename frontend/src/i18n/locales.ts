@@ -1,4 +1,4 @@
-// iCoDer i18n — zh-CN (default) + en-US
+// iCoDer i18n - zh-CN (default) + en-US
 // Chinese expressions tailored for Chinese hospital medical coding scenarios
 
 export type Locale = 'zh-CN' | 'en-US';
@@ -60,6 +60,8 @@ export interface LocaleDict {
   embeddedAssistant: string;
   factExtraction: string;
   medicalCoding: string;
+  codingCompliance: string;
+  cdiWorkbench: string;
   manage: string;
   apiClients: string;
   apiClientsManage: string;
@@ -192,6 +194,9 @@ export interface LocaleDict {
   predictCodes: string;
   config: string;
   codingSystems: string;
+  codingSystemsInfo: string;
+  addSystem: string;
+  close: string;
   apiClient: string;
   inputLabel: string;
   outputLabel: string;
@@ -207,7 +212,6 @@ export interface LocaleDict {
   viewFullReport: string;
   systemPrompt: string;
   codingSystem: string;
-  confidenceThreshold: string;
   outputLanguage: string;
   model: string;
   includeEvidence: string;
@@ -218,6 +222,7 @@ export interface LocaleDict {
   confidence: string;
   getStartedWith: string;
   resetLiveCost: string;
+  agentChatAvailableCredits: string;
 
   // Sample cases
   hospitalMedicalRecord: string;
@@ -235,7 +240,7 @@ export interface LocaleDict {
   outpatientRecord: string;
   consultationRecord: string;
 
-  // Medical Coding pipeline UI (Corti-aligned — was MedCodER pipeline)
+  // Medical Coding pipeline UI (was MedCodER pipeline)
   medcoderPipeline: string;  // deprecated alias, kept for back-compat
   medcoderMode: string;      // deprecated alias, kept for back-compat
   enableMedcoder: string;    // deprecated alias, kept for back-compat
@@ -261,7 +266,7 @@ export interface LocaleDict {
   confidencePercent: string;     // e.g. "置信度 85%" / "Confidence 85%"
   positionRange: string;         // evidence chip title e.g. "位置 0-12" / "Position 0-12"
 
-  // Medical Coding — Corti-aligned extras
+  // Medical Coding - pipeline extras
   samples: string;
   openGuide: string;
   dismissGuide: string;
@@ -297,8 +302,8 @@ export interface LocaleDict {
   embeddedAssistantBreadcrumb: string;
   tabCode: string;
 
-  // Phase 3-A Section D — Corti-style 8-field output + banners
-  mvpBanner: string;
+  // Phase 3-A Section D - 8-field output + banners
+  launchCandidateBanner: string;
   aiAssistedBanner: string;
   reviewSummary: string;
   reviewConclusion: string;
@@ -461,9 +466,10 @@ export interface LocaleDict {
   creditsUsed: string;
   avgResponseTime: string;
   recentActivity: string;
+  dailyCostChart: string;
   requests: string;
 
-  // Customers (Embedded Assistant end-user mgmt — Corti parity)
+  // Customers (Embedded Assistant end-user mgmt)
   customersTitle: string;
   customersDesc: string;
   addCustomer: string;
@@ -485,7 +491,7 @@ export interface LocaleDict {
   customerDeleteSuccess: string;
   customerCreateSuccess: string;
 
-  // Templates (Beta) — Corti /templates parity
+  // Templates (Beta)
   templatesTitle: string;
   templatesDesc: string;
   templateBuilder: string;
@@ -512,7 +518,7 @@ export interface LocaleDict {
   templateLanguageZh: string;
   templateLanguageEn: string;
 
-  // Tickets Portal — Corti /tickets parity
+  // Tickets Portal
   ticketsTitle: string;
   ticketsDesc: string;
   ticketsAll: string;
@@ -608,6 +614,31 @@ export interface LocaleDict {
   ehrMatrix: string;
   copy: string;
   copied: string;
+  // Embedded Assistant Console page (Phase 7 Gate 13)
+  embeddedPageSubtitle: string;
+  embeddedPreview: string;
+  embeddedDesktop: string;
+  embeddedMobile: string;
+  embeddedRestart: string;
+  embeddedSessionDefaults: string;
+  embeddedAgent: string;
+  embeddedPatientId: string;
+  embeddedPatientName: string;
+  embeddedEncounterId: string;
+  embeddedFeatures: string;
+  embeddedFeatureAiChat: string;
+  embeddedFeatureDocFeedback: string;
+  embeddedFeatureVirtualMode: string;
+  embeddedFeatureShowNav: string;
+  embeddedInterfaceLanguage: string;
+  embeddedPrimaryColor: string;
+  embeddedHtmlTab: string;
+  embeddedReactTab: string;
+  embeddedJsonConfigTab: string;
+  embeddedCopySnippetCopied: string;
+  embeddedCopyFailed: string;
+  embeddedLangZhCN: string;
+  embeddedLangEnUS: string;
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: string;
@@ -874,6 +905,436 @@ export interface LocaleDict {
   orchestrationReportMarkdown: string;
   orchestrationReportHtml: string;
   orchestrationEventLog: string;
+
+  // Phase 3-E - AI Studio Overview
+  aiStudioOverviewTitle: string;
+  aiStudioOverviewAgentsCard: string;
+  aiStudioOverviewAgentsCardDesc: string;
+  aiStudioOverviewCodingCard: string;
+  aiStudioOverviewCodingCardDesc: string;
+  aiStudioOverviewRecentAgents: string;
+  aiStudioOverviewViewAll: string;
+  aiStudioOverviewRecentRuns: string;
+
+  // Phase 3-E - API Clients Page
+  apiClientsLoadFailed: string;
+  apiClientsOAuthCreated: string;
+  apiClientsCopySecret: string;
+  apiClientsClientId: string;
+  apiClientsDone: string;
+  apiClientsSubtitle: string;
+  apiClientsCreateOAuth: string;
+  apiClientsTabOAuth: string;
+  apiClientsTabKeys: string;
+  apiClientsCreateTitle: string;
+  apiClientsNamePlaceholder: string;
+  apiClientsDescPlaceholder: string;
+  apiClientsScopesPlaceholder: string;
+  apiClientsCreate: string;
+  apiClientsCancel: string;
+  apiClientsNoOAuth: string;
+  apiClientsNoOAuthHint: string;
+  apiClientsNoKeys: string;
+  apiClientsConfirmRevokeTitle: string;
+  apiClientsRevokeConfirm: string;
+  apiClientsRevokeHint: string;
+  apiClientsConfirmRevoke: string;
+  apiClientsCreateFailed: string;
+  apiClientsDeleteFailed: string;
+
+  // Phase 3-E - Release Notes
+  releaseNotesTitle: string;
+  releaseNotesSubtitle: string;
+  releaseNotesApiPolicy: string;
+
+  // Phase 3-E - Reset Password
+  resetPasswordTooShort: string;
+  resetPasswordMismatch: string;
+  resetPasswordNoToken: string;
+  resetPasswordSuccess: string;
+  resetPasswordFailed: string;
+  resetPasswordTitle: string;
+  resetPasswordSubtitle: string;
+  resetPasswordBackToLogin: string;
+  resetPasswordNewPassword: string;
+  resetPasswordNewPlaceholder: string;
+  resetPasswordConfirm: string;
+  resetPasswordConfirmPlaceholder: string;
+  resetPasswordLoading: string;
+  resetPasswordSubmit: string;
+
+  // Phase 3-E - RunTrace viewer
+  runTraceStepUserMessageReceived: string;
+  runTraceStepPlannerSelectedExperts: string;
+  runTraceStepToolsList: string;
+  runTraceStepAuthResolved: string;
+  runTraceStepScopeChecked: string;
+  runTraceStepToolsCall: string;
+  runTraceStepExpertResponse: string;
+  runTraceStepOutputGenerated: string;
+  runTraceStepCompletion: string;
+  runTraceNoMetadata: string;
+  runTraceNoRequiredScopes: string;
+  runTraceDispatcherDetail: string;
+  runTraceRawSafeMetadata: string;
+  runTraceSafeMetadata: string;
+  runTraceToolCount: string;
+  runTraceToolNames: string;
+  runTraceToolName: string;
+  runTraceHandlerRef: string;
+  runTraceStage: string;
+  runTraceAuthType: string;
+  runTraceInProcessBypass: string;
+  runTraceRedactedView: string;
+  runTraceGrantedScopes: string;
+  runTraceNote: string;
+  runTraceScopeDiff: string;
+  runTraceArguments: string;
+  runTraceArgumentsKeysLabel: string;
+  runTraceChars: string;
+  runTraceValidated: string;
+  runTraceResult: string;
+  runTraceResultKeysLabel: string;
+  runTraceError: string;
+  runTraceMcpErrorCode: string;
+  runTraceTotalDispatch: string;
+  runTraceTotalDispatchBreakdown: string;
+  runTraceTitle: string;
+  runTraceRunId: string;
+  runTraceSteps: string;
+  runTraceOk: string;
+  runTraceFailed: string;
+  runTraceTotal: string;
+  runTraceIntro: string;
+  runTraceAuthFilter: string;
+  runTraceEmpty: string;
+  runTraceEmptyHint: string;
+  runTraceRetry: string;
+  runTraceNotFound: string;
+  runTraceNotFoundHint: string;
+  runTraceLoadFailed: string;
+  runTraceLoadError: string;
+  runTraceBack: string;
+  runTraceBackToHub: string;
+  runTraceDispatcherHeader: string;
+  runTraceAuditSummary: string;
+  runTraceRunStatus: string;
+  runTraceRuntimeMode: string;
+  runTraceCost: string;
+  runTraceCaptureStatus: string;
+  runTraceReviewSignal: string;
+  runTraceReviewRequired: string;
+  runTraceReviewNotRequired: string;
+  runTraceReviewNotRecorded: string;
+  runTraceReviewNonAuthoritative: string;
+  // Phase 3-D2.5 - Tool Dispatch Detail
+  runTraceToolDispatchDetail: string;
+  runTraceDispatchMode: string;
+  runTraceRoundIndex: string;
+  runTraceCaller: string;
+  runTraceSchemaValidation: string;
+  runTracePhiRedaction: string;
+  runTraceScopeCheck: string;
+  runTraceHandlerStatus: string;
+  runTraceResultShape: string;
+  runTraceErrorStage: string;
+  runTraceDurationMs: string;
+
+  // Phase 3-E - Agent Chat
+  agentChatGreetingMedicalCoding: string;
+  agentChatNotFoundToast: string;
+  agentChatLoadFailed: string;
+  agentChatDefaultGreeting: string;
+  agentChatRunComplete: string;
+  agentChatRunFailed: string;
+  agentChatNotCloned: string;
+  agentChatRedirecting: string;
+  agentChatBack: string;
+  agentChatInput: string;
+  agentChatInputPlaceholder: string;
+  agentChatCharCount: string;
+  agentChatRunning: string;
+  agentChatRun: string;
+  agentChatRunFailedTitle: string;
+  agentChatResult: string;
+  agentChatDuration: string;
+  agentChatViewRunTrace: string;
+  agentChatViewRunTraceHint: string;
+  agentChatRenderedTab: string;
+  agentChatJsonTab: string;
+  // Phase 4-D - naming catalog (en-US canonical)
+  agentChatBreadcrumbAgents: string;
+  agentChatTextareaPlaceholder: string;
+  agentChatAddContext: string;
+  agentChatConsumesCredits: string;
+  agentChatSettings: string;
+  agentChatCode: string;
+  agentChatNameLabel: string;
+  agentChatSystemPrompt: string;
+  agentChatExperts: string;
+  agentChatBrowseExpertLibrary: string;
+  agentChatCustomExperts: string;
+  agentChatDedicatedPolicyHint: string;
+  agentChatFixedSourceExperts: string;
+  agentChatProjectExperts: string;
+  agentChatAddExpert: string;
+  agentChatPinnedMessageParts: string;
+  agentChatSdkJavaScript: string;
+  agentChatSdkDotNet: string;
+  agentChatSdkJsonConfig: string;
+  agentChatCopy: string;
+  agentChatApiClient: string;
+  agentChatRunHistory: string;
+  agentChatNewAgent: string;
+  agentChatUseAgent: string;
+  agentChatCustomize: string;
+  agentChatSaved: string;
+  agentChatSaveFailed: string;
+  agentChatSaving: string;
+  agentChatNoExperts: string;
+  agentChatNoPinnedParts: string;
+  agentChatExpertLibraryStub: string;
+  agentChatAddExpertStub: string;
+  agentChatBadJson: string;
+  agentChatRemoveAttachment: string;
+
+  // Phase 3-E - Workbench Layout
+  workbenchLayoutInput: string;
+  workbenchLayoutOutput: string;
+  workbenchLayoutSettings: string;
+  workbenchLayoutEventInspector: string;
+
+  // Phase 3-E - Edit System Prompt Modal
+  editSystemPromptTitle: string;
+  editSystemPromptSubtitle: string;
+  editSystemPromptTemplateHint: string;
+  editSystemPromptGenerating: string;
+  editSystemPromptAIGenerate: string;
+  editSystemPromptCancel: string;
+  editSystemPromptSave: string;
+
+  // Phase 3-E - Tool Selector
+  toolSelectorLoading: string;
+  toolSelectorAvailableTools: string;
+  toolSelectorSearchPlaceholder: string;
+  toolSelectorTier1Toggle: string;
+  toolSelectorCategorySafety: string;
+  toolSelectorCategoryExtraction: string;
+  toolSelectorCategoryCoding: string;
+  toolSelectorCategoryVerification: string;
+  toolSelectorCategoryAnalysis: string;
+  toolSelectorCategoryReport: string;
+  toolSelectorAuto: string;
+  toolSelectorId: string;
+  toolSelectorPreconditions: string;
+  toolSelectorPostconditions: string;
+  toolSelectorNoMatch: string;
+  toolSelectorSelected: string;
+  toolSelectorTier1: string;
+  toolSelectorTier2: string;
+
+  // Phase 3-E - Org Switcher
+  orgSwitcherNoOrg: string;
+  orgSwitcherSelectOrg: string;
+  orgSwitcherOrganizations: string;
+  orgSwitcherNoOrgsFound: string;
+  orgSwitcherCreateManage: string;
+
+  // Phase 3-E - Event Inspector
+  eventInspectorTitle: string;
+  eventInspectorCreditsConsumed: string;
+  eventInspectorNoEvents: string;
+
+  // Phase 3-E - Error Boundary
+  errorBoundaryLoadFailed: string;
+  errorBoundaryRetry: string;
+
+  // Phase 3-E - TopK Chips
+  topKChipsNoCandidates: string;
+
+  // Phase 3-E - Settings Code Tab
+  settingsCodeTabSettings: string;
+  settingsCodeTabCode: string;
+  settingsCodeTabTools: string;
+
+  // Phase 3-E - Code Snippet
+  codeSnippetJavaScript: string;
+  codeSnippetJSON: string;
+  codeSnippetJavaScriptSDK: string;
+  codeSnippetPythonSDK: string;
+  codeSnippetCurl: string;
+  codeSnippetCSharpSDK: string;
+  codeSnippetJSONConfig: string;
+  codeSnippetCopyCode: string;
+
+  // Phase 3-E - A2A Collaboration
+  a2aCollaborationTitle: string;
+  a2aCollaborationNAvailable: string;
+  a2aCollaborationEmpty: string;
+
+  // Phase 3-E+ - Agent UI i18n extension (cards / buttons / toasts / modal / detail)
+  agentCardChatUse: string;
+  agentCardCustomize: string;
+  agentCardCloning: string;
+  agentCardProductionReadyFalse: string;
+  agentCardExpertsSuffix: string;
+  agentCardToolsSuffix: string;
+  agentRuntimeLocalReady: string;
+  agentRuntimeConfiguredLive: string;
+  agentRuntimeConfiguredNotLive: string;
+  agentRuntimeUnavailable: string;
+  agentRuntimeUnavailableHint: string;
+  agentSemanticNotVerified: string;
+  // Phase 5 Track D P0 Gate 1 (2026-07-11) — user-visible display status
+  // labels (PDF §B3). Replaces legacy MVP/AI-assisted/production_ready=false.
+  displayStatusPreview: string;
+  displayStatusAvailable: string;
+  displayStatusControlledUse: string;
+  displayStatusComingSoon: string;
+  displayStatusDeprecated: string;
+  displayBadgeApprovalRequired: string;
+  displayBadgeAnomalyConfirmationRequired: string;
+  displayBadgeClinicalDecisionConfirmationRequired: string;
+  displayBadgeInternalOnly: string;
+  agentEnable: string;
+  agentDisable: string;
+  agentUninstall: string;
+  agentConfirmUninstall: string;
+  agentEnabledToast: string;
+  agentDisabledToast: string;
+  agentUninstalledToast: string;
+  agentUninstallFailedToast: string;
+  agentClonedToDraftToast: string;
+  agentCloneFailedToast: string;
+  agentClonedEnterChatToast: string;
+  agentExistingCloneToast: string;
+  agentLoginRequiredToast: string;
+  agentNotFoundToast: string;
+  agentVersionBumpedToast: string;
+  agentVersionBumpFailedToast: string;
+  agentSelectTemplate: string;
+  agentSearchTemplatePlaceholder: string;
+  agentNameLabel: string;
+  agentAdvancedSettings: string;
+  agentDescriptionLabel: string;
+  agentDescriptionPlaceholder: string;
+  agentCategoryLabel: string;
+  agentSystemPromptLabel: string;
+  agentSystemPromptPlaceholder: string;
+  agentAiGenerate: string;
+  agentChatAgentFallback: string;
+  agentChatAgentDescriptionPrefix: string;
+  agentChatSourceRef: string;
+  agentDetailTestTitle: string;
+  agentDetailTestInputPlaceholder: string;
+  agentDetailRunTest: string;
+  agentDetailRunning: string;
+  agentDetailTestFailed: string;
+  agentDetailStatus: string;
+  agentDetailDuration: string;
+  agentDetailSafety: string;
+  agentDetailVerified: string;
+  agentDetailPrimaryDx: string;
+  agentDetailSecondaryDx: string;
+  agentDetailProcedures: string;
+  agentDetailIssues: string;
+  agentDetailRuleChecks: string;
+  agentDetailEvalTitle: string;
+  agentDetailHistoryTrend: string;
+  agentRunHistoryRefresh: string;
+  agentRunHistoryEmpty: string;
+  agentLifecyclePublish: string;
+  agentLifecycleArchive: string;
+  agentLifecycleRestore: string;
+  agentLifecycleRunDisabled: string;
+  agentLifecycleActionSucceeded: string;
+  agentLifecycleRestoreBeforeEdit: string;
+  agentDetailBasicInfo: string;
+  agentDetailOrchestrationStrategy: string;
+  agentDetailRoutingStrategy: string;
+  agentDetailPermissionPreset: string;
+  agentDetailMaxRetriesLabel: string;
+  agentDetailConfidenceThresholdLabel: string;
+  agentDetailConfidenceLoose: string;
+  agentDetailConfidenceStrict: string;
+  agentDetailEditCase: string;
+  agentDetailEdit: string;
+  agentDetailRemove: string;
+  agentDetailDragSort: string;
+  agentDetailDragHint: string;
+  agentDetailExpertCountSuffix: string;
+  agentDetailInstalledToast: string;
+  agentDetailInstallFailed: string;
+  agentDetailOperationFailed: string;
+  agentDetailRoutingLlmPlan: string;
+  agentDetailRoutingToolNative: string;
+  agentDetailRoutingFixedOrder: string;
+  agentDetailRoutingParallel: string;
+  agentDetailRoutingSingleExpert: string;
+  agentDetailRoutingLlmPlanDesc: string;
+  agentDetailRoutingToolNativeDesc: string;
+  agentDetailRoutingFixedOrderDesc: string;
+  agentDetailRoutingParallelDesc: string;
+  agentDetailRoutingSingleExpertDesc: string;
+  agentDetailPermissionMedicalCoding: string;
+  agentDetailPermissionCdiAudit: string;
+  agentDetailPermissionDrgAnalysis: string;
+  agentDetailPermissionRestrictive: string;
+  agentDetailPermissionFullAccess: string;
+  agentDetailPermissionMedicalCodingDesc: string;
+  agentDetailPermissionCdiAuditDesc: string;
+  agentDetailPermissionDrgAnalysisDesc: string;
+  agentDetailPermissionRestrictiveDesc: string;
+  agentDetailPermissionFullAccessDesc: string;
+  agentDetailTestCaseLabel: string;
+  agentDetailTestCaseText: string;
+  agentDetailCapabilityQuestion: string;
+
+  // Phase 3-E+ - Use case filter dropdown (5 enum keys)
+  useCaseCodingRevenueCycle: string;
+  useCaseClinicalEvidenceResearch: string;
+  useCasePointOfCare: string;
+  useCaseCareCoordination: string;
+  useCaseChinaMedicalCompliance: string;
+
+  // Phase 3-E+ - AI Studio Overview
+  aiStudioOverviewHeroEyebrow: string;
+  aiStudioOverviewHeroTitle: string;
+  aiStudioOverviewHeroTagline: string;
+  aiStudioOverviewExploreLabel: string;
+  aiStudioOverviewExploreDesc: string;
+  aiStudioOverviewInspectLabel: string;
+  aiStudioOverviewInspectDesc: string;
+  aiStudioOverviewConfigureLabel: string;
+  aiStudioOverviewConfigureDesc: string;
+  aiStudioOverviewExploreCapabilities: string;
+  aiStudioOverviewAgentsName: string;
+  aiStudioOverviewAgentsDesc: string;
+  aiStudioOverviewSttName: string;
+  aiStudioOverviewSttDesc: string;
+  aiStudioOverviewTextGenName: string;
+  aiStudioOverviewTextGenDesc: string;
+  aiStudioOverviewEmbeddedName: string;
+  aiStudioOverviewEmbeddedDesc: string;
+  aiStudioOverviewFactExtractName: string;
+  aiStudioOverviewFactExtractDesc: string;
+  aiStudioOverviewCodingName: string;
+  aiStudioOverviewCodingDesc: string;
+  aiStudioOverviewExploreCta: string;
+  aiStudioOverviewDocsCta: string;
+  aiStudioOverviewDiveIntoCode: string;
+  aiStudioOverviewDevQuickstart: string;
+  aiStudioOverviewFooterDocs: string;
+  aiStudioOverviewFooterAuth: string;
+  aiStudioOverviewFooterGuides: string;
+  aiStudioOverviewFooterApiRef: string;
+  aiStudioOverviewFooterSdks: string;
+  aiStudioOverviewFooterJsSdk: string;
+  aiStudioOverviewFooterPostman: string;
+  aiStudioOverviewFooterAiCoding: string;
+  aiStudioOverviewFooterHelp: string;
+  aiStudioOverviewFooterChat: string;
+  aiStudioOverviewFooterTicket: string;
 }
 
 const zhCN: LocaleDict = {
@@ -933,6 +1394,8 @@ const zhCN: LocaleDict = {
   embeddedAssistant: '嵌入助手',
   factExtraction: '事实提取',
   medicalCoding: '医学编码',
+  codingCompliance: '编码合规',
+  cdiWorkbench: 'CDI 工作台',
   manage: '管理',
   apiClients: 'API 客户端',
   apiClientsManage: '管理 API 客户端',
@@ -999,10 +1462,10 @@ const zhCN: LocaleDict = {
   // Agents
   agentsTitle: 'AI智能体',
   agentsDesc: '构建医疗 AI AI智能体，在您的业务系统中执行任务',
-  newAgent: '新建AI智能体',
+  newAgent: '新建智能体',
   all: '全部',
   myAgents: '我的AI智能体',
-  prebuiltAgents: '预置AI智能体',
+  prebuiltAgents: 'iCoDer 预置',
   createdBy: '创建者',
   searchAgents: '搜索AI智能体...',
   noAgents: '暂无AI智能体',
@@ -1049,6 +1512,9 @@ const zhCN: LocaleDict = {
   predictCodes: '预测编码',
   config: '配置',
   codingSystems: '编码体系',
+  codingSystemsInfo: '可单独或同时请求 ICD-10-CN 诊断与 ICD-9-CM-3 手术操作编码。',
+  addSystem: '+ 添加',
+  close: '关闭',
   apiClient: 'API 客户端',
   inputLabel: '输入',
   outputLabel: '输出',
@@ -1060,11 +1526,10 @@ const zhCN: LocaleDict = {
   eventInspector: '事件检查器',
   creditsConsumedLabel: '已消耗额度',
   charCount: '{n} 字',
-  costEstimate: '约 ${n}',
+  costEstimate: '约 ¥{n}',
   viewFullReport: '查看完整报告',
   systemPrompt: '系统提示词',
   codingSystem: '编码体系',
-  confidenceThreshold: '置信度阈值',
   outputLanguage: '输出语言',
   model: '模型',
   includeEvidence: '在输出中包含证据',
@@ -1075,6 +1540,7 @@ const zhCN: LocaleDict = {
   confidence: '置信度',
   getStartedWith: '快速开始',
   resetLiveCost: '重置费用',
+  agentChatAvailableCredits: '可用积分',
 
   // Sample cases
   hospitalMedicalRecord: '住院病历',
@@ -1092,12 +1558,12 @@ const zhCN: LocaleDict = {
   outpatientRecord: '门诊病历',
   consultationRecord: '会诊记录',
 
-  // Medical Coding pipeline UI (Corti-aligned — was MedCodER pipeline)
+  // Medical Coding pipeline UI (was MedCodER pipeline)
   medcoderPipeline: '编码管线',  // deprecated alias
-  medcoderMode: '编码模式 (Corti-style)',  // deprecated alias
+  medcoderMode: '编码模式',  // deprecated alias
   enableMedcoder: '启用编码管线',  // deprecated alias
   codingPipeline: '编码管线',
-  codingMode: '编码模式 (Corti-style)',
+  codingMode: '编码模式',
   enableCoding: '启用编码管线',
   evidenceHighlight: '证据高亮',
   topKCandidates: 'Top-K 候选编码',
@@ -1118,7 +1584,7 @@ const zhCN: LocaleDict = {
   confidencePercent: '置信度 {{p}}%',
   positionRange: '位置 {{start}}-{{end}}',
 
-  // Medical Coding — Corti-aligned extras
+  // Medical Coding - pipeline extras
   samples: '样例',
   openGuide: '打开引导',
   dismissGuide: '关闭引导',
@@ -1132,12 +1598,12 @@ const zhCN: LocaleDict = {
   done: '完成',
   add: '添加',
   ready: '就绪',
-  expand: '展开',
+  expand: '展开类别',
   include: '包含',
 
-  // Phase 3-A Section D — Corti-style 8-field output + banners
-  mvpBanner: 'MVP — production_ready=false, human_review=required',
-  aiAssistedBanner: 'AI-assisted coding — 不替代编码员, 所有编码建议需人工复核',
+  // Phase 3-A Section D - 8-field output + banners
+  launchCandidateBanner: '开发上线候选 - 尚未生产批准，必须人工复核',
+  aiAssistedBanner: 'AI-assisted coding - 不替代编码员, 所有编码建议需人工复核',
   reviewSummary: '复核摘要',
   reviewConclusion: '复核结论',
   reviewConclusionPass: '通过',
@@ -1318,6 +1784,7 @@ const zhCN: LocaleDict = {
   creditsUsed: '已消耗额度',
   avgResponseTime: '平均响应时间',
   recentActivity: '最近活动',
+  dailyCostChart: '每日成本趋势',
   requests: '请求',
 
   // Customers
@@ -1465,10 +1932,35 @@ const zhCN: LocaleDict = {
   ehrMatrix: 'HIS/EMR 兼容性矩阵',
   copy: '复制',
   copied: '已复制',
+  // Embedded Assistant Console page (Phase 7 Gate 13)
+  embeddedPageSubtitle: '一次配置，随处复制',
+  embeddedPreview: '预览',
+  embeddedDesktop: '桌面端',
+  embeddedMobile: '移动端',
+  embeddedRestart: '重启',
+  embeddedSessionDefaults: '会话默认值',
+  embeddedAgent: '智能体',
+  embeddedPatientId: '患者 ID',
+  embeddedPatientName: '患者姓名',
+  embeddedEncounterId: '就诊 ID',
+  embeddedFeatures: '功能',
+  embeddedFeatureAiChat: '启用 AI 对话',
+  embeddedFeatureDocFeedback: '显示文档反馈',
+  embeddedFeatureVirtualMode: '允许虚拟模式',
+  embeddedFeatureShowNav: '显示导航',
+  embeddedInterfaceLanguage: '界面语言',
+  embeddedPrimaryColor: '主题色',
+  embeddedHtmlTab: 'html',
+  embeddedReactTab: 'react',
+  embeddedJsonConfigTab: 'JSON 配置',
+  embeddedCopySnippetCopied: '代码片段已复制到剪贴板',
+  embeddedCopyFailed: '复制失败',
+  embeddedLangZhCN: '中文 (zh-CN)',
+  embeddedLangEnUS: 'English (en-US)',
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: '语音转录',
-  productHubTranscribeDesc: '实时转录临床对话，支持中英混合语音指令，可用于环境抄录和临床听写',
+  productHubTranscribeDesc: '实时转录中文临床对话，支持中文语音指令；英文识别仅在兼容浏览器的 Web 内置模式提供',
   productHubTranscribeCta: '试用语音转录',
   productHubTranscribeSecondary: '开始录音',
   productHubTranscribeBuild: 'SDK集成',
@@ -1558,7 +2050,7 @@ const zhCN: LocaleDict = {
   devQsApiPlaygroundDesc: '直接在浏览器中测试 API 端点。选择端点，填写请求体，查看响应结果。',
   devQsApiEndpoint: 'API 端点',
   devQsRequestBody: '请求体',
-  devQsNoRequestBody: 'GET 请求 — 无需请求体',
+  devQsNoRequestBody: 'GET 请求 - 无需请求体',
   devQsSending: '发送中...',
   devQsSendRequest: '发送请求',
   devQsResponse: '响应',
@@ -1717,7 +2209,7 @@ const zhCN: LocaleDict = {
   orchestrationRunPipeline: '运行编码审核流水线',
   orchestrationDiagnosisCandidates: '诊断编码候选',
   orchestrationProcedureCandidates: '手术编码候选',
-  orchestrationDrgImpact: 'DRG 影响分析',
+  orchestrationDrgImpact: 'DRG/DIP 候选风险复核（非结算）',
   orchestrationDocumentationGaps: '文档缺口',
   orchestrationHumanChecklist: '人工审核清单',
   orchestrationHumanReview: '人工复核',
@@ -1749,6 +2241,435 @@ const zhCN: LocaleDict = {
   orgRoleAdmin: '管理员',
   orgRoleMember: '成员',
   orgRoleViewer: '观察者',
+
+  // Phase 3-E - AI Studio Overview
+  aiStudioOverviewTitle: 'AI Studio',
+  aiStudioOverviewAgentsCard: 'AI 智能体',
+  aiStudioOverviewAgentsCardDesc: '管理、创建和市场发现 Agent',
+  aiStudioOverviewCodingCard: '医学编码',
+  aiStudioOverviewCodingCardDesc: 'ICD-10/ICD-9-CM-3 智能编码',
+  aiStudioOverviewRecentAgents: '最近 Agent',
+  aiStudioOverviewViewAll: '全部',
+  aiStudioOverviewRecentRuns: '最近运行',
+
+  // Phase 3-E - API Clients Page
+  apiClientsLoadFailed: '加载失败',
+  apiClientsOAuthCreated: 'OAuth 客户端已创建',
+  apiClientsCopySecret: '复制 Client Secret - 它不会再次显示。',
+  apiClientsClientId: 'Client ID',
+  apiClientsDone: '完成',
+  apiClientsSubtitle: '管理 API 密钥和 OAuth 2.0 客户端凭证',
+  apiClientsCreateOAuth: '创建 OAuth 客户端',
+  apiClientsTabOAuth: 'OAuth 2.0 客户端',
+  apiClientsTabKeys: 'API 密钥',
+  apiClientsCreateTitle: '创建 OAuth 2.0 客户端 (Client Credentials)',
+  apiClientsNamePlaceholder: '客户端名称（如：生产环境SDK）',
+  apiClientsDescPlaceholder: '描述（可选）',
+  apiClientsScopesPlaceholder: 'Scopes（空格分隔）',
+  apiClientsCreate: '创建',
+  apiClientsCancel: '取消',
+  apiClientsNoOAuth: '暂无 OAuth 客户端',
+  apiClientsNoOAuthHint: '创建客户端以使用 client_credentials 认证',
+  apiClientsNoKeys: '暂无 API 密钥',
+  apiClientsConfirmRevokeTitle: '确认撤销',
+  apiClientsRevokeConfirm: '撤销 OAuth 客户端',
+  apiClientsRevokeHint: '使用此客户端的应用将无法认证。',
+  apiClientsConfirmRevoke: '确认撤销',
+  apiClientsCreateFailed: '创建失败',
+  apiClientsDeleteFailed: '删除失败',
+
+  // Phase 3-E - Release Notes
+  releaseNotesTitle: 'Release Notes',
+  releaseNotesSubtitle: 'iCoDer 医疗 AI 智能体平台版本变更记录。',
+  releaseNotesApiPolicy: 'API 变更策略',
+
+  // Phase 3-E - Reset Password
+  resetPasswordTooShort: '密码至少需要 8 位',
+  resetPasswordMismatch: '两次输入的密码不一致',
+  resetPasswordNoToken: '缺少重置令牌，请从邮箱链接中获取',
+  resetPasswordSuccess: '密码重置成功，请使用新密码登录',
+  resetPasswordFailed: '重置失败，令牌可能已过期',
+  resetPasswordTitle: '重置密码',
+  resetPasswordSubtitle: '输入新的登录密码',
+  resetPasswordBackToLogin: '返回登录',
+  resetPasswordNewPassword: '新密码',
+  resetPasswordNewPlaceholder: '至少 8 位字符',
+  resetPasswordConfirm: '确认密码',
+  resetPasswordConfirmPlaceholder: '再次输入密码',
+  resetPasswordLoading: '重置中...',
+  resetPasswordSubmit: '重置密码',
+
+  // Phase 3-E - RunTrace viewer
+  runTraceStepUserMessageReceived: '1. 用户消息接收',
+  runTraceStepPlannerSelectedExperts: '2. Planner 选定 Expert',
+  runTraceStepToolsList: '3. 工具列表',
+  runTraceStepAuthResolved: '4. 鉴权完成',
+  runTraceStepScopeChecked: '5. Scope 校验',
+  runTraceStepToolsCall: '6. 工具调用',
+  runTraceStepExpertResponse: '7. Expert 响应',
+  runTraceStepOutputGenerated: '8. 输出生成',
+  runTraceStepCompletion: '9. 完成',
+  runTraceNoMetadata: '无 metadata',
+  runTraceNoRequiredScopes: '无 required_scopes',
+  runTraceDispatcherDetail: 'dispatcher detail',
+  runTraceRawSafeMetadata: 'raw safe_metadata',
+  runTraceSafeMetadata: 'safe_metadata',
+  runTraceToolCount: 'tool_count',
+  runTraceToolNames: 'tool_names',
+  runTraceToolName: 'tool_name',
+  runTraceHandlerRef: 'handler_ref',
+  runTraceStage: 'stage',
+  runTraceAuthType: 'auth_type',
+  runTraceInProcessBypass: '⚠ in-process bypass',
+  runTraceRedactedView: 'redacted_view',
+  runTraceGrantedScopes: 'granted_scopes',
+  runTraceNote: 'note',
+  runTraceScopeDiff: 'scope diff (✓ matched / ✗ missing)',
+  runTraceArguments: 'arguments',
+  runTraceArgumentsKeysLabel: 'keys',
+  runTraceChars: 'chars',
+  runTraceValidated: 'validated ✓',
+  runTraceResult: 'result',
+  runTraceResultKeysLabel: 'keys',
+  runTraceError: 'error',
+  runTraceMcpErrorCode: 'mcp_error_code',
+  runTraceTotalDispatch: 'total_dispatch',
+  runTraceTotalDispatchBreakdown: '(auth+scope+resolve+handler)',
+  runTraceTitle: 'RunTrace',
+  runTraceRunId: 'run_id',
+  runTraceSteps: 'steps',
+  runTraceOk: 'ok',
+  runTraceFailed: 'failed',
+  runTraceTotal: 'total',
+  runTraceIntro: '9 步运行轨迹时间线。蓝色边框 = 统一工具调度器 (Dispatcher) 的 4 个步骤。点击任一行展开查看 dispatcher 详情 + raw metadata。',
+  runTraceAuthFilter: 'auth_resolved 步骤仅展示 tool_name / auth_type / redacted_view / granted_scopes / note，其余 metadata 一律隐藏（纵深防御）。',
+  runTraceEmpty: '运行已完成但尚未发射 trace 事件。',
+  runTraceEmptyHint: 'run 存在但 timeline 为空。可能是 trace emit 失败、DB 写入异常，或该 run 走了非 instrumented 路径。点击下方重试或返回 Agent Hub 重新发起。',
+  runTraceRetry: '重试加载',
+  runTraceNotFound: '未找到 RunTrace',
+  runTraceNotFoundHint: '未找到该 run_id 的 trace 事件。该 run 可能尚未触发任何 MCP/Orchestrator 步骤，或仅在 A2A 路径执行（未走 MCP server）。',
+  runTraceLoadFailed: '加载 RunTrace 失败',
+  runTraceLoadError: '加载失败',
+  runTraceBack: '返回',
+  runTraceBackToHub: '返回 Agent Hub',
+  runTraceDispatcherHeader: '统一工具调度器 / Dispatcher',
+  runTraceAuditSummary: '运行审计摘要',
+  runTraceRunStatus: '运行状态',
+  runTraceRuntimeMode: '运行模式',
+  runTraceCost: '成本',
+  runTraceCaptureStatus: '轨迹捕获',
+  runTraceReviewSignal: '人工复核信号',
+  runTraceReviewRequired: '需要复核',
+  runTraceReviewNotRequired: '未要求复核',
+  runTraceReviewNotRecorded: '未记录',
+  runTraceReviewNonAuthoritative: '此处为事件派生信号，不是权威临床复核结论。',
+  // Phase 3-D2.5 - Tool Dispatch Detail
+  runTraceToolDispatchDetail: 'Tool Dispatch Detail',
+  runTraceDispatchMode: 'Dispatch Mode',
+  runTraceRoundIndex: '轮次 / Round',
+  runTraceCaller: '调用者 / Caller',
+  runTraceSchemaValidation: 'Schema Validation',
+  runTracePhiRedaction: 'PHI Redaction',
+  runTraceScopeCheck: 'Scope Check',
+  runTraceHandlerStatus: 'Handler Status',
+  runTraceResultShape: 'Result Shape',
+  runTraceErrorStage: 'Error Stage',
+  runTraceDurationMs: 'Duration',
+
+  // Phase 3-E - Agent Chat
+  agentChatGreetingMedicalCoding: '请为以下病历文本进行 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议。',
+  agentChatNotFoundToast: '未找到 Agent - 请先从 Hub 克隆',
+  agentChatLoadFailed: '加载 Agent 失败',
+  agentChatDefaultGreeting: '请输入您的请求。',
+  agentChatRunComplete: '运行完成',
+  agentChatRunFailed: '运行失败',
+  agentChatNotCloned: 'Agent 未克隆',
+  agentChatRedirecting: '正在跳转到 Agent Hub，请从那里克隆后再进入对话。',
+  agentChatBack: '返回 Agent Hub',
+  agentChatInput: '输入',
+  agentChatInputPlaceholder: '在此粘贴病历文本或输入您的请求…',
+  agentChatCharCount: '字符',
+  agentChatRunning: '运行中…',
+  agentChatRun: '运行',
+  agentChatRunFailedTitle: '运行失败',
+  agentChatResult: '运行结果',
+  agentChatDuration: '耗时',
+  agentChatViewRunTrace: 'View RunTrace',
+  agentChatViewRunTraceHint: '查看 RunTrace 9 步时间线',
+  agentChatRenderedTab: 'Rendered',
+  agentChatJsonTab: 'JSON',
+  // Phase 4-D - naming catalog (zh-CN translations)
+  agentChatBreadcrumbAgents: '智能体',
+  agentChatTextareaPlaceholder: '我能帮你什么？',
+  agentChatAddContext: '添加上下文',
+  agentChatConsumesCredits: '向智能体发送消息会消耗积分',
+  agentChatSettings: '设置',
+  agentChatCode: '代码',
+  agentChatNameLabel: '名称',
+  agentChatSystemPrompt: '系统提示词',
+  agentChatExperts: '专家',
+  agentChatBrowseExpertLibrary: '浏览专家库',
+  agentChatCustomExperts: '自定义专家',
+  agentChatDedicatedPolicyHint: '此专用临床智能体保留源安全规则与输出契约；此处的提示词和项目专家仅作为附加专科策略。',
+  agentChatFixedSourceExperts: '固定源专家',
+  agentChatProjectExperts: '项目附加专家',
+  agentChatAddExpert: '添加专家',
+  agentChatPinnedMessageParts: '固定消息片段',
+  agentChatSdkJavaScript: 'JavaScript (SDK)',
+  agentChatSdkDotNet: '.NET (SDK)',
+  agentChatSdkJsonConfig: 'JSON 配置',
+  agentChatCopy: '复制',
+  agentChatApiClient: 'API 客户端',
+  agentChatRunHistory: '近期运行',
+  agentChatNewAgent: '新建智能体',
+  agentChatUseAgent: '使用智能体',
+  agentChatCustomize: '自定义',
+  agentChatSaved: '已保存',
+  agentChatSaveFailed: '保存失败',
+  agentChatSaving: '保存中…',
+  agentChatNoExperts: '未配置专家',
+  agentChatNoPinnedParts: '无固定消息片段',
+  agentChatExpertLibraryStub: '专家库 - 即将推出 (Phase 5)',
+  agentChatAddExpertStub: '添加专家 - 即将推出 (Phase 5)',
+  agentChatBadJson: '无效 JSON 文件',
+  agentChatRemoveAttachment: '移除附件',
+
+  // Phase 3-E - Workbench Layout
+  workbenchLayoutInput: 'Input',
+  workbenchLayoutOutput: 'Output',
+  workbenchLayoutSettings: 'Settings',
+  workbenchLayoutEventInspector: 'Event Inspector',
+
+  // Phase 3-E - Edit System Prompt Modal
+  editSystemPromptTitle: 'Edit system prompt',
+  editSystemPromptSubtitle: "Define the agent's role and style.",
+  editSystemPromptTemplateHint: 'Use XML-style tags to structure sections. The <role> and <output_format> sections are required. Include an Example Output block within output_format for guidance.',
+  editSystemPromptGenerating: 'Generating...',
+  editSystemPromptAIGenerate: 'AI generate',
+  editSystemPromptCancel: 'Cancel',
+  editSystemPromptSave: 'Save',
+
+  // Phase 3-E - Tool Selector
+  toolSelectorLoading: 'Loading tools...',
+  toolSelectorAvailableTools: 'Available Tools',
+  toolSelectorSearchPlaceholder: 'Search tools...',
+  toolSelectorTier1Toggle: 'Auto-inject accuracy guarantee tools (Tier 1)',
+  toolSelectorCategorySafety: '安全护栏',
+  toolSelectorCategoryExtraction: '信息提取',
+  toolSelectorCategoryCoding: '编码',
+  toolSelectorCategoryVerification: '验证',
+  toolSelectorCategoryAnalysis: '分析',
+  toolSelectorCategoryReport: '报告',
+  toolSelectorAuto: 'Auto',
+  toolSelectorId: 'ID',
+  toolSelectorPreconditions: 'Preconditions',
+  toolSelectorPostconditions: 'Postconditions',
+  toolSelectorNoMatch: 'No tools found matching',
+  toolSelectorSelected: 'tools selected',
+  toolSelectorTier1: 'Tier 1',
+  toolSelectorTier2: 'Tier 2',
+
+  // Phase 3-E - Org Switcher
+  orgSwitcherNoOrg: 'No Organization',
+  orgSwitcherSelectOrg: 'Select Org',
+  orgSwitcherOrganizations: 'Organizations',
+  orgSwitcherNoOrgsFound: 'No organizations found',
+  orgSwitcherCreateManage: '+ Create or manage organizations',
+
+  // Phase 3-E - Event Inspector
+  eventInspectorTitle: 'Event Inspector',
+  eventInspectorCreditsConsumed: 'Credits consumed',
+  eventInspectorNoEvents: 'No events recorded',
+
+  // Phase 3-E - Error Boundary
+  errorBoundaryLoadFailed: '加载失败',
+  errorBoundaryRetry: '重试',
+
+  // Phase 3-E - TopK Chips
+  topKChipsNoCandidates: 'No candidates',
+
+  // Phase 3-E - Settings Code Tab
+  settingsCodeTabSettings: 'Settings',
+  settingsCodeTabCode: 'Code',
+  settingsCodeTabTools: 'Tools',
+
+  // Phase 3-E - Code Snippet
+  codeSnippetJavaScript: 'JavaScript',
+  codeSnippetJSON: 'JSON',
+  codeSnippetJavaScriptSDK: 'JavaScript (SDK)',
+  codeSnippetPythonSDK: 'Python (SDK)',
+  codeSnippetCurl: 'curl',
+  codeSnippetCSharpSDK: 'C# (.NET SDK)',
+  codeSnippetJSONConfig: 'JSON Config',
+  codeSnippetCopyCode: 'Copy code',
+
+  // Phase 3-E - A2A Collaboration
+  a2aCollaborationTitle: 'A2A Agent 协作',
+  a2aCollaborationNAvailable: '个可用',
+  a2aCollaborationEmpty: '未发现其他 Agent（需启用 A2A）',
+
+  // Phase 3-E+ - Agent UI i18n extension
+  agentCardChatUse: 'Chat / Use Agent',
+  agentCardCustomize: 'Customize',
+  agentCardCloning: '克隆中…',
+  agentCardProductionReadyFalse: 'production_ready=false',
+  agentCardExpertsSuffix: '专家',
+  agentCardToolsSuffix: '工具',
+  agentRuntimeLocalReady: '本地运行已就绪',
+  agentRuntimeConfiguredLive: '模型连接已验证（仍需语义验证）',
+  agentRuntimeConfiguredNotLive: '模型已配置（未验证实时健康）',
+  agentRuntimeUnavailable: '当前运行不可用',
+  agentRuntimeUnavailableHint: '当前运行依赖尚未就绪，请先配置并验证模型或运行服务。',
+  agentSemanticNotVerified: '语义质量未验证',
+  // Phase 5 Track D P0 Gate 1 — user-visible display status labels (PDF §B3).
+  displayStatusPreview: '预览版',
+  displayStatusAvailable: '可用',
+  displayStatusControlledUse: '受控使用',
+  displayStatusComingSoon: '即将推出',
+  displayStatusDeprecated: '已停用',
+  displayBadgeApprovalRequired: '发送前需审批',
+  displayBadgeAnomalyConfirmationRequired: '异常项需确认',
+  displayBadgeClinicalDecisionConfirmationRequired: '用于临床决策时需确认',
+  displayBadgeInternalOnly: '仅用于内部审核',
+  agentEnable: '启用',
+  agentDisable: '禁用',
+  agentUninstall: '卸载',
+  agentConfirmUninstall: '确定要卸载吗？',
+  agentEnabledToast: '已启用',
+  agentDisabledToast: '已禁用',
+  agentUninstalledToast: '已卸载',
+  agentUninstallFailedToast: '卸载失败',
+  agentClonedToDraftToast: '已创建项目副本，可立即运行和自定义',
+  agentCloneFailedToast: '克隆失败',
+  agentClonedEnterChatToast: '已克隆 - 进入对话',
+  agentExistingCloneToast: '已有克隆 - 进入对话',
+  agentLoginRequiredToast: '请先登录',
+  agentNotFoundToast: 'Agent 不存在',
+  agentVersionBumpedToast: '版本号已更新',
+  agentVersionBumpFailedToast: '版本更新失败',
+  agentSelectTemplate: '选择模板',
+  agentSearchTemplatePlaceholder: '搜索模板...',
+  agentNameLabel: 'Agent 名称',
+  agentAdvancedSettings: '高级设置',
+  agentDescriptionLabel: '描述',
+  agentDescriptionPlaceholder: 'Agent 的功能描述',
+  agentCategoryLabel: '分类',
+  agentSystemPromptLabel: '系统提示词',
+  agentSystemPromptPlaceholder: '系统提示词...',
+  agentAiGenerate: 'AI 生成',
+  agentChatAgentFallback: 'Agent',
+  agentChatAgentDescriptionPrefix: 'Agent: {desc}',
+  agentChatSourceRef: 'source: {ref}',
+  agentDetailTestTitle: 'Agent 测试',
+  agentDetailTestInputPlaceholder: '输入测试病历，验证 Agent 编码结果...',
+  agentDetailRunTest: '运行测试',
+  agentDetailRunning: '运行中...',
+  agentDetailTestFailed: '测试失败',
+  agentDetailStatus: '状态',
+  agentDetailDuration: '耗时',
+  agentDetailSafety: '安全',
+  agentDetailVerified: '已校验',
+  agentDetailPrimaryDx: '主诊断',
+  agentDetailSecondaryDx: '次要诊断',
+  agentDetailProcedures: '手术',
+  agentDetailIssues: '问题',
+  agentDetailRuleChecks: '规则检查',
+  agentDetailEvalTitle: '运行记录',
+  agentDetailHistoryTrend: '最近运行',
+  agentRunHistoryRefresh: '刷新运行记录',
+  agentRunHistoryEmpty: '尚无已持久化的运行记录。',
+  agentLifecyclePublish: '发布',
+  agentLifecycleArchive: '归档',
+  agentLifecycleRestore: '恢复',
+  agentLifecycleRunDisabled: '当前 Agent 未发布，运行已禁用。',
+  agentLifecycleActionSucceeded: 'Agent 生命周期状态已更新',
+  agentLifecycleRestoreBeforeEdit: '请先恢复已归档的 Agent，再编辑设置。',
+  agentDetailBasicInfo: '基本信息',
+  agentDetailOrchestrationStrategy: '编排策略',
+  agentDetailRoutingStrategy: '路由策略',
+  agentDetailPermissionPreset: '权限策略 (Deny-First)',
+  agentDetailMaxRetriesLabel: '最大重试次数: {n}',
+  agentDetailConfidenceThresholdLabel: '置信度阈值: {n}',
+  agentDetailConfidenceLoose: '0.0 (宽松)',
+  agentDetailConfidenceStrict: '1.0 (严格)',
+  agentDetailEditCase: '编辑病例内容',
+  agentDetailEdit: '编辑',
+  agentDetailRemove: '移除',
+  agentDetailDragSort: '拖拽排序',
+  agentDetailDragHint: '拖拽专家调整调用优先级',
+  agentDetailExpertCountSuffix: '个',
+  agentDetailInstalledToast: 'Agent 已安装到 Runtime',
+  agentDetailInstallFailed: '安装失败',
+  agentDetailOperationFailed: '操作失败，请检查权限',
+  agentDetailRoutingLlmPlan: 'LLM 动态规划（推荐）',
+  agentDetailRoutingToolNative: 'Tool-Native 合同强制（新）',
+  agentDetailRoutingFixedOrder: '固定顺序执行',
+  agentDetailRoutingParallel: '并行调用',
+  agentDetailRoutingSingleExpert: '单专家直连',
+  agentDetailRoutingLlmPlanDesc: '由 AI 分析任务后动态选择专家及调用顺序',
+  agentDetailRoutingToolNativeDesc: 'LLM 自主选择工具，Harness 以合同强制验证每次调用',
+  agentDetailRoutingFixedOrderDesc: '按列表顺序逐个调用绑定的专家',
+  agentDetailRoutingParallelDesc: '同时调用所有专家，聚合结果',
+  agentDetailRoutingSingleExpertDesc: '仅调用默认专家，忽略其他绑定',
+  agentDetailPermissionMedicalCoding: '医学编码（推荐）',
+  agentDetailPermissionCdiAudit: '临床文档审核（只读）',
+  agentDetailPermissionDrgAnalysis: 'DRG/DIP 风险复核（非结算）',
+  agentDetailPermissionRestrictive: '严格模式（仅确定性工具）',
+  agentDetailPermissionFullAccess: '全量访问（开发/管理）',
+  agentDetailPermissionMedicalCodingDesc: '标准编码管道:确定性工具+LLM工具有限使用',
+  agentDetailPermissionCdiAuditDesc: '只读分析工具:不允许编码分配',
+  agentDetailPermissionDrgAnalysisDesc: '仅作编码风险提示；不输出官方分组、权重、分值或支付结果',
+  agentDetailPermissionRestrictiveDesc: '仅确定性工具（ICD索引/证据排名等），最大安全性',
+  agentDetailPermissionFullAccessDesc: '全部工具可用:仅开发和管理使用',
+  agentDetailTestCaseLabel: '腰椎间盘突出症',
+  agentDetailTestCaseText: '患者，女，65岁。因腰痛伴左下肢放射痛3月就诊。腰椎MRI示L4/5椎间盘突出，压迫左侧神经根。入院诊断：腰椎间盘突出症。建议行PLIF手术。',
+  agentDetailCapabilityQuestion: '你能做什么？请描述你的能力、专长以及如何在医疗编码、临床文档及相关医疗任务中提供帮助。',
+
+  // Phase 3-E+ - Use case filter dropdown (5 enum keys)
+  useCaseCodingRevenueCycle: '编码/收入循环',
+  useCaseClinicalEvidenceResearch: '临床证据研究',
+  useCasePointOfCare: '即时诊疗',
+  useCaseCareCoordination: '诊疗协调',
+  useCaseChinaMedicalCompliance: '中国医疗合规',
+
+  // Phase 3-E+ - AI Studio Overview
+  aiStudioOverviewHeroEyebrow: 'AI Studio',
+  aiStudioOverviewHeroTitle: '总览',
+  aiStudioOverviewHeroTagline: '直接在 iCoDer 控制台测试和配置用例',
+  aiStudioOverviewExploreLabel: '探索',
+  aiStudioOverviewExploreDesc: '构建智能体、生成实时转录、临床文书等',
+  aiStudioOverviewInspectLabel: '检查',
+  aiStudioOverviewInspectDesc: '通过事件检查器调试, 实时监控积分消耗',
+  aiStudioOverviewConfigureLabel: '配置',
+  aiStudioOverviewConfigureDesc: '按需精细调整设置, 直接复制代码到您的应用',
+  aiStudioOverviewExploreCapabilities: '探索能力',
+  aiStudioOverviewAgentsName: '智能体',
+  aiStudioOverviewAgentsDesc: '通过添加专家、系统提示词和上下文自定义智能体',
+  aiStudioOverviewSttName: '语音转文本',
+  aiStudioOverviewSttDesc: '流式传输实时音频, 配置自定义命令并生成转录',
+  aiStudioOverviewTextGenName: '文本生成',
+  aiStudioOverviewTextGenDesc: '将转录转换为结构化临床笔记, 按需定制',
+  aiStudioOverviewEmbeddedName: '嵌入式助手',
+  aiStudioOverviewEmbeddedDesc: '配置和测试嵌入式环境抄录助手体验',
+  aiStudioOverviewFactExtractName: '事实抽取',
+  aiStudioOverviewFactExtractDesc: '从医疗转录和笔记中抽取结构化临床事实',
+  aiStudioOverviewCodingName: '医学编码',
+  aiStudioOverviewCodingDesc: '将非结构化临床文本转换为结构化医疗编码',
+  aiStudioOverviewExploreCta: '探索',
+  aiStudioOverviewDocsCta: '文档',
+  aiStudioOverviewDiveIntoCode: '准备好深入代码并发起第一个请求了吗？',
+  aiStudioOverviewDevQuickstart: '开发者快速开始',
+  aiStudioOverviewFooterDocs: '文档',
+  aiStudioOverviewFooterAuth: '认证',
+  aiStudioOverviewFooterGuides: '指南',
+  aiStudioOverviewFooterApiRef: 'API 参考',
+  aiStudioOverviewFooterSdks: 'SDK 与工具',
+  aiStudioOverviewFooterJsSdk: 'Javascript SDK',
+  aiStudioOverviewFooterPostman: 'Postman',
+  aiStudioOverviewFooterAiCoding: 'AI 编码工具',
+  aiStudioOverviewFooterHelp: '需要帮助？',
+  aiStudioOverviewFooterChat: '与我们聊天',
+  aiStudioOverviewFooterTicket: '提交工单',
 };
 
 const enUS: LocaleDict = {
@@ -1808,6 +2729,8 @@ const enUS: LocaleDict = {
   embeddedAssistant: 'Embedded Assistant',
   factExtraction: 'Fact Extraction',
   medicalCoding: 'Medical Coding',
+  codingCompliance: 'Coding Compliance',
+  cdiWorkbench: 'CDI Workbench',
   manage: 'Manage',
   apiClients: 'API Clients',
   apiClientsManage: 'Manage API Clients',
@@ -1877,7 +2800,7 @@ const enUS: LocaleDict = {
   newAgent: 'New Agent',
   all: 'All',
   myAgents: 'My agents',
-  prebuiltAgents: 'Pre-built',
+  prebuiltAgents: 'Built by iCoDer',
   createdBy: 'Created by',
   searchAgents: 'Search agents...',
   noAgents: 'No agents found',
@@ -1924,6 +2847,9 @@ const enUS: LocaleDict = {
   predictCodes: 'Predict codes',
   config: 'Config',
   codingSystems: 'Coding systems',
+  codingSystemsInfo: 'Request ICD-10-CN diagnoses, ICD-9-CM-3 procedures, or both in one run.',
+  addSystem: '+ Add',
+  close: 'Close',
   apiClient: 'API Client',
   inputLabel: 'Input',
   outputLabel: 'Output',
@@ -1935,11 +2861,10 @@ const enUS: LocaleDict = {
   eventInspector: 'Event Inspector',
   creditsConsumedLabel: 'Credits consumed',
   charCount: '{n} chars',
-  costEstimate: '~${n}',
+  costEstimate: '~¥{n}',
   viewFullReport: 'View full report',
   systemPrompt: 'System Prompt',
   codingSystem: 'Coding System',
-  confidenceThreshold: 'Confidence Threshold',
   outputLanguage: 'Output Language',
   model: 'Model',
   includeEvidence: 'Include evidence in output',
@@ -1950,6 +2875,7 @@ const enUS: LocaleDict = {
   confidence: 'Confidence',
   getStartedWith: 'Get started with',
   resetLiveCost: 'Reset live cost',
+  agentChatAvailableCredits: 'Available credits',
 
   // Sample cases
   hospitalMedicalRecord: 'Hospital medical record',
@@ -1967,12 +2893,12 @@ const enUS: LocaleDict = {
   outpatientRecord: 'Outpatient record',
   consultationRecord: 'Consultation record',
 
-  // Medical Coding pipeline UI (Corti-aligned — was MedCodER pipeline)
+  // Medical Coding pipeline UI (was MedCodER pipeline)
   medcoderPipeline: 'Coding pipeline',  // deprecated alias
-  medcoderMode: 'Coding mode (Corti-style)',  // deprecated alias
+  medcoderMode: 'Coding mode',  // deprecated alias
   enableMedcoder: 'Enable coding pipeline',  // deprecated alias
   codingPipeline: 'Coding pipeline',
-  codingMode: 'Coding mode (Corti-style)',
+  codingMode: 'Coding mode',
   enableCoding: 'Enable coding pipeline',
   evidenceHighlight: 'Evidence highlight',
   topKCandidates: 'Top-K candidates',
@@ -1993,7 +2919,7 @@ const enUS: LocaleDict = {
   confidencePercent: 'Confidence {{p}}%',
   positionRange: 'Position {{start}}-{{end}}',
 
-  // Medical Coding — Corti-aligned extras
+  // Medical Coding - pipeline extras
   samples: 'Samples',
   openGuide: 'Open guided demo',
   dismissGuide: 'Dismiss guided demo',
@@ -2001,13 +2927,13 @@ const enUS: LocaleDict = {
   selectCodingSystemDesc: 'Pick the coding systems to use for this prediction (shared with right Settings)',
   guideStepSample: 'Pick a sample document',
   guideStepSystem: 'Pick coding systems',
-  guideStepSampleDesc: 'Choose a sample document — the wizard will fill the input and trigger prediction',
+  guideStepSampleDesc: 'Choose a sample document - the wizard will fill the input and trigger prediction',
   startByAddingText: 'Start by adding text input',
   next: 'Next',
   done: 'Done',
   add: 'Add',
   ready: 'Ready',
-  expand: 'Expand',
+  expand: 'Expand categories',
   include: 'Include',
   exclude: 'Exclude',
   filterCodes: 'Filter codes',
@@ -2021,9 +2947,9 @@ const enUS: LocaleDict = {
   enterCodePlaceholder: 'Enter code (e.g. J18.1)',
   tableCode: 'Code',
 
-  // Phase 3-A Section D — Corti-style 8-field output + banners
-  mvpBanner: 'MVP — production_ready=false, human_review=required',
-  aiAssistedBanner: 'AI-assisted coding — does not replace the coder; all code suggestions require human review',
+  // Phase 3-A Section D - 8-field output + banners
+  launchCandidateBanner: 'Development launch candidate - not production approved; human review required',
+  aiAssistedBanner: 'AI-assisted coding - does not replace the coder; all code suggestions require human review',
   reviewSummary: 'Review summary',
   reviewConclusion: 'Review conclusion',
   reviewConclusionPass: 'Pass',
@@ -2048,7 +2974,7 @@ const enUS: LocaleDict = {
   embeddedAssistantBreadcrumb: 'Embedded Assistant',
   tabCode: 'Code',
   failedPrefix: 'Failed',
-  completedPrefix: 'Completed —',
+  completedPrefix: 'Completed -',
   preGuardViolations: 'Pre-guard: {count} violations',
   contractVerified: 'Contract: {status}',
   safety: 'Safety',
@@ -2193,6 +3119,7 @@ const enUS: LocaleDict = {
   creditsUsed: 'Credits Used',
   avgResponseTime: 'Avg Response Time',
   recentActivity: 'Recent Activity',
+  dailyCostChart: 'Daily Cost Trend',
   requests: 'requests',
 
   // Customers
@@ -2340,10 +3267,35 @@ const enUS: LocaleDict = {
   ehrMatrix: 'EHR compatibility matrix',
   copy: 'Copy',
   copied: 'Copied',
+  // Embedded Assistant Console page (Phase 7 Gate 13)
+  embeddedPageSubtitle: 'Configure once, copy anywhere',
+  embeddedPreview: 'Preview',
+  embeddedDesktop: 'Desktop',
+  embeddedMobile: 'Mobile',
+  embeddedRestart: 'Restart',
+  embeddedSessionDefaults: 'Session defaults',
+  embeddedAgent: 'Agent',
+  embeddedPatientId: 'Patient ID',
+  embeddedPatientName: 'Patient Name',
+  embeddedEncounterId: 'Encounter ID',
+  embeddedFeatures: 'Features',
+  embeddedFeatureAiChat: 'Enable AI chat',
+  embeddedFeatureDocFeedback: 'Show document feedback',
+  embeddedFeatureVirtualMode: 'Allow virtual mode',
+  embeddedFeatureShowNav: 'Show navigation',
+  embeddedInterfaceLanguage: 'Interface language',
+  embeddedPrimaryColor: 'Primary color',
+  embeddedHtmlTab: 'html',
+  embeddedReactTab: 'react',
+  embeddedJsonConfigTab: 'JSON Config',
+  embeddedCopySnippetCopied: 'snippet copied to clipboard',
+  embeddedCopyFailed: 'Copy failed',
+  embeddedLangZhCN: '中文 (zh-CN)',
+  embeddedLangEnUS: 'English (en-US)',
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: 'Transcribe',
-  productHubTranscribeDesc: 'Real-time clinical speech transcription with bilingual (ZH/EN) voice commands for ambient scribing and dictation',
+  productHubTranscribeDesc: 'Real-time zh-CN clinical transcription with Chinese voice commands; English recognition is browser-managed only',
   productHubTranscribeCta: 'Try Speech to Text',
   productHubTranscribeSecondary: 'Start recording',
   productHubTranscribeBuild: 'SDK Integration',
@@ -2433,7 +3385,7 @@ const enUS: LocaleDict = {
   devQsApiPlaygroundDesc: 'Test API endpoints directly from the browser. Select an endpoint, provide the request body, and inspect the response.',
   devQsApiEndpoint: 'API Endpoint',
   devQsRequestBody: 'Request Body',
-  devQsNoRequestBody: 'GET request — no request body',
+  devQsNoRequestBody: 'GET request - no request body',
   devQsSending: 'Sending...',
   devQsSendRequest: 'Send Request',
   devQsResponse: 'Response',
@@ -2592,7 +3544,7 @@ const enUS: LocaleDict = {
   orchestrationRunPipeline: 'Run Coding Audit Pipeline',
   orchestrationDiagnosisCandidates: 'Diagnosis Code Candidates',
   orchestrationProcedureCandidates: 'Procedure Code Candidates',
-  orchestrationDrgImpact: 'DRG Impact Analysis',
+  orchestrationDrgImpact: 'DRG/DIP Candidate Risk Review (Non-settlement)',
   orchestrationDocumentationGaps: 'Documentation Gaps',
   orchestrationHumanChecklist: 'Human Review Checklist',
   orchestrationHumanReview: 'Human Review',
@@ -2624,6 +3576,435 @@ const enUS: LocaleDict = {
   orgRoleAdmin: 'Admin',
   orgRoleMember: 'Member',
   orgRoleViewer: 'Viewer',
+
+  // Phase 3-E - AI Studio Overview
+  aiStudioOverviewTitle: 'AI Studio',
+  aiStudioOverviewAgentsCard: 'AI Agents',
+  aiStudioOverviewAgentsCardDesc: 'Manage, create, and discover Agents in the marketplace',
+  aiStudioOverviewCodingCard: 'Medical Coding',
+  aiStudioOverviewCodingCardDesc: 'ICD-10 / ICD-9-CM-3 intelligent coding',
+  aiStudioOverviewRecentAgents: 'Recent Agents',
+  aiStudioOverviewViewAll: 'View all',
+  aiStudioOverviewRecentRuns: 'Recent Runs',
+
+  // Phase 3-E - API Clients Page
+  apiClientsLoadFailed: 'Load failed',
+  apiClientsOAuthCreated: 'OAuth client created',
+  apiClientsCopySecret: 'Copy the Client Secret - it will not be shown again.',
+  apiClientsClientId: 'Client ID',
+  apiClientsDone: 'Done',
+  apiClientsSubtitle: 'Manage API keys and OAuth 2.0 client credentials',
+  apiClientsCreateOAuth: 'Create OAuth client',
+  apiClientsTabOAuth: 'OAuth 2.0 Clients',
+  apiClientsTabKeys: 'API Keys',
+  apiClientsCreateTitle: 'Create OAuth 2.0 client (Client Credentials)',
+  apiClientsNamePlaceholder: 'Client name (e.g. Production SDK)',
+  apiClientsDescPlaceholder: 'Description (optional)',
+  apiClientsScopesPlaceholder: 'Scopes (space-separated)',
+  apiClientsCreate: 'Create',
+  apiClientsCancel: 'Cancel',
+  apiClientsNoOAuth: 'No OAuth clients yet',
+  apiClientsNoOAuthHint: 'Create a client to use client_credentials authentication',
+  apiClientsNoKeys: 'No API keys yet',
+  apiClientsConfirmRevokeTitle: 'Confirm revocation',
+  apiClientsRevokeConfirm: 'Revoke OAuth client',
+  apiClientsRevokeHint: 'Applications using this client will no longer authenticate.',
+  apiClientsConfirmRevoke: 'Confirm revoke',
+  apiClientsCreateFailed: 'Create failed',
+  apiClientsDeleteFailed: 'Delete failed',
+
+  // Phase 3-E - Release Notes
+  releaseNotesTitle: 'Release Notes',
+  releaseNotesSubtitle: 'iCoDer medical AI agent platform version change log.',
+  releaseNotesApiPolicy: 'API change policy',
+
+  // Phase 3-E - Reset Password
+  resetPasswordTooShort: 'Password must be at least 8 characters',
+  resetPasswordMismatch: 'Passwords do not match',
+  resetPasswordNoToken: 'Missing reset token - please open the link from your email',
+  resetPasswordSuccess: 'Password reset successful - please log in with the new password',
+  resetPasswordFailed: 'Reset failed - token may have expired',
+  resetPasswordTitle: 'Reset Password',
+  resetPasswordSubtitle: 'Enter the new login password',
+  resetPasswordBackToLogin: 'Back to login',
+  resetPasswordNewPassword: 'New password',
+  resetPasswordNewPlaceholder: 'At least 8 characters',
+  resetPasswordConfirm: 'Confirm password',
+  resetPasswordConfirmPlaceholder: 'Re-enter password',
+  resetPasswordLoading: 'Resetting...',
+  resetPasswordSubmit: 'Reset Password',
+
+  // Phase 3-E - RunTrace viewer
+  runTraceStepUserMessageReceived: '1. User message received',
+  runTraceStepPlannerSelectedExperts: '2. Planner selected experts',
+  runTraceStepToolsList: '3. Tools list',
+  runTraceStepAuthResolved: '4. Auth resolved',
+  runTraceStepScopeChecked: '5. Scope checked',
+  runTraceStepToolsCall: '6. Tools call',
+  runTraceStepExpertResponse: '7. Expert response',
+  runTraceStepOutputGenerated: '8. Output generated',
+  runTraceStepCompletion: '9. Completion',
+  runTraceNoMetadata: 'No metadata',
+  runTraceNoRequiredScopes: 'No required_scopes',
+  runTraceDispatcherDetail: 'dispatcher detail',
+  runTraceRawSafeMetadata: 'raw safe_metadata',
+  runTraceSafeMetadata: 'safe_metadata',
+  runTraceToolCount: 'tool_count',
+  runTraceToolNames: 'tool_names',
+  runTraceToolName: 'tool_name',
+  runTraceHandlerRef: 'handler_ref',
+  runTraceStage: 'stage',
+  runTraceAuthType: 'auth_type',
+  runTraceInProcessBypass: '⚠ in-process bypass',
+  runTraceRedactedView: 'redacted_view',
+  runTraceGrantedScopes: 'granted_scopes',
+  runTraceNote: 'note',
+  runTraceScopeDiff: 'scope diff (✓ matched / ✗ missing)',
+  runTraceArguments: 'arguments',
+  runTraceArgumentsKeysLabel: 'keys',
+  runTraceChars: 'chars',
+  runTraceValidated: 'validated ✓',
+  runTraceResult: 'result',
+  runTraceResultKeysLabel: 'keys',
+  runTraceError: 'error',
+  runTraceMcpErrorCode: 'mcp_error_code',
+  runTraceTotalDispatch: 'total_dispatch',
+  runTraceTotalDispatchBreakdown: '(auth+scope+resolve+handler)',
+  runTraceTitle: 'RunTrace',
+  runTraceRunId: 'run_id',
+  runTraceSteps: 'steps',
+  runTraceOk: 'ok',
+  runTraceFailed: 'failed',
+  runTraceTotal: 'total',
+  runTraceIntro: '9-step run trace timeline. Blue border = the 4 steps of the unified Dispatcher. Click any row to expand dispatcher detail + raw metadata.',
+  runTraceAuthFilter: 'auth_resolved step only shows tool_name / auth_type / redacted_view / granted_scopes / note; all other metadata is hidden (defense in depth).',
+  runTraceEmpty: 'Run completed but no trace events emitted yet.',
+  runTraceEmptyHint: 'Run exists but timeline is empty. Possible causes: trace emit failure, DB write error, or the run took a non-instrumented path. Click retry below or return to Agent Hub to start again.',
+  runTraceRetry: 'Retry load',
+  runTraceNotFound: 'RunTrace not found',
+  runTraceNotFoundHint: 'No trace events found for this run_id. The run may not have triggered any MCP/Orchestrator steps, or only executed on the A2A path (without going through the MCP server).',
+  runTraceLoadFailed: 'Failed to load RunTrace',
+  runTraceLoadError: 'Load failed',
+  runTraceBack: 'Back',
+  runTraceBackToHub: 'Back to Agent Hub',
+  runTraceDispatcherHeader: 'Unified Tool Dispatcher',
+  runTraceAuditSummary: 'Run audit summary',
+  runTraceRunStatus: 'Run status',
+  runTraceRuntimeMode: 'Runtime mode',
+  runTraceCost: 'Cost',
+  runTraceCaptureStatus: 'Trace capture',
+  runTraceReviewSignal: 'Manual review signal',
+  runTraceReviewRequired: 'Review required',
+  runTraceReviewNotRequired: 'Review not required',
+  runTraceReviewNotRecorded: 'Not recorded',
+  runTraceReviewNonAuthoritative: 'This is an event-derived signal, not an authoritative clinical review decision.',
+  // Phase 3-D2.5 - Tool Dispatch Detail
+  runTraceToolDispatchDetail: 'Tool Dispatch Detail',
+  runTraceDispatchMode: 'Dispatch Mode',
+  runTraceRoundIndex: 'Round',
+  runTraceCaller: 'Caller',
+  runTraceSchemaValidation: 'Schema Validation',
+  runTracePhiRedaction: 'PHI Redaction',
+  runTraceScopeCheck: 'Scope Check',
+  runTraceHandlerStatus: 'Handler Status',
+  runTraceResultShape: 'Result Shape',
+  runTraceErrorStage: 'Error Stage',
+  runTraceDurationMs: 'Duration',
+
+  // Phase 3-E - Agent Chat
+  agentChatGreetingMedicalCoding: 'Please provide ICD-10-CN diagnosis coding and ICD-9-CM-3 procedure coding suggestions for the following medical record text.',
+  agentChatNotFoundToast: 'Agent not found - please clone from Hub first',
+  agentChatLoadFailed: 'Failed to load Agent',
+  agentChatDefaultGreeting: 'Please enter your request.',
+  agentChatRunComplete: 'Run completed',
+  agentChatRunFailed: 'Run failed',
+  agentChatNotCloned: 'Agent not cloned',
+  agentChatRedirecting: 'Redirecting to Agent Hub - please clone from there before entering the chat.',
+  agentChatBack: 'Back to Agent Hub',
+  agentChatInput: 'Input',
+  agentChatInputPlaceholder: 'Paste medical record text or enter your request here…',
+  agentChatCharCount: 'chars',
+  agentChatRunning: 'Running…',
+  agentChatRun: 'Run',
+  agentChatRunFailedTitle: 'Run failed',
+  agentChatResult: 'Run result',
+  agentChatDuration: 'Duration',
+  agentChatViewRunTrace: 'View RunTrace',
+  agentChatViewRunTraceHint: 'View RunTrace 9-step timeline',
+  agentChatRenderedTab: 'Rendered',
+  agentChatJsonTab: 'JSON',
+  // Phase 4-D - naming catalog (en-US canonical)
+  agentChatBreadcrumbAgents: 'Agents',
+  agentChatTextareaPlaceholder: 'What can I help you with?',
+  agentChatAddContext: 'Add context',
+  agentChatConsumesCredits: 'Messaging an agent consumes credits',
+  agentChatSettings: 'Settings',
+  agentChatCode: 'Code',
+  agentChatNameLabel: 'Name',
+  agentChatSystemPrompt: 'System prompt',
+  agentChatExperts: 'Experts',
+  agentChatBrowseExpertLibrary: 'Browse Expert Library',
+  agentChatCustomExperts: 'Custom experts',
+  agentChatDedicatedPolicyHint: 'This dedicated clinical Agent keeps its source safety rules and output contract. The prompt and project Experts here are additive specialization only.',
+  agentChatFixedSourceExperts: 'Fixed source Experts',
+  agentChatProjectExperts: 'Additive project Experts',
+  agentChatAddExpert: 'Add expert',
+  agentChatPinnedMessageParts: 'Pinned message parts',
+  agentChatSdkJavaScript: 'JavaScript (SDK)',
+  agentChatSdkDotNet: '.NET (SDK)',
+  agentChatSdkJsonConfig: 'JSON Config',
+  agentChatCopy: 'Copy',
+  agentChatApiClient: 'API Client',
+  agentChatRunHistory: 'Recent runs',
+  agentChatNewAgent: 'New Agent',
+  agentChatUseAgent: 'Use Agent',
+  agentChatCustomize: 'Customize',
+  agentChatSaved: 'Saved',
+  agentChatSaveFailed: 'Save failed',
+  agentChatSaving: 'Saving…',
+  agentChatNoExperts: 'No experts configured',
+  agentChatNoPinnedParts: 'No pinned message parts',
+  agentChatExpertLibraryStub: 'Expert library - coming soon (Phase 5)',
+  agentChatAddExpertStub: 'Add expert - coming soon (Phase 5)',
+  agentChatBadJson: 'Invalid JSON file',
+  agentChatRemoveAttachment: 'Remove attachment',
+
+  // Phase 3-E - Workbench Layout
+  workbenchLayoutInput: 'Input',
+  workbenchLayoutOutput: 'Output',
+  workbenchLayoutSettings: 'Settings',
+  workbenchLayoutEventInspector: 'Event Inspector',
+
+  // Phase 3-E - Edit System Prompt Modal
+  editSystemPromptTitle: 'Edit system prompt',
+  editSystemPromptSubtitle: "Define the agent's role and style.",
+  editSystemPromptTemplateHint: 'Use XML-style tags to structure sections. The <role> and <output_format> sections are required. Include an Example Output block within output_format for guidance.',
+  editSystemPromptGenerating: 'Generating...',
+  editSystemPromptAIGenerate: 'AI generate',
+  editSystemPromptCancel: 'Cancel',
+  editSystemPromptSave: 'Save',
+
+  // Phase 3-E - Tool Selector
+  toolSelectorLoading: 'Loading tools...',
+  toolSelectorAvailableTools: 'Available Tools',
+  toolSelectorSearchPlaceholder: 'Search tools...',
+  toolSelectorTier1Toggle: 'Auto-inject accuracy guarantee tools (Tier 1)',
+  toolSelectorCategorySafety: 'Safety',
+  toolSelectorCategoryExtraction: 'Extraction',
+  toolSelectorCategoryCoding: 'Coding',
+  toolSelectorCategoryVerification: 'Verification',
+  toolSelectorCategoryAnalysis: 'Analysis',
+  toolSelectorCategoryReport: 'Report',
+  toolSelectorAuto: 'Auto',
+  toolSelectorId: 'ID',
+  toolSelectorPreconditions: 'Preconditions',
+  toolSelectorPostconditions: 'Postconditions',
+  toolSelectorNoMatch: 'No tools found matching',
+  toolSelectorSelected: 'tools selected',
+  toolSelectorTier1: 'Tier 1',
+  toolSelectorTier2: 'Tier 2',
+
+  // Phase 3-E - Org Switcher
+  orgSwitcherNoOrg: 'No Organization',
+  orgSwitcherSelectOrg: 'Select Org',
+  orgSwitcherOrganizations: 'Organizations',
+  orgSwitcherNoOrgsFound: 'No organizations found',
+  orgSwitcherCreateManage: '+ Create or manage organizations',
+
+  // Phase 3-E - Event Inspector
+  eventInspectorTitle: 'Event Inspector',
+  eventInspectorCreditsConsumed: 'Credits consumed',
+  eventInspectorNoEvents: 'No events recorded',
+
+  // Phase 3-E - Error Boundary
+  errorBoundaryLoadFailed: 'Load failed',
+  errorBoundaryRetry: 'Retry',
+
+  // Phase 3-E - TopK Chips
+  topKChipsNoCandidates: 'No candidates',
+
+  // Phase 3-E - Settings Code Tab
+  settingsCodeTabSettings: 'Settings',
+  settingsCodeTabCode: 'Code',
+  settingsCodeTabTools: 'Tools',
+
+  // Phase 3-E - Code Snippet
+  codeSnippetJavaScript: 'JavaScript',
+  codeSnippetJSON: 'JSON',
+  codeSnippetJavaScriptSDK: 'JavaScript (SDK)',
+  codeSnippetPythonSDK: 'Python (SDK)',
+  codeSnippetCurl: 'curl',
+  codeSnippetCSharpSDK: 'C# (.NET SDK)',
+  codeSnippetJSONConfig: 'JSON Config',
+  codeSnippetCopyCode: 'Copy code',
+
+  // Phase 3-E - A2A Collaboration
+  a2aCollaborationTitle: 'A2A Agent Collaboration',
+  a2aCollaborationNAvailable: 'available',
+  a2aCollaborationEmpty: 'No other Agents discovered (A2A must be enabled)',
+
+  // Phase 3-E+ - Agent UI i18n extension
+  agentCardChatUse: 'Chat / Use Agent',
+  agentCardCustomize: 'Customize',
+  agentCardCloning: 'Cloning…',
+  agentCardProductionReadyFalse: 'production_ready=false',
+  agentCardExpertsSuffix: 'experts',
+  agentCardToolsSuffix: 'tools',
+  agentRuntimeLocalReady: 'Local runtime ready',
+  agentRuntimeConfiguredLive: 'Model connectivity verified (semantic validation pending)',
+  agentRuntimeConfiguredNotLive: 'Model configured (live health not verified)',
+  agentRuntimeUnavailable: 'Runtime currently unavailable',
+  agentRuntimeUnavailableHint: 'Runtime dependencies are not ready. Configure and verify the model or runtime service first.',
+  agentSemanticNotVerified: 'Semantic quality not verified',
+  // Phase 5 Track D P0 Gate 1 — user-visible display status labels (PDF §B3).
+  displayStatusPreview: 'Preview',
+  displayStatusAvailable: 'Available',
+  displayStatusControlledUse: 'Controlled use',
+  displayStatusComingSoon: 'Coming soon',
+  displayStatusDeprecated: 'Deprecated',
+  displayBadgeApprovalRequired: 'Approval required before send',
+  displayBadgeAnomalyConfirmationRequired: 'Anomalies require confirmation',
+  displayBadgeClinicalDecisionConfirmationRequired: 'Confirmation required for clinical decisions',
+  displayBadgeInternalOnly: 'Internal review only',
+  agentEnable: 'Enable',
+  agentDisable: 'Disable',
+  agentUninstall: 'Uninstall',
+  agentConfirmUninstall: 'Are you sure you want to uninstall?',
+  agentEnabledToast: 'Enabled',
+  agentDisabledToast: 'Disabled',
+  agentUninstalledToast: 'Uninstalled',
+  agentUninstallFailedToast: 'Uninstall failed',
+  agentClonedToDraftToast: 'Project copy created; ready to run and customize',
+  agentCloneFailedToast: 'Clone failed',
+  agentClonedEnterChatToast: 'Cloned - entering chat',
+  agentExistingCloneToast: 'Existing clone - entering chat',
+  agentLoginRequiredToast: 'Please log in first',
+  agentNotFoundToast: 'Agent not found',
+  agentVersionBumpedToast: 'Version bumped',
+  agentVersionBumpFailedToast: 'Version bump failed',
+  agentSelectTemplate: 'Select template',
+  agentSearchTemplatePlaceholder: 'Search templates...',
+  agentNameLabel: 'Agent name',
+  agentAdvancedSettings: 'Advanced settings',
+  agentDescriptionLabel: 'Description',
+  agentDescriptionPlaceholder: 'Describe the agent\'s function',
+  agentCategoryLabel: 'Category',
+  agentSystemPromptLabel: 'System prompt',
+  agentSystemPromptPlaceholder: 'System prompt...',
+  agentAiGenerate: 'AI generate',
+  agentChatAgentFallback: 'Agent',
+  agentChatAgentDescriptionPrefix: 'Agent: {desc}',
+  agentChatSourceRef: 'source: {ref}',
+  agentDetailTestTitle: 'Agent Test',
+  agentDetailTestInputPlaceholder: 'Enter a test medical record to validate the Agent\'s coding result...',
+  agentDetailRunTest: 'Run test',
+  agentDetailRunning: 'Running...',
+  agentDetailTestFailed: 'Test failed',
+  agentDetailStatus: 'Status',
+  agentDetailDuration: 'Duration',
+  agentDetailSafety: 'Safety',
+  agentDetailVerified: 'Verified',
+  agentDetailPrimaryDx: 'Primary diagnosis',
+  agentDetailSecondaryDx: 'Secondary diagnoses',
+  agentDetailProcedures: 'Procedures',
+  agentDetailIssues: 'Issues',
+  agentDetailRuleChecks: 'Rule checks',
+  agentDetailEvalTitle: 'Run history',
+  agentDetailHistoryTrend: 'Recent runs',
+  agentRunHistoryRefresh: 'Refresh run history',
+  agentRunHistoryEmpty: 'No persisted runs yet.',
+  agentLifecyclePublish: 'Publish',
+  agentLifecycleArchive: 'Archive',
+  agentLifecycleRestore: 'Restore',
+  agentLifecycleRunDisabled: 'This Agent is not published; running is disabled.',
+  agentLifecycleActionSucceeded: 'Agent lifecycle state updated',
+  agentLifecycleRestoreBeforeEdit: 'Restore the archived Agent before editing settings.',
+  agentDetailBasicInfo: 'Basic info',
+  agentDetailOrchestrationStrategy: 'Orchestration strategy',
+  agentDetailRoutingStrategy: 'Routing strategy',
+  agentDetailPermissionPreset: 'Permission preset (Deny-First)',
+  agentDetailMaxRetriesLabel: 'Max retries: {n}',
+  agentDetailConfidenceThresholdLabel: 'Confidence threshold: {n}',
+  agentDetailConfidenceLoose: '0.0 (loose)',
+  agentDetailConfidenceStrict: '1.0 (strict)',
+  agentDetailEditCase: 'Edit case content',
+  agentDetailEdit: 'Edit',
+  agentDetailRemove: 'Remove',
+  agentDetailDragSort: 'Drag to sort',
+  agentDetailDragHint: 'Drag experts to adjust call priority',
+  agentDetailExpertCountSuffix: 'count',
+  agentDetailInstalledToast: 'Agent installed to Runtime',
+  agentDetailInstallFailed: 'Install failed',
+  agentDetailOperationFailed: 'Operation failed, please check permissions',
+  agentDetailRoutingLlmPlan: 'LLM dynamic planning (recommended)',
+  agentDetailRoutingToolNative: 'Tool-Native contract enforcement (new)',
+  agentDetailRoutingFixedOrder: 'Fixed-order execution',
+  agentDetailRoutingParallel: 'Parallel invocation',
+  agentDetailRoutingSingleExpert: 'Single-expert direct',
+  agentDetailRoutingLlmPlanDesc: 'AI analyzes the task, then dynamically selects experts and call order',
+  agentDetailRoutingToolNativeDesc: 'LLM picks tools autonomously; Harness enforces contract validation per call',
+  agentDetailRoutingFixedOrderDesc: 'Call bound experts in list order',
+  agentDetailRoutingParallelDesc: 'Invoke all experts in parallel, aggregate results',
+  agentDetailRoutingSingleExpertDesc: 'Only call the default expert, ignore other bindings',
+  agentDetailPermissionMedicalCoding: 'Medical coding (recommended)',
+  agentDetailPermissionCdiAudit: 'Clinical documentation audit (read-only)',
+  agentDetailPermissionDrgAnalysis: 'DRG/DIP risk review (non-settlement)',
+  agentDetailPermissionRestrictive: 'Restrictive (deterministic tools only)',
+  agentDetailPermissionFullAccess: 'Full access (dev/admin)',
+  agentDetailPermissionMedicalCodingDesc: 'Standard coding pipeline - deterministic tools + limited LLM tool use',
+  agentDetailPermissionCdiAuditDesc: 'Read-only analysis tools - coding assignment disallowed',
+  agentDetailPermissionDrgAnalysisDesc: 'Coding-risk review only; no official group, weight, score, or payment result',
+  agentDetailPermissionRestrictiveDesc: 'Deterministic tools only (ICD index / evidence ranking etc.), maximum safety',
+  agentDetailPermissionFullAccessDesc: 'All tools available - dev/admin only',
+  agentDetailTestCaseLabel: 'Lumbar disc herniation',
+  agentDetailTestCaseText: 'Female, 65. Lower back pain with left lower limb radiating pain for 3 months. Lumbar MRI shows L4/5 disc herniation compressing the left nerve root. Admission diagnosis: Lumbar disc herniation. PLIF surgery recommended.',
+  agentDetailCapabilityQuestion: 'What can you do? Please describe your capabilities, specialties, and how you can help with medical coding, clinical documentation, and related medical tasks.',
+
+  // Phase 3-E+ - Use case filter dropdown (5 enum keys)
+  useCaseCodingRevenueCycle: 'Coding / Revenue cycle',
+  useCaseClinicalEvidenceResearch: 'Clinical evidence research',
+  useCasePointOfCare: 'Point of care',
+  useCaseCareCoordination: 'Care coordination',
+  useCaseChinaMedicalCompliance: 'China medical compliance',
+
+  // Phase 3-E+ - AI Studio Overview
+  aiStudioOverviewHeroEyebrow: 'AI Studio',
+  aiStudioOverviewHeroTitle: 'Overview',
+  aiStudioOverviewHeroTagline: 'Test and configure use cases directly from iCoDer Console',
+  aiStudioOverviewExploreLabel: 'Explore',
+  aiStudioOverviewExploreDesc: 'Build agents, generate live transcripts, clinical documents and more',
+  aiStudioOverviewInspectLabel: 'Inspect',
+  aiStudioOverviewInspectDesc: 'Debug with the events inspector and monitor live credit consumption',
+  aiStudioOverviewConfigureLabel: 'Configure',
+  aiStudioOverviewConfigureDesc: 'Fine tune settings for your needs and copy code directly into your application',
+  aiStudioOverviewExploreCapabilities: 'Explore capabilities',
+  aiStudioOverviewAgentsName: 'Agents',
+  aiStudioOverviewAgentsDesc: 'Customize agents by adding experts, system prompts and context',
+  aiStudioOverviewSttName: 'Speech to Text',
+  aiStudioOverviewSttDesc: 'Stream live audio, configure custom commands and generate transcriptions',
+  aiStudioOverviewTextGenName: 'Text Generation',
+  aiStudioOverviewTextGenDesc: 'Turn transcriptions into structured clinical notes, customized for your needs',
+  aiStudioOverviewEmbeddedName: 'Embedded Assistant',
+  aiStudioOverviewEmbeddedDesc: 'Configure and test settings for an embedded ambient scribe experience',
+  aiStudioOverviewFactExtractName: 'Fact Extraction',
+  aiStudioOverviewFactExtractDesc: 'Extract structured clinical facts from medical transcriptions and notes',
+  aiStudioOverviewCodingName: 'Medical Coding',
+  aiStudioOverviewCodingDesc: 'Convert unstructured clinical text into structured medical codes',
+  aiStudioOverviewExploreCta: 'Explore',
+  aiStudioOverviewDocsCta: 'Docs',
+  aiStudioOverviewDiveIntoCode: 'Ready to dive into code and make your first request?',
+  aiStudioOverviewDevQuickstart: 'Developer quickstart',
+  aiStudioOverviewFooterDocs: 'DOCUMENTATION',
+  aiStudioOverviewFooterAuth: 'Authentication',
+  aiStudioOverviewFooterGuides: 'Guides',
+  aiStudioOverviewFooterApiRef: 'API Reference',
+  aiStudioOverviewFooterSdks: 'SDKS AND TOOLS',
+  aiStudioOverviewFooterJsSdk: 'Javascript SDK',
+  aiStudioOverviewFooterPostman: 'Postman',
+  aiStudioOverviewFooterAiCoding: 'AI coding tools',
+  aiStudioOverviewFooterHelp: 'NEED HELP?',
+  aiStudioOverviewFooterChat: 'Chat with us',
+  aiStudioOverviewFooterTicket: 'Open a ticket',
 };
 
 export const locales: Record<Locale, LocaleDict> = {

@@ -1,0 +1,151 @@
+{
+  "schema_version": "icoder.governed-evidence-extractor-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_local_runtime_gate_passed_with_external_release_gates_open",
+  "agent": {
+    "agent_id": "evidence-extractor",
+    "agent_ref": "icoder/evidence-extractor@1.1.0",
+    "execution_path": "provider_registry",
+    "execution_target": "icoder.governed-evidence-extractor.v1",
+    "backend_type": "rule_engine",
+    "default_runtime_mode": "governed_local_exact_mention_extraction",
+    "external_llm_required": false,
+    "network_required": false,
+    "cost_usd": 0.0,
+    "clinical_support_assessed": false,
+    "output_contract": "icoder/CodedEvidence/v11",
+    "pack_sha256": "cab618db24b513cf9a567368b70454beb8e1293efdb1f0e1d9df8d50245e4374",
+    "human_review_required": true,
+    "production_ready": false
+  },
+  "catalog": {
+    "asset_id": "cn.icd10cn.catalog",
+    "version": "observed-local-2026-05-19",
+    "catalog_count": 37897,
+    "term_index_count": 56424,
+    "authority_status": "source_unverified",
+    "license_status": "external_review_required",
+    "billing_authoritative": false
+  },
+  "capability_boundary": {
+    "verified": [
+      "explicit_bounded_candidate_code_input",
+      "candidate_declaration_masking_with_offset_preservation",
+      "exact_catalog_term_or_code_literal_spans",
+      "explicit_negated_historical_family_and_suspected_context",
+      "duplicate_input_index_preservation",
+      "unknown_and_no_exact_mention_fail_closed",
+      "adversarial_suffix_exclusion",
+      "unified_run_a2a_hub_and_trace_provider_attribution"
+    ],
+    "not_claimed": [
+      "clinical_support_or_diagnosis_truth",
+      "semantic_synonym_abbreviation_or_indirect_evidence_inference",
+      "code_assignment_validation_recommendation_or_generation",
+      "full_note_multidocument_evidence_extraction",
+      "current_corti_same_case_equivalence",
+      "independent_clinical_quality",
+      "production_approval"
+    ]
+  },
+  "runtime_matrix": {
+    "hub_visible_agents": 26,
+    "visible_external_llm_required": 20,
+    "visible_external_llm_optional": 1,
+    "visible_local_only_execution": 5,
+    "visible_local_baseline_available": 6,
+    "visible_offline_safe_fail_closed_expected": 20,
+    "visible_field_relation_count": 34,
+    "visible_evidence_binding_count": 12,
+    "visible_cross_agent_relation_count": 8,
+    "visible_semantic_live_e2e_verified": 0,
+    "visible_production_ready_verified": 0,
+    "artifact": "runtime_matrix/agent_hub_runtime_matrix.json"
+  },
+  "tests": {
+    "new_capability_focused": {"passed": 16, "failed": 0, "seconds": 6.35},
+    "registry_pack_trace": {"passed": 88, "failed": 0, "seconds": 4.54},
+    "clean_expanded_regression": {
+      "passed": 915,
+      "failed": 0,
+      "skipped": 5,
+      "deselected": 6,
+      "seconds": 302.62,
+      "excluded_suite": "test_phase3b2_loop1_clone_endpoint.py"
+    },
+    "offline_visible_agent_e2e": {
+      "passed": 52,
+      "failed": 0,
+      "seconds": 11.81,
+      "local_baseline_success_per_matrix": 6,
+      "external_model_safe_fail_closed_per_matrix": 20,
+      "unsafe_or_invalid_per_matrix": 0
+    },
+    "field_relation_adversarial_replay": {
+      "relation_agents": 12,
+      "relations": 34,
+      "passed": 60,
+      "failed": 0,
+      "artifact": "field_relations/agent_hub_field_relation_replay.json"
+    },
+    "evidence_binding_adversarial_replay": {
+      "binding_agents": 6,
+      "bindings": 12,
+      "passed": 24,
+      "failed": 0,
+      "artifact": "evidence_bindings/agent_hub_evidence_binding_replay.json"
+    },
+    "cross_agent_relation_adversarial_replay": {
+      "relation_agents": 6,
+      "relations": 8,
+      "passed": 16,
+      "failed": 0,
+      "artifact": "cross_agent_relations/agent_hub_cross_agent_replay.json"
+    },
+    "deployment_candidate_preflight": {
+      "passed": 81,
+      "failed": 0,
+      "artifact": "preflight/deployment_preflight.json"
+    }
+  },
+  "known_independent_baseline_issue": {
+    "suite": "backend/tests/integration/icoder/test_phase3b2_loop1_clone_endpoint.py",
+    "passed": 5,
+    "failed": 4,
+    "failure": "medical-coding-agent clone returns AGENT_NOT_FOUND despite Hub visibility",
+    "reproduced_in_isolation": true,
+    "evidence_extractor_related": false
+  },
+  "corti_public_comparison": {
+    "direct_named_prebuilt_equivalent_found": false,
+    "sources": [
+      "https://corti.ai/agents",
+      "https://corti.ai/agents/medical-coding-icd-10-cpt-agent",
+      "https://corti.ai/medical-coding",
+      "https://www.corti.ai/stories/research-symphony-for-medical-coding"
+    ],
+    "checked_at": "2026-08-23",
+    "material_open_gaps": [
+      "full_note_and_multidocument_clinical_evidence_extraction",
+      "semantic_paraphrase_abbreviation_and_indirect_evidence_reasoning",
+      "authoritative_multicode_system_assignment_and_validation",
+      "ranked_code_alternatives_and_rule_grounded_justification",
+      "current_corti_same_case_and_repeatability_comparison",
+      "independent_clinical_gold_set_and_hospital_acceptance"
+    ]
+  },
+  "final_safety_state": {
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_hash_matches_expected": true,
+    "current_process_icoder_credential_length": 0,
+    "current_process_deepseek_key_length": 0,
+    "protected_port_listener_count": 0,
+    "python_or_uvicorn_process_count": 0
+  },
+  "limitations": [
+    "No direct public Corti Evidence Extractor pre-built Agent was found; comparison uses adjacent public Medical Coding capabilities.",
+    "No signed-in Corti console operation was executed because the host has a documented browser memory-crash risk.",
+    "No real external LLM call was executed and no exposed credential was read or used.",
+    "No real hospital data, independent clinical reviewer or production infrastructure gate was exercised."
+  ]
+}

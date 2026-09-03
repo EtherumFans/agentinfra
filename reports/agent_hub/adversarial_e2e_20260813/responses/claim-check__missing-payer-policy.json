@@ -1,0 +1,82 @@
+{
+  "agent_id": "claim-check",
+  "run_id": "run-1fdbb1af-e7b5-43c0-bb7a-264608b42b40",
+  "trace_id": "trace-53a4949fc66840b2",
+  "trace_url": "/ai-studio/runs/run-1fdbb1af-e7b5-43c0-bb7a-264608b42b40/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 4243,
+  "cost": {
+    "amount": 0.000134,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"review_conclusion\": \"无法完成核查，证据不足\",\n  \"evidence_consistency\": {\n    \"status\": \"insufficient\",\n    \"details\": \"仅提供拟报编码 K35.80，未提供完整病历、统筹区、支付方规则来源或生效日期，无法核对编码与原始记录的一致性。\"\n  },\n  \"coding_risks\": [\n    {\n      \"risk\": \"编码准确性无法验证\",\n      \"detail\": \"缺少病历证据，无法确认 K35.80 是否准确反映实际诊断和手术操作。\"\n    }\n  ],\n  \"insurance_risks\": [\n    {\n      \"risk\": \"支付方规则缺失\",\n      \"detail\": \"未提供统筹区、规则来源和生效日期，无法评估 DRG/DIP 分组、待遇范围或拒付风险。\"\n    }\n  ],\n  \"policy_unavailable\": true,\n  \"evidence_insufficient\": true,\n  \"manual_review_required\": true,\n  \"summary\": \"由于缺少完整病历、统筹区、支付方规则来源和生效日期，无法进行有效的结算合规核查。必须补充相关证据和规则信息后由人工复核。\"\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "review_conclusion": "无法完成核查，证据不足",
+    "evidence_consistency": {
+      "status": "insufficient",
+      "details": "仅提供拟报编码 K35.80，未提供完整病历、统筹区、支付方规则来源或生效日期，无法核对编码与原始记录的一致性。"
+    },
+    "coding_risks": [
+      {
+        "risk": "编码准确性无法验证",
+        "detail": "缺少病历证据，无法确认 K35.80 是否准确反映实际诊断和手术操作。"
+      }
+    ],
+    "insurance_risks": [
+      {
+        "risk": "支付方规则缺失",
+        "detail": "未提供统筹区、规则来源和生效日期，无法评估 DRG/DIP 分组、待遇范围或拒付风险。"
+      }
+    ],
+    "policy_unavailable": true,
+    "evidence_insufficient": true,
+    "manual_review_required": true,
+    "summary": "由于缺少完整病历、统筹区、支付方规则来源和生效日期，无法进行有效的结算合规核查。必须补充相关证据和规则信息后由人工复核。",
+    "structured_extraction": {
+      "contract": "icoder/ClaimCheckOutput/v1",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "evidence_consistency",
+        "coding_risks",
+        "insurance_risks",
+        "policy_unavailable",
+        "evidence_insufficient",
+        "manual_review_required",
+        "summary"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 4243,
+      "metadata": {
+        "agent_id": "claim-check",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 4243
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 5.49
+}

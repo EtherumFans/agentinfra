@@ -1,0 +1,53 @@
+principal,principal_type,permission,resource,scope,condition,granted,notes
+医生 (clinician),human,patient_context.create,patient_context,own_org,department_id==user.department,TRUE,A1C.3 endpoint + ABAC dept filter (Pilot)
+医生 (clinician),human,patient_context.read,patient_context,own_org+own_dept,department_id==user.department,TRUE,A1C.4 ABAC §3.3
+医生 (clinician),human,patient_context.delete,patient_context,own,created_by==user.id,TRUE,A1C.3 endpoint
+医生 (clinician),human,documents.submit,document,own_org,,TRUE,A1C.3 contract §3
+医生 (clinician),human,agent_run.invoke,agent_run,own_org,,TRUE,Phase 4-F agent_run
+医生 (clinician),human,review.approve,coding_review,own_org,,FALSE,Review must be coder/auditor — separation of duties
+医生 (clinician),human,billing.read,transaction,own_org,,FALSE,Clinician does not see billing
+编码员 (coder),human,patient_context.read,patient_context,own_org,,TRUE,Coder sees all dept contexts in org
+编码员 (coder),human,patient_context.create,patient_context,own_org,,FALSE,Coder receives from clinician — does not create
+编码员 (coder),human,documents.read,document,own_org,,TRUE,Read for coding
+编码员 (coder),human,agent_run.invoke,agent_run,own_org,,TRUE,Trigger MedCodER pipeline
+编码员 (coder),human,review.approve,coding_review,own_org,,TRUE,Coder is primary reviewer
+编码员 (coder),human,review.reject,coding_review,own_org,,TRUE,
+编码员 (coder),human,compliance.view,compliance,own_org,,TRUE,Read compliance findings
+编码员 (coder),human,billing.read,transaction,own_org,,TRUE,Read for insurance claim alignment
+CDI 专员 (qc),human,patient_context.read,patient_context,own_org,,TRUE,CDI scope = whole org
+CDI 专员 (qc),human,documents.read,document,own_org,,TRUE,
+CDI 专员 (qc),human,cdi_case.create,cdi_case,own_org,,TRUE,Phase 5 Track D CDI Agent
+CDI 专员 (qc),human,cdi_case.query_provider,cdi_case,own_org,,TRUE,Generate Provider Query
+CDI 专员 (qc),human,cdi_case.review,cdi_case,own_org,,TRUE,Review clinician response + close loop
+CDI 专员 (qc),human,review.approve,coding_review,own_org,,FALSE,Separation — coder approves
+病案管理员 (dept_head),human,patient_context.read,patient_context,own_org,,TRUE,
+病案管理员 (dept_head),human,patient_context.delete,patient_context,own_org,,TRUE,Medical records admin can delete
+病案管理员 (dept_head),human,documents.delete,document,own_org,,TRUE,
+病案管理员 (dept_head),human,review.override,coding_review,own_org,,TRUE,Override coder decision
+病案管理员 (dept_head),human,audit.read,audit_log,own_org,,TRUE,Read audit trail
+医保办 (insurance),human,patient_context.read,patient_context,own_org,purpose_of_use in (billing,operations),TRUE,ABAC: limited purpose
+医保办 (insurance),human,documents.read,document,own_org,purpose_of_use in (billing,operations),TRUE,ABAC
+医保办 (insurance),human,compliance.view,compliance,own_org,,TRUE,
+医保办 (insurance),human,billing.read,transaction,own_org,,TRUE,
+医保办 (insurance),human,patient_context.read,patient_context,own_org,purpose_of_use=research,FALSE,ABAC: research blocked
+系统管理员 (admin),human,patient_context.*,patient_context,own_org,,TRUE,
+系统管理员 (admin),human,documents.*,document,own_org,,TRUE,
+系统管理员 (admin),human,user.create,user,own_org,,TRUE,
+系统管理员 (admin),human,user.deactivate,user,own_org,,TRUE,
+系统管理员 (admin),human,oauth_client.create,oauth_client,own_org,,TRUE,Phase 7 Gate 5
+系统管理员 (admin),human,organization.configure,organization,own,,TRUE,
+系统管理员 (admin),human,audit.read,audit_log,own_org,,TRUE,
+系统管理员 (admin),human,billing.*,billing,own_org,,TRUE,
+系统管理员 (admin),human,*,*,other_org,,FALSE,Cross-tenant deny (A1A Gate 2/3)
+集成服务账号 (oauth_client),machine,patient_context.create,patient_context,own_org,,TRUE,HIS/EMR API Client
+集成服务账号 (oauth_client),machine,patient_context.read,patient_context,own_org,,TRUE,
+集成服务账号 (oauth_client),machine,patient_context.delete,patient_context,own_org,,TRUE,
+集成服务账号 (oauth_client),machine,documents.submit,document,own_org,,TRUE,
+集成服务账号 (oauth_client),machine,agent_run.invoke,agent_run,own_org,,TRUE,
+集成服务账号 (oauth_client),machine,webhook.receive,webhook,own_org,,FALSE,Webhook is OUTBOUND only (server → HIS)
+集成服务账号 (oauth_client),machine,review.approve,coding_review,own_org,,FALSE,Machine cannot approve medical decisions
+集成服务账号 (oauth_client),machine,*,*,other_org,,FALSE,Cross-tenant deny
+后台任务 (system),system,patient_context.expire,patient_context,any_org,cron context,TRUE,A1C.3 TTL cron
+后台任务 (system),system,webhook.deliver,webhook_delivery,any_org,cron delivery,TRUE,A1C.3 §4 callback
+后台任务 (system),system,run.cleanup,run_history,any_org,cron GC,TRUE,Phase 7 Gate 4 lifecycle
+后台任务 (system),system,patient_context.create,patient_context,any_org,,FALSE,Background tasks do not create contexts

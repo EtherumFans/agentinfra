@@ -1,0 +1,96 @@
+{
+  "agent_id": "clinical-guidelines",
+  "run_id": "run-f5b345c6-b3b8-4b48-a54d-9b9a138fb071",
+  "trace_id": "trace-e32f6a968b204fde",
+  "trace_url": "/ai-studio/runs/run-f5b345c6-b3b8-4b48-a54d-9b9a138fb071/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 8,
+  "cost": {},
+  "billing": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "structured_extraction": {
+      "contract": "icoder/ClinicalGuidelinesOutput/v4",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "guideline_scope",
+        "guideline_source_valid",
+        "criteria_checked",
+        "deviations",
+        "overall_assessment",
+        "evidence_citations",
+        "missing_information",
+        "uncertainty",
+        "manual_review_required"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "guideline_scope",
+        "guideline_source_valid",
+        "criteria_checked",
+        "deviations",
+        "overall_assessment",
+        "evidence_citations",
+        "missing_information",
+        "uncertainty"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/ClinicalGuidelinesOutput/v4",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 8,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 8,
+      "metadata": {
+        "agent_id": "clinical-guidelines",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 8
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.13
+}

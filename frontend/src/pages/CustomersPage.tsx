@@ -1,6 +1,6 @@
-// iCoDer — Customers page (Corti parity for Embedded Assistant end-user mgmt)
+// iCoDer - Customers page (Embedded Assistant end-user mgmt)
 //
-// Corti IA replicated:
+// IA:
 //   Header  Customers · "Manage your customers and end-users for Embedded Assistant"
 //   CTA     Add customer (right-aligned)
 //   Filters Search box (name / customer ID / region / tenant) + Clear Filters
@@ -11,12 +11,13 @@
 //
 // iCoDer China-extension: a CN region option (CustomerRegion enum `cn`) is
 // surfaced because Cloud SaaS serves 中国医院. NFR is the count of clinical
-// notes ingested via Embedded Assistant — backend increments via hook.
+// notes ingested via Embedded Assistant - backend increments via hook.
 import { useEffect, useState, useCallback } from 'react';
 import {
   Loader2, Plus, Search, X, ChevronLeft, ChevronRight,
   Trash2, Users,
 } from 'lucide-react';
+
 import { customersApi } from '../services/api';
 import { useT } from '../i18n';
 import { useAuthStore } from '../store';
@@ -36,7 +37,7 @@ const PAGE_SIZE = 20;
 const REGIONS: RegionFilter[] = ['us', 'eu', 'cn'];
 
 function formatDate(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   try {
     const d = new Date(iso);
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' });
@@ -115,7 +116,7 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
@@ -139,7 +140,7 @@ export default function CustomersPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t.searchCustomerPlaceholder}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border/20 bg-background text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
         <select
@@ -147,7 +148,7 @@ export default function CustomersPage() {
           onChange={e => setRegion(e.target.value as RegionFilter)}
           className="appearance-none text-sm pl-3 pr-8 py-2 rounded-lg border border-border/20 bg-background text-foreground cursor-pointer hover:border-primary/30 focus:outline-none focus:ring-1 focus:ring-ring"
         >
-          <option value="">{t.customerColRegion}: —</option>
+          <option value="">{t.customerColRegion}: -</option>
           {REGIONS.map(r => (
             <option key={r} value={r}>
               {r === 'us' ? t.customerRegionUs : r === 'eu' ? t.customerRegionEu : t.customerRegionCn}
@@ -165,7 +166,7 @@ export default function CustomersPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+      <div className="bg-background rounded-xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
@@ -216,7 +217,7 @@ export default function CustomersPage() {
       {/* Pagination */}
       {!loading && !error && total > 0 && (
         <div className="flex items-center justify-between mt-4 text-xs text-muted-foreground">
-          <p>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} / {total}</p>
+          <p>{(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, total)} / {total}</p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -335,7 +336,7 @@ function AddCustomerModal({ orgSlugHint, onClose, onCreated }: {
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-background rounded-xl shadow-2xl ring-1 ring-border/20 w-full max-w-md overflow-hidden"
+        className="bg-background rounded-xl shadow-2xl shadow-sm w-full max-w-md overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b border-border/20 flex items-center justify-between">

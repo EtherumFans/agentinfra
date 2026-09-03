@@ -1,0 +1,1247 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/clinical-education@1.1.0",
+  "manifest": {
+    "name": "临床教育智能体",
+    "name_en": "Clinical Education Agent",
+    "version": "1.1.0",
+    "description": "仅从明确标注且记录为医院已批准的来源材料装配可追溯教学要点和开放式知识检查，始终要求人工复核。",
+    "category": "clinical-education",
+    "category_display": "Clinical Evidence and Research / 临床证据与研究",
+    "icon": "BookOpenCheck",
+    "tags": [
+      "clinical-education",
+      "china-localized",
+      "hospital-approved-source-only",
+      "exact-span-evidence",
+      "human-review-required"
+    ],
+    "maturity": "runnable",
+    "production_ready": false,
+    "human_review": "required",
+    "hidden_from_hub": false,
+    "use_case": "clinical_education"
+  },
+  "system_prompt": "你是中国医疗场景的来源绑定临床教育智能体。只复制输入中具有明确字段标题、记录为医院已批准并带来源元数据的材料原文，将每条原文装配为固定格式的学习目标、关键要点、引用和开放式逐字复述题。不得分类临床问题，不得依赖模型记忆，不得调用 PubMed、Web Search、指南库或医学计算器，不得补充诊断、鉴别诊断、机制、检查、用药、剂量、禁忌证、治疗建议或患者特异建议。每项临床陈述必须绑定脱敏输入中的精确字符跨度。来源缺失、元数据不完整或批准状态不明确时失败关闭。不得自动发布或写回，始终要求人工复核。",
+  "backend_provider": "icoder.governed-clinical-education.v1",
+  "model": null,
+  "backend_config": {
+    "runtime_mode": "governed_local_approved_source_clinical_education",
+    "network_enabled": false,
+    "llm_enabled": false,
+    "pubmed_enabled": false,
+    "web_search_enabled": false,
+    "medical_calculator_enabled": false,
+    "writeback_enabled": false
+  },
+  "experts": [],
+  "tools": [],
+  "permissions": {
+    "key": "clinical-education",
+    "name": "临床教育智能体默认权限",
+    "description": "只读装配医院批准来源材料，不访问外部知识或发布服务。",
+    "no_clinical_inference": true,
+    "approved_source_required": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/ClinicalEducationOutput/v6",
+    "required_fields": [
+      "education_status",
+      "topic",
+      "audience",
+      "response_mode",
+      "learner_level",
+      "approved_source",
+      "source_statements",
+      "learning_objectives",
+      "key_points",
+      "evidence_citations",
+      "knowledge_checks",
+      "evidence_items",
+      "missing_required_fields",
+      "missing_source_metadata",
+      "limitations",
+      "source_insufficient",
+      "source_sufficiency_status",
+      "content_generation_status",
+      "question_classification_performed",
+      "clinical_reasoning_performed",
+      "diagnostic_advice_generated",
+      "treatment_advice_generated",
+      "drug_interaction_assessed",
+      "medical_calculator_used",
+      "pubmed_lookup_performed",
+      "web_search_performed",
+      "external_knowledge_used",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "optional_fields": [],
+    "field_types": {
+      "education_status": "string",
+      "topic": "object",
+      "audience": "object",
+      "response_mode": "object",
+      "learner_level": "object",
+      "approved_source": "object",
+      "source_statements": "array",
+      "learning_objectives": "array",
+      "key_points": "array",
+      "evidence_citations": "array",
+      "knowledge_checks": "array",
+      "evidence_items": "array",
+      "missing_required_fields": "array",
+      "missing_source_metadata": "array",
+      "limitations": "array",
+      "source_insufficient": "boolean",
+      "source_sufficiency_status": "string",
+      "content_generation_status": "string",
+      "question_classification_performed": "boolean",
+      "clinical_reasoning_performed": "boolean",
+      "diagnostic_advice_generated": "boolean",
+      "treatment_advice_generated": "boolean",
+      "drug_interaction_assessed": "boolean",
+      "medical_calculator_used": "boolean",
+      "pubmed_lookup_performed": "boolean",
+      "web_search_performed": "boolean",
+      "external_knowledge_used": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "education_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "INPUT_REQUIRED",
+          "SOURCE_REVIEW_REQUIRED",
+          "READY_FOR_REVIEW"
+        ]
+      },
+      "topic": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "audience": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "response_mode": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "learner_level": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "approved_source": {
+        "type": "object",
+        "properties": {
+          "approval_date": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "approval_organization": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "approval_status": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "publication_date": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "scope": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "source_organization": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "source_url": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "title": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "approval_date",
+          "approval_organization",
+          "approval_status",
+          "publication_date",
+          "scope",
+          "source_organization",
+          "source_url",
+          "title",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "source_statements": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "statement_id": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref",
+            "statement_id"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "learning_objectives": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "objective": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_statement_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 80,
+              "minItems": 1
+            }
+          },
+          "required": [
+            "objective",
+            "source_statement_ids"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "key_points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "evidence_citations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "citation_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_title": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_url": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_version": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "citation_id",
+            "evidence",
+            "evidence_ref",
+            "source_title",
+            "source_url",
+            "source_version"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "knowledge_checks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "answer": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "question": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_statement_id": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "answer",
+            "evidence_ref",
+            "question",
+            "source_statement_id"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 80,
+        "minItems": 0
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "topic",
+                "audience",
+                "response_mode",
+                "learner_level",
+                "source_title",
+                "source_version",
+                "publication_date",
+                "approval_status",
+                "approval_date",
+                "approval_organization",
+                "source_organization",
+                "source_url",
+                "source_scope",
+                "source_statements"
+              ]
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "field",
+            "label",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "missing_required_fields": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "missing_source_metadata": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 7,
+        "minItems": 6
+      },
+      "source_insufficient": {
+        "type": "boolean"
+      },
+      "source_sufficiency_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "SOURCE_NOT_PROVIDED",
+          "SOURCE_METADATA_OR_APPROVAL_INCOMPLETE",
+          "DOCUMENTED_SOURCE_SCOPE_LIMITED",
+          "DOCUMENTED_SOURCE_READY_FOR_REVIEW"
+        ]
+      },
+      "content_generation_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "SOURCE_BOUND_TEMPLATE_ONLY"
+      },
+      "question_classification_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_reasoning_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "diagnostic_advice_generated": {
+        "type": "boolean",
+        "const": false
+      },
+      "treatment_advice_generated": {
+        "type": "boolean",
+        "const": false
+      },
+      "drug_interaction_assessed": {
+        "type": "boolean",
+        "const": false
+      },
+      "medical_calculator_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "pubmed_lookup_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "web_search_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "external_knowledge_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_teaching_content",
+        "when": [
+          {
+            "path": "education_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "source_statements",
+            "operator": "empty"
+          },
+          {
+            "path": "learning_objectives",
+            "operator": "empty"
+          },
+          {
+            "path": "key_points",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_citations",
+            "operator": "empty"
+          },
+          {
+            "path": "knowledge_checks",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "source_review_required_has_no_generated_teaching_content",
+        "when": [
+          {
+            "path": "education_status",
+            "operator": "equals",
+            "value": "SOURCE_REVIEW_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "learning_objectives",
+            "operator": "empty"
+          },
+          {
+            "path": "key_points",
+            "operator": "empty"
+          },
+          {
+            "path": "knowledge_checks",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "ready_education_has_approved_source_and_bound_content",
+        "when": [
+          {
+            "path": "education_status",
+            "operator": "equals",
+            "value": "READY_FOR_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "missing_required_fields",
+            "operator": "empty"
+          },
+          {
+            "path": "missing_source_metadata",
+            "operator": "empty"
+          },
+          {
+            "path": "approved_source.approval_status.documented_text",
+            "operator": "equals",
+            "value": "已批准"
+          },
+          {
+            "path": "source_statements",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "ready_education_has_bound_teaching_material",
+        "when": [
+          {
+            "path": "education_status",
+            "operator": "equals",
+            "value": "READY_FOR_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "learning_objectives",
+            "operator": "non_empty"
+          },
+          {
+            "path": "key_points",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_citations",
+            "operator": "non_empty"
+          },
+          {
+            "path": "knowledge_checks",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "source_insufficient_requires_limitations_and_review",
+        "when": [
+          {
+            "path": "source_insufficient",
+            "operator": "equals",
+            "value": true
+          }
+        ],
+        "must": [
+          {
+            "path": "limitations",
+            "operator": "non_empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "governed_education_never_claims_external_or_clinical_reasoning",
+        "when": [
+          {
+            "path": "content_generation_status",
+            "operator": "equals",
+            "value": "SOURCE_BOUND_TEMPLATE_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "question_classification_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_reasoning_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "diagnostic_advice_generated",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "treatment_advice_generated",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "drug_interaction_assessed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "medical_calculator_used",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "pubmed_lookup_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "web_search_performed",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "governed_education_never_crosses_external_or_delivery_boundary",
+        "when": [
+          {
+            "path": "content_generation_status",
+            "operator": "equals",
+            "value": "SOURCE_BOUND_TEMPLATE_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "external_knowledge_used",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "clinical_education_evidence_matches_input",
+        "for_each": "evidence_items",
+        "text_path": "text",
+        "span_path": "char_span"
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": []
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": false,
+    "supports_mcp_tools": false
+  },
+  "non_goals": [
+    "不分类临床问题，不生成诊断、鉴别诊断、机制、检查、用药或治疗建议",
+    "不调用模型记忆、PubMed、Web Search、指南库、药物数据库或医学计算器",
+    "不验证来源真实性、许可、版本时效、医院批准权限或临床适用性",
+    "不生成患者特异性医疗建议，不替代教师、临床人员或药师审核",
+    "不自动发布教学材料，也不写回医院业务系统"
+  ],
+  "human_review_required_when": [
+    "all assembled learning objectives, key points and knowledge checks",
+    "source identity, version, publication date, approval, scope or learner suitability is missing or conflicting",
+    "before any teaching publication, clinical use or source-system writeback"
+  ],
+  "example_inputs": [
+    {
+      "title": "基于医院批准材料生成脓毒症培训卡片",
+      "input_text": "主题：脓毒症早期识别\n受众：急诊住院医师\n回答模式：Tutor\n学习者层级：住院医师\n批准来源名称：本院《脓毒症诊疗规范》\n来源版本：2026.1\n发布日期：2026-07-01\n医院批准状态：已批准\n医院批准日期：2026-07-15\n批准机构：示例医院医疗质量管理委员会\n来源机构：示例医院\n来源网址：hospital-internal://clinical-guidelines/sepsis/2026.1\n材料范围：完整\n来源原文：感染患者若出现器官功能障碍，应立即启动脓毒症评估流程",
+      "extra": {
+        "language": "zh-CN",
+        "source_policy": "hospital_approved_only",
+        "publication_mode": "review_only"
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "education_status": "READY_FOR_REVIEW",
+      "topic": {
+        "documented_text": "脓毒症早期识别",
+        "evidence_ref": "clinical-education-evidence-1"
+      },
+      "audience": {
+        "documented_text": "急诊住院医师",
+        "evidence_ref": "clinical-education-evidence-2"
+      },
+      "response_mode": {
+        "documented_text": "Tutor",
+        "evidence_ref": "clinical-education-evidence-3"
+      },
+      "learner_level": {
+        "documented_text": "住院医师",
+        "evidence_ref": "clinical-education-evidence-4"
+      },
+      "approved_source": {
+        "title": {
+          "documented_text": "本院《脓毒症诊疗规范》",
+          "evidence_ref": "clinical-education-evidence-5"
+        },
+        "version": {
+          "documented_text": "2026.1",
+          "evidence_ref": "clinical-education-evidence-6"
+        },
+        "publication_date": {
+          "documented_text": "2026-07-01",
+          "evidence_ref": "clinical-education-evidence-7"
+        },
+        "approval_status": {
+          "documented_text": "已批准",
+          "evidence_ref": "clinical-education-evidence-8"
+        },
+        "approval_date": {
+          "documented_text": "2026-07-15",
+          "evidence_ref": "clinical-education-evidence-9"
+        },
+        "approval_organization": {
+          "documented_text": "示例医院医疗质量管理委员会",
+          "evidence_ref": "clinical-education-evidence-10"
+        },
+        "source_organization": {
+          "documented_text": "示例医院",
+          "evidence_ref": "clinical-education-evidence-11"
+        },
+        "source_url": {
+          "documented_text": "hospital-internal://clinical-guidelines/sepsis/2026.1",
+          "evidence_ref": "clinical-education-evidence-12"
+        },
+        "scope": {
+          "documented_text": "完整",
+          "evidence_ref": "clinical-education-evidence-13"
+        }
+      },
+      "source_statements": [
+        {
+          "statement_id": "source-statement-1",
+          "documented_text": "感染患者若出现器官功能障碍，应立即启动脓毒症评估流程",
+          "evidence_ref": "clinical-education-evidence-14"
+        }
+      ],
+      "learning_objectives": [
+        {
+          "objective": "能够依据本院《脓毒症诊疗规范》准确复述已提供要点：感染患者若出现器官功能障碍，应立即启动脓毒症评估流程",
+          "source_statement_ids": [
+            "source-statement-1"
+          ]
+        }
+      ],
+      "key_points": [
+        {
+          "documented_text": "感染患者若出现器官功能障碍，应立即启动脓毒症评估流程",
+          "evidence_ref": "clinical-education-evidence-14"
+        }
+      ],
+      "evidence_citations": [
+        {
+          "citation_id": "citation-1",
+          "source_title": "本院《脓毒症诊疗规范》",
+          "source_version": "2026.1",
+          "source_url": "hospital-internal://clinical-guidelines/sepsis/2026.1",
+          "evidence": "感染患者若出现器官功能障碍，应立即启动脓毒症评估流程",
+          "evidence_ref": "clinical-education-evidence-14"
+        }
+      ],
+      "knowledge_checks": [
+        {
+          "question": "请依据本院《脓毒症诊疗规范》复述已提供要点 source-statement-1。",
+          "answer": "感染患者若出现器官功能障碍，应立即启动脓毒症评估流程",
+          "source_statement_id": "source-statement-1",
+          "evidence_ref": "clinical-education-evidence-14"
+        }
+      ],
+      "evidence_items": [
+        {
+          "evidence_id": "clinical-education-evidence-1",
+          "field": "topic",
+          "label": "主题",
+          "text": "脓毒症早期识别",
+          "char_span": [
+            3,
+            10
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-2",
+          "field": "audience",
+          "label": "受众",
+          "text": "急诊住院医师",
+          "char_span": [
+            14,
+            20
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-3",
+          "field": "response_mode",
+          "label": "回答模式",
+          "text": "Tutor",
+          "char_span": [
+            26,
+            31
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-4",
+          "field": "learner_level",
+          "label": "学习者层级",
+          "text": "住院医师",
+          "char_span": [
+            38,
+            42
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-5",
+          "field": "source_title",
+          "label": "批准来源名称",
+          "text": "本院《脓毒症诊疗规范》",
+          "char_span": [
+            50,
+            61
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-6",
+          "field": "source_version",
+          "label": "来源版本",
+          "text": "2026.1",
+          "char_span": [
+            67,
+            73
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-7",
+          "field": "publication_date",
+          "label": "发布日期",
+          "text": "2026-07-01",
+          "char_span": [
+            79,
+            89
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-8",
+          "field": "approval_status",
+          "label": "医院批准状态",
+          "text": "已批准",
+          "char_span": [
+            97,
+            100
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-9",
+          "field": "approval_date",
+          "label": "医院批准日期",
+          "text": "2026-07-15",
+          "char_span": [
+            108,
+            118
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-10",
+          "field": "approval_organization",
+          "label": "批准机构",
+          "text": "示例医院医疗质量管理委员会",
+          "char_span": [
+            124,
+            137
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-11",
+          "field": "source_organization",
+          "label": "来源机构",
+          "text": "示例医院",
+          "char_span": [
+            143,
+            147
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-12",
+          "field": "source_url",
+          "label": "来源网址",
+          "text": "hospital-internal://clinical-guidelines/sepsis/2026.1",
+          "char_span": [
+            153,
+            206
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-13",
+          "field": "source_scope",
+          "label": "材料范围",
+          "text": "完整",
+          "char_span": [
+            212,
+            214
+          ]
+        },
+        {
+          "evidence_id": "clinical-education-evidence-14",
+          "field": "source_statements",
+          "label": "来源原文",
+          "text": "感染患者若出现器官功能障碍，应立即启动脓毒症评估流程",
+          "char_span": [
+            220,
+            246
+          ]
+        }
+      ],
+      "missing_required_fields": [],
+      "missing_source_metadata": [],
+      "limitations": [
+        "仅解析明确标题字段和医院批准材料原文；自由叙事不会被自动总结。",
+        "教学内容只使用用户提供原文，不调用模型记忆、PubMed、Web Search、指南库或医学计算器。",
+        "未分类临床问题，未生成诊断、鉴别诊断、机制、检查、用药、剂量、禁忌证或治疗建议。",
+        "知识检查为开放式逐字复述题，不生成未经来源支持的选项或临床推理答案。",
+        "未验证来源真实性、许可、版本时效、医院批准权限或对目标学习者的适用性。",
+        "本内容仅供教学材料人工复核，不用于具体患者决策，也不自动发布或写回。"
+      ],
+      "source_insufficient": false,
+      "source_sufficiency_status": "DOCUMENTED_SOURCE_READY_FOR_REVIEW",
+      "content_generation_status": "SOURCE_BOUND_TEMPLATE_ONLY",
+      "question_classification_performed": false,
+      "clinical_reasoning_performed": false,
+      "diagnostic_advice_generated": false,
+      "treatment_advice_generated": false,
+      "drug_interaction_assessed": false,
+      "medical_calculator_used": false,
+      "pubmed_lookup_performed": false,
+      "web_search_performed": false,
+      "external_knowledge_used": false,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "sample-run",
+        "provider_trace_refs": [
+          "sample-run:governed-clinical-education"
+        ]
+      }
+    }
+  ],
+  "built_by": "icoder",
+  "integrity": {
+    "sha256": "01b6d9aceab1897df02a2e34bcb35245e140732de1af5484399abecfeef9a5a1"
+  }
+}

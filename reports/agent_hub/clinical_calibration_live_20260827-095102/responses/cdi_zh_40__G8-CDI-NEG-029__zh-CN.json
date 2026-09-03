@@ -1,0 +1,211 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-fd0d0ae7-2f12-4adb-9787-e320de3c3867",
+  "trace_id": "trace-e4afe2e623824539",
+  "trace_url": "/ai-studio/runs/run-fd0d0ae7-2f12-4adb-9787-e320de3c3867/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 15203,
+  "cost": {
+    "amount": 0.00095102,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，75岁",
+        "2型糖尿病病史20年",
+        "近期失访",
+        "否认多饮多尿加重、视物模糊、肢体麻木、间歇性跛行",
+        "无糖尿病足，触觉正常",
+        "HbA1c 7.2"
+      ],
+      "encounter_metadata": {
+        "patient_age": "75岁",
+        "patient_sex": "女性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "HbA1c 7.2 is documented but no clinical correlation or plan is stated.",
+        "why_it_matters": "An abnormal lab value without clinical correlation may lead to unspecified diabetes control coding and unclear management.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "HbA1c 7.2",
+          "char_start": 94,
+          "char_end": 103,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-001",
+        "gap_id": "GAP-001",
+        "topic": "HbA1c 临床意义",
+        "reason": "HbA1c 7.2 已记录，但未说明其临床意义或后续管理计划。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "HbA1c 7.2",
+          "char_start": 94,
+          "char_end": 103,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "HbA1c 7.2",
+            "char_start": 94,
+            "char_end": 103,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者HbA1c 7.2的临床意义及处理计划是什么？",
+        "response_options": [
+          "A. 血糖控制尚可，维持当前治疗方案",
+          "B. 血糖控制欠佳，需调整降糖方案",
+          "C. 需进一步评估并发症及合并症",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The documentation should explicitly state the clinical significance of the HbA1c 7.2% in the context of this patient’s long-standing diabetes, including whether this value represents stable control, a change from prior levels, or a need for treatment adjustment. Additionally, the plan must specify the next steps—such as medication titration, lifestyle counseling, or referral—and note any symptoms or exam findings that correlate with glycemic status (e.g., absence of neuropathy or retinopathy). Without this correlation and a stated management plan, the HbA1c alone lacks the specificity required for accurate coding of diabetes control and its associated care.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2991,
+        "tokens": 271,
+        "run_id": "run-c54321a7faea",
+        "trace_id": "trace-4e32cca98403"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-9de77303b1b6",
+        "trace_id": "trace-bf23925a7031"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-17c2cc67b1ac",
+        "trace_id": "trace-213f35f438b5"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-4cad5df136e3",
+        "trace_id": "trace-6070b8fc28dd"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-fd0d0ae7-2f12-4adb-9787-e320de3c3867",
+      "stage_trace": {
+        "encounter_synthesis": "trace-1bc82c9781db",
+        "gap_identification": "trace-fad15c38c99b",
+        "expert_consultation": "trace-97afeda88bce",
+        "query_generation": "trace-69be5bea1e37",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-cc0812be5bd6",
+        "semantic_necessity_gate": "trace-296810ae564e",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-0c40a4bfe50d"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-d5cb2474edab",
+        "gap_identification": "run-d4eb16b51921",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-aea53f71a55b",
+        "query_generation": "run-10dfbd180951",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=The chart documents diabetes with HbA1c but lacks specificity regarding complica",
+        "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=3;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-7ea3f3dfe781",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-afb0c6a7ec43",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-1798935225dc"
+      },
+      "trace_id": "trace-e4afe2e623824539"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIzOGE0ZTFhNGE5ODA5N2ViNzU1NGFmYzg0M2MwNDMzZGExNGNlMGI5YzY1Mzg2MDAxOGQ0M2ZiN2RkNjU1OWU2IiwiZSI6MTc4Nzg4MjMyMSwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tZmQwZDBhZTctMmYxMi00YWRiLTk3ODctZTMyMGRlM2MzODY3IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.SGwsW4ZAIb4zppHPIcJQu0llBHySrJX4pgAw9fTFF9o",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 15.306
+}

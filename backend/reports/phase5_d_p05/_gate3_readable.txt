@@ -1,0 +1,59 @@
+=== GATE3 AFTER ===
+[C01_pneumonia_simple] gaps=3 queries=1 tokens=2956 multi_dim=0
+  Q1 [咳嗽咳痰的持续时间] 根据患者咳嗽咳痰病程3天，请明确其持续时间分类：
+
+[C02_cholecystitis] gaps=5 queries=3 tokens=3684 multi_dim=0
+  Q1 [胆囊壁增厚程度] 根据B超测量结果，胆囊壁增厚的程度属于以下哪种？
+  Q2 [胆囊炎并发症] 根据临床表现和影像学检查，急性胆囊炎是否伴有以下并发症？
+  Q3 [胆道梗阻或胆管炎] 根据临床表现和实验室检查，胆囊结石是否伴有以下情况？
+
+[C03_hypertension_workup] gaps=3 queries=3 tokens=2795 multi_dim=0
+  Q1 [高血压病分级或分期] 根据患者血压160/95 mmHg及现有检查结果，请明确高血压病的分级或分期：
+  Q2 [头晕乏力病因] 患者头晕乏力1月，血压160/95 mmHg，心电图及心脏彩超正常。请评估头晕乏力的可能病因：
+  Q3 [高血压急症或亚急症] 患者血压160/95 mmHg，无靶器官损害证据（心电图、心脏彩超正常）。请判断是否为高血压急症或亚急症：
+
+[C04_diabetes_negation] gaps=4 queries=4 tokens=3380 multi_dim=0
+  Q1 [2型糖尿病诊断确认] 根据患者多饮多尿症状及父亲糖尿病史，请评估患者目前糖尿病诊断及分型情况。
+  Q2 [多饮多尿与糖尿病关联] 患者多饮多尿症状，请结合血糖或糖化血红蛋白结果，评估是否由糖尿病引起。
+  Q3 [高血压病史详情] 请提供患者高血压病史的详细信息，包括血压控制水平、用药方案及有无并发症。
+  Q4 [父亲糖尿病类型] 请明确患者父亲糖尿病的具体类型。
+
+[C05_fracture_conflict] gaps=3 queries=2 tokens=3184 multi_dim=0
+  Q1 [损伤结构明确] 患者初步诊断为左胸外伤，但出院诊断为右侧肋骨骨折，且手术为右胸第5肋骨折固定术。请明确患者的具体损伤结构及侧别。
+  Q2 [肋骨骨折具体信息] 出院诊断为右侧肋骨骨折，但未明确具体肋骨编号及是否为多发性骨折。请补充肋骨骨折的侧别、具体肋骨编号及是否为多发性骨折。
+
+[C06_appendicitis] gaps=2 queries=1 tokens=2585 multi_dim=0
+  Q1 [手术所见及病理结果] 腹腔镜阑尾切除术中阑尾的外观表现及术后病理检查结果如何？
+
+[C07_copd_exacerbation] gaps=3 queries=2 tokens=3437 multi_dim=0
+  Q1 [是否合并呼吸衰竭] 根据动脉血气结果（pH 7.35, PaCO2 60mmHg），患者是否存在呼吸衰竭？
+  Q2 [慢性阻塞性肺疾病的临床分型] 根据患者既往病史及本次临床表现，慢性阻塞性肺疾病的临床分型属于以下哪种？
+
+[C08_stemi_pci] gaps=5 queries=3 tokens=4115 multi_dim=0
+  Q1 [心肌梗死具体前壁节段] 根据心电图和冠脉造影结果，请明确前壁心肌梗死的具体节段（如广泛前壁、前间壁、前侧壁等）。
+  Q2 [Killip分级或心功能状态] 请评估患者入院时的心功能状态，提供Killip分级（如Killip I级：无心力衰竭体征；Killip II级：肺部啰音<50%肺野；Killip III级：肺水肿；Killip IV级：心源性休克）。
+  Q3 [既往史（高血压、糖尿病、冠心病史等）] 请补充患者既往病史，包括高血压、糖尿病、冠心病、高脂血症、吸烟史等。
+
+[C09_minimal_info] gaps=4 queries=4 tokens=2858 multi_dim=0
+  Q1 [腹痛病因] 根据患者腹痛表现，请评估最可能的病因：
+  Q2 [腹痛严重程度] 根据患者腹痛对日常生活的影响及查体表现，请评估腹痛严重程度：
+  Q3 [腹痛起病时间或病程] 根据患者病史，请描述腹痛的起病方式和病程特点：
+  Q4 [腹痛具体解剖部位] 根据患者主诉和查体，请明确腹痛的具体部位：
+
+[C10_peds_pneumonia] gaps=3 queries=3 tokens=2545 multi_dim=0
+  Q1 [病原体未明确] 根据临床表现和检查结果，该支气管肺炎最可能的病原体是？
+  Q2 [严重程度未明确] 根据现有资料，该支气管肺炎的严重程度分级是？
+  Q3 [解剖部位未明确] 根据胸片结果，支气管肺炎的具体解剖部位是？
+
+=== summary ===
+  total_cases: 10
+  cases_with_queries: 10
+  cases_with_overquery_ge4: 2
+  cases_zero_gap_with_queries: 0
+  cases_with_multi_dim_query: 0
+  total_gaps: 35
+  total_queries: 26
+  total_multi_dim_queries: 0
+  avg_queries_per_case: 2.6
+  avg_gaps_per_case: 3.5
+  multi_dim_query_rate: 0.0

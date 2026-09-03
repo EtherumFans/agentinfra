@@ -1,0 +1,51 @@
+{
+  "agent_id": "procedure-extractor",
+  "run_id": "run-5df5bc8f-9ebe-4226-90b4-9fd4de9ac9f9",
+  "trace_id": "trace-ef0d1cfa82f14f11",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7631,
+  "cost": {
+    "amount": 0.000123,
+    "currency": "CNY"
+  },
+  "summary": "好的，我将以 iCoDer Procedure Coding Agent 的身份，根据您提供的手术记录片段进行分析。",
+  "result": {
+    "status": "complete",
+    "markdown": "好的，我将以 iCoDer Procedure Coding Agent 的身份，根据您提供的手术记录片段进行分析。\n\n由于您只提供了“患者男，60岁”这一基本信息，没有提供任何手术记录文本，我无法进行任何编码操作。\n\n请提供具体的手术记录文本，例如：“患者在全麻下行腹腔镜胆囊切除术，术中见胆囊与周围组织粘连...”。\n\n在收到完整的手术记录后，我将严格按照以下流程进行分析并输出 JSON 格式的结果：\n\n1.  **识别手术操作**：从文本中提取所有明确描述的手术操作（主手术和次要手术）。\n2.  **匹配 ICD-9-CM-3 编码**：为每个手术操作匹配最精确的 ICD-9-CM-3 编码（≤7位），包括部位、方法和入路。\n3.  **提取证据**：为每个编码提供确切的文本证据（`evidence_text`）及其在原文中的字符位置（`char_span`）。\n4.  **评估置信度**：根据证据的明确程度给出 `confidence` 分数（0-1）。\n5.  **识别问题**：检查是否存在手术-诊断不一致、编码冲突或缺少必要手术记录等问题，并记录在 `issues_found` 中。\n6.  **标记人工审核**：如果存在任何不确定性或潜在问题，将 `manual_review_required` 设置为 `true`。\n\n请提供手术记录文本。",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "好的，我将以 iCoDer Procedure Coding Agent 的身份，根据您提供的手术记录片段进行分析。\n\n由于您只提供了“患者男，60岁”这一基本信息，没有提供任何手术记录文本，我无法进行任何编码操作。\n\n请提供具体的手术记录文本，例如：“患者在全麻下行腹腔镜胆囊切除术，术中见胆囊与周围组织粘连...”。\n\n在收到完整的手术记录后，我将严格按照以下流程进行分析并输出 JSON 格式的结果：\n\n1.  **识别手术操作**：从文本中提取所有明确描述的手术操作（主手术和次要手术）。\n2.  **匹配 ICD-9-CM-3 编码**：为每个手术操作匹配最精确的 ICD-9-CM-3 编码（≤7位），包括部位、方法和入路。\n3.  **提取证据**：为每个编码提供确切的文本证据（`evidence_text`）及其在原文中的字符位置（`char_span`）。\n4.  **评估置信度**：根据证据的明确程度给出 `confidence` 分数（0-1）。\n5.  **识别问题**：检查是否存在手术-诊断不一致、编码冲突或缺少必要手术记录等问题，并记录在 `issues_found` 中。\n6.  **标记人工审核**：如果存在任何不确定性或潜在问题，将 `manual_review_required` 设置为 `true`。\n\n请提供手术记录文本。",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 288,
+        "output_tokens": 297
+      },
+      "cost_usd": 0.000123,
+      "latency_ms": 7631
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7631,
+      "metadata": {
+        "agent_id": "procedure-extractor",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 7631
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": ""
+}

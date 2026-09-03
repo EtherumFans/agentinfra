@@ -1,0 +1,94 @@
+{
+  "schema_version": "icoder.cdi-cost-telemetry-offline-replay/v1",
+  "generated_at": "2026-08-25T22:16:40.6656493+08:00",
+  "status": "partial_historical_replay",
+  "amended_at": "2026-08-25T22:30:00+08:00",
+  "amendment_reason": "Gate-internal claim-evidence and semantic-necessity LLM calls were not present in the historical aggregate trace.",
+  "source_evidence_root": "reports/agent_hub/external_semantic_e2e_live_20260825-212957",
+  "source_evidence_status": "passed",
+  "source_evidence_mutated": false,
+  "method": "observed_trace_usage_x_configured_cny_price",
+  "pricing": {
+    "input_per_1m_tokens_cny": 0.14,
+    "output_per_1m_tokens_cny": 0.28,
+    "source": "current_runtime_configuration_snapshot",
+    "billing_authoritative": false,
+    "provider_invoice_reconciled": false
+  },
+  "summary": {
+    "runs": 6,
+    "recorded_call_usage_complete_runs": 6,
+    "recorded_call_cost_coverage_rate": 1.0,
+    "all_cdi_model_call_coverage_proven": false,
+    "configured_cny_estimate_total": 0.00428106
+  },
+  "runs": [
+    {
+      "trace_file": "clinical-documentation-improvement-agent__adversarial-ambiguous-aki__r001.json",
+      "trace_sha256": "9d531d19cc11f3d9f8963d9896ed2fdad72e54c21f0e6cb9b138172a7c96239f",
+      "input_tokens": 2544,
+      "output_tokens": 1427,
+      "total_tokens": 3971,
+      "llm_call_count": 3,
+      "configured_cny_estimate": 0.00075572
+    },
+    {
+      "trace_file": "clinical-documentation-improvement-agent__adversarial-ambiguous-aki__r002.json",
+      "trace_sha256": "d48383c709c30b3bc570c0555f0784b3976c364de2ddcb1e0aa6a24841332aef",
+      "input_tokens": 2601,
+      "output_tokens": 1761,
+      "total_tokens": 4362,
+      "llm_call_count": 3,
+      "configured_cny_estimate": 0.00085722
+    },
+    {
+      "trace_file": "clinical-documentation-improvement-agent__adversarial-ambiguous-aki__r003.json",
+      "trace_sha256": "07936993776e49f8bdc0473739949cd4daafa61267c647400b587afa03703fe5",
+      "input_tokens": 2448,
+      "output_tokens": 1371,
+      "total_tokens": 3819,
+      "llm_call_count": 3,
+      "configured_cny_estimate": 0.0007266
+    },
+    {
+      "trace_file": "clinical-documentation-improvement-agent__happy-example-1__r001.json",
+      "trace_sha256": "8ad1a310257ba13ae27ad67ac0d6ff343f991825042646274641b3f475c1ad72",
+      "input_tokens": 2432,
+      "output_tokens": 1158,
+      "total_tokens": 3590,
+      "llm_call_count": 4,
+      "configured_cny_estimate": 0.00066472
+    },
+    {
+      "trace_file": "clinical-documentation-improvement-agent__happy-example-1__r002.json",
+      "trace_sha256": "02f4591a686ebee00878878239010d4fd5cf7bf93c096d65aafe73027c76c579",
+      "input_tokens": 2530,
+      "output_tokens": 1065,
+      "total_tokens": 3595,
+      "llm_call_count": 4,
+      "configured_cny_estimate": 0.0006524
+    },
+    {
+      "trace_file": "clinical-documentation-improvement-agent__happy-example-1__r003.json",
+      "trace_sha256": "a68f9bc4976ddfbf949b36be0d9f250b0553b9a03919a34ce6666f8bf168bb81",
+      "input_tokens": 2406,
+      "output_tokens": 1027,
+      "total_tokens": 3433,
+      "llm_call_count": 4,
+      "configured_cny_estimate": 0.0006244
+    }
+  ],
+  "implementation_artifacts_at_replay_generation": {
+    "backend/app/icoder/agent_runtime/specialized_telemetry.py": "009af28d239e8daab0a5d4870086d325c23b199c3bb54e9becbfcba9e6ee0d35",
+    "backend/app/icoder/agent_runtime/cdi_a2a_handler.py": "5bcebc8cf43ec7cb17a030dff396a8b8a6d008de8ad59e04b225b1a5986d569f",
+    "backend/app/api/agent_run.py": "665b48a595d9857b4068b5406bfb04d470d7389d201e876b330a7f7b014d889e",
+    "backend/app/icoder/agent_runtime/orchestrator/run_trace.py": "5ed22ee5355b1e8bb55de878c5d2e6930b588b59dc42e5a8f431538e22371488"
+  },
+  "limitations": [
+    "This replay proves complete observed token usage only for the main-stage and expert calls present in the historical aggregate trace.",
+    "The historical trace omitted gate-internal claim-evidence and semantic-necessity LLM calls, so the configured CNY total is a lower-bound estimate and must not be treated as full CDI call coverage.",
+    "It does not modify or promote the original authoritative strict E2E report, whose CDI response cost fields remain absent.",
+    "It is not a provider invoice, billing reconciliation, clinical-quality result, Corti comparison, hospital acceptance, or production-readiness proof.",
+    "Current code instruments those gate-internal calls, but a fresh live-provider run is required to prove complete end-to-end cost propagation in newly generated response, RunHistory, trace, and stability artifacts."
+  ]
+}

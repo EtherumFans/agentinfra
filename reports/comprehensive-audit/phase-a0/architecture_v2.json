@@ -1,0 +1,157 @@
+{
+  "$schema": "https://icoder.cloud/schemas/audit/architecture-v2.json",
+  "schema_version": "2.0",
+  "generated_at": "2026-07-16",
+  "generated_by": "Phase A0 Gate 7 — Canonical Architecture V2",
+  "supersedes": "Pre-A0 26I (canonical architecture with ontology errors)",
+  "layers": {
+    "L1_API_LAYER": {
+      "path": "backend/app/api/",
+      "role": "Business workbenches — ~190 endpoints",
+      "endpoints_count_approx": 190,
+      "canonical": true,
+      "subdirs": ["agent_run.py", "embedded.py", "examples.py", "icoder_agents_hub.py", "platform_api_clients.py", "preview_sessions.py", "runs.py", "usage.py"]
+    },
+    "L2_AGENT_PACK_CATALOG": {
+      "path": "backend/official_agents/",
+      "role": "29 Agent Pack manifest packages (NOT expert hierarchy, NOT runtime)",
+      "canonical": true,
+      "pack_count": 29,
+      "misclassification_in_pre_a0": "Called 'Hierarchy C — Packaged Agents' as if it were an expert hierarchy"
+    },
+    "L3_EXECUTION_PLANE": {
+      "path": "backend/app/icoder/agent_runtime/",
+      "role": "Canonical agent execution layer — InboundHandler + Orchestrator + Experts registry + Context + Memory + A2A facade + CDI workflow gates",
+      "canonical": true,
+      "subdirs": ["a2a/", "cdi/", "context/", "experts/", "orchestrator/", "a2a_facade.py"],
+      "imports_count": 108,
+      "imports_note": "108 files import from app.icoder.agent_runtime — confirms this is the canonical execution plane"
+    },
+    "L4_DOMAIN_RUNTIME_MEDICAL_CODING": {
+      "path": "backend/app/coding_runtime/",
+      "role": "MedCodER 5-stage retrieval-rerank pipeline (Medical Coding domain)",
+      "canonical": true,
+      "files": ["base.py", "dispatcher.py", "fast_runtime.py", "medcoder_runtime.py"],
+      "imports_count": 9,
+      "imports_note": "9 files import from app.coding_runtime — confirms this is a domain-specific sub-runtime, not the main runtime"
+    },
+    "L5_COMPLIANCE_SERVICES": {
+      "path": "backend/app/compliance_services/",
+      "role": "RuleEngine + 5 rule_sets (medical_coding, drg_dip, insurance_audit, charge_compliance, document_evidence)",
+      "canonical": true
+    },
+    "L6_TOOL_LAYER_CANONICAL_MCP": {
+      "path": "backend/app/icoder/mcp/handlers/",
+      "role": "MCP tool handlers — 11 handlers",
+      "canonical": true,
+      "handler_count": 11,
+      "handlers": ["calibrate_confidence", "check_documentation_gaps", "evaluate_compliance", "explore_code", "get_differentiation_hint", "get_guidelines", "rerank_codes", "search_codes", "search_icd", "validate_codes", "verify_code"]
+    },
+    "L7_TOOL_LAYER_LEGACY": {
+      "path": "backend/app/tools/",
+      "role": "Legacy tool layer — 11 files, MCP-disconnected but API-connected per HC-3",
+      "canonical": false,
+      "status": "DEPRECATE_CANDIDATE",
+      "handler_count": 11,
+      "deprecation_action": "Migrate /api/tools + /api/codes consumers to MCP, then remove (Phase A2)"
+    },
+    "L8_LEGACY_EXPERTS": {
+      "path": "backend/app/agents/experts/",
+      "role": "Legacy experts (pre-CortiLike) — 11 files",
+      "canonical": false,
+      "status": "DEPRECATE_CANDIDATE",
+      "expert_count": 11,
+      "note": "Powers legacy app/tools/ per HC-3"
+    },
+    "L9_PLATFORM_CORE": {
+      "path": "backend/icoder_runtime/",
+      "role": "Platform Core — cross-cutting infrastructure libraries",
+      "canonical": true,
+      "components": ["RuntimeAgentRegistry", "AgentPackageV1", "LLMGateway", "DataPolicy", "PIIRedaction", "RunHistory", "AuditLog", "FallbackTracker", "ShadowDiffService", "CircuitBreaker", "Guardrails"],
+      "misclassification_in_pre_a0": "Called 'Registry Shell that raises NotImplementedError' — INCORRECT. One method (PlatformRuntime.run_agent) raises NotImplementedError by Phase 2.1-A design; the layer contains 11+ major components."
+    },
+    "L10_PLATFORM_RUNTIME_CLASS": {
+      "path": "backend/icoder_runtime/embedded/platform_runtime.py",
+      "role": "Class with run_agent() that raises NotImplementedError and redirects to agent_runtime InboundHandler",
+      "canonical": false,
+      "status": "DEAD_CODE_BY_DESIGN",
+      "note": "Phase 2.1-A cut. Redirects to L3 Execution Plane."
+    }
+  },
+  "registries": {
+    "RuntimeAgentRegistry": {
+      "path": "backend/icoder_runtime/core/registry.py:70",
+      "context": "runtime agent lookup",
+      "canonical": true,
+      "pre_a0_treatment": "Called RG-1 canonical (correct)"
+    },
+    "CapabilityRegistry": {
+      "path": "backend/app/icoder/agent_runtime/orchestrator/capability_registry.py:59",
+      "context": "expert+tool dispatch for CortiLikeOrchestrator",
+      "canonical": true,
+      "pre_a0_treatment": "Called RG-2 (correct)"
+    },
+    "ProviderRegistry": {
+      "path": "backend/icoder_runtime/backends/registry.py:113",
+      "context": "LLM provider routing",
+      "canonical": true,
+      "pre_a0_treatment": "MISSING from Pre-A0 list"
+    },
+    "RegistryBackend_ABC": {
+      "path": "backend/icoder_runtime/core/registry_backend.py:14",
+      "context": "persistence backend abstraction",
+      "canonical": true,
+      "subclasses": ["FileRegistryBackend :35", "SQLiteRegistryBackend :72", "PostgresRegistryBackend :131"],
+      "pre_a0_treatment": "MISSING from Pre-A0 list"
+    },
+    "A2A_SchemaRegistry": {
+      "path": "(Phase 5 Track C)",
+      "context": "A2A v0.3 protocol schemas",
+      "canonical": true,
+      "pre_a0_treatment": "Called RG-5 (correct)"
+    },
+    "Legacy_ToolRegistry": {
+      "path": "(removed per HC-3)",
+      "context": "legacy tool registry, removed",
+      "canonical": false,
+      "status": "REMOVED",
+      "pre_a0_treatment": "Called RG-3 legacy (correct)"
+    }
+  },
+  "execution_plane_components": {
+    "InboundHandler": "Entry point for all agent runs",
+    "CortiLikeOrchestrator": "Phase 5 Track C reconstructed orchestrator (PolicyGuard + CapabilityRegistry + ContextBuilder + ResultNormalizer + ConflictResolver + CompletionController + Orchestrator)",
+    "CodingComplianceOrchestrator": "7-stage Medical Coding pipeline orchestrator",
+    "CDIOrchestrator": "CDI workflow orchestrator (agent_runtime/cdi/orchestrator.py)",
+    "A2A_v0_3_surface": "a2a_facade.py + routes.py",
+    "CapabilityRegistry": "Expert+tool dispatch",
+    "Context": "Per-run state",
+    "Memory": "Per-run memory (not long-term RAG)"
+  },
+  "platform_core_components": {
+    "RuntimeAgentRegistry": "Persistent agent registry (File/SQLite/Postgres backends)",
+    "AgentPackageV1": "icoder-agent pack format + loader",
+    "LLMGateway": "LLM provider routing + DeepSeek integration",
+    "DataPolicy": "Edge PHI redaction + region data residency (EU/US/CN)",
+    "PIIRedaction": "PII redactor (currently EXPORT-PATH ONLY per Gate 9 K3.2)",
+    "RunHistory": "Run persistence table (alembic 010)",
+    "AuditLog": "Audit trail (only 5 actions per Gate 9 G9-002)",
+    "FallbackTracker": "LLM fallback tracking",
+    "ShadowDiffService": "Shadow mode diff",
+    "CircuitBreaker": "LLM circuit breaker",
+    "Guardrails": "Prompt safety guardrails"
+  },
+  "pre_a0_corrections": [
+    "icoder_runtime/ reclassified from 'Registry Shell' → 'Platform Core' (11+ components)",
+    "official_agents/ reclassified from 'Hierarchy C expert hierarchy' → 'Agent Pack Catalog'",
+    "agent_runtime/cdi/ reclassified from 'pseudo-experts' → 'workflow gates'",
+    "5 parallel runtimes claim reduced to 1 execution plane + 1 domain runtime + 1 platform core (3 layers, not parallel)",
+    "5 duplicate registries claim refuted — 5 bounded-context registries (with 2 more added in V2: ProviderRegistry + RegistryBackend ABC)",
+    "MedCodER reclassified from 'agent' → '5-stage pipeline inside Medical Coding Agent'"
+  ],
+  "machine_validation": {
+    "all_paths_exist_on_disk": true,
+    "all_components_in_imports_verified": true,
+    "evidence_grade": "E2_CODE_OBSERVED"
+  }
+}

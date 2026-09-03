@@ -1,6 +1,7 @@
-"""DRGOutputSchema — standard output format for DRG analyzer agent.
+"""Auditable output for the development-only DRG/DIP risk-review adapter.
 
-v1.0: Wraps CHS-DRG 1.1 grouping result + DRG/DIP rule validation.
+The local mapping produces non-authoritative candidates only.  It cannot
+calculate official grouping, weight, DIP score, payment or settlement values.
 
 Pipeline:
   encoded_codes → group_drg() → rule_engine.validate("drg_dip", ...)
@@ -20,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DRGImpact:
-    """DRG 分组对医保支付的影响分析."""
-    predicted_drg: str = ""           # FR3 / EC13 / IA15 ...
+    """Non-authoritative DRG candidate for risk review."""
+    predicted_drg: str = ""           # Backward-compatible candidate field.
     drg_name: str = ""
     mdc: str = ""                     # MDCF / MDCE ...
     mdc_name: str = ""
@@ -29,8 +30,10 @@ class DRGImpact:
     cc_level: str = ""                # 不伴合并症 / CC / MCC
     grouping_method: str = ""         # surgical / medical
     coverage: bool = False            # grouper 是否找到分组
-    payment_weight: float = 1.0       # 估算的 DRG 权重
-    payment_estimate_yuan: float = 0.0  # 估算的医保支付(元)
+    payment_weight: float = 0.0       # Always zero without authorized rules.
+    payment_estimate_yuan: float = 0.0
+    billing_authoritative: bool = False
+    result_status: str = "experimental_candidate"
 
     def to_dict(self) -> dict:
         return {
@@ -44,16 +47,19 @@ class DRGImpact:
             "coverage": self.coverage,
             "payment_weight": self.payment_weight,
             "payment_estimate_yuan": self.payment_estimate_yuan,
+            "billing_authoritative": self.billing_authoritative,
+            "result_status": self.result_status,
         }
 
 
 @dataclass
 class DIPImpact:
-    """DIP 分值与支付估算."""
+    """DIP placeholder; official scores require an authorized regional pack."""
     dip_score: float = 0.0
     dip_score_ceiling: float = 0.0    # DIP 分值上限
     payment_estimate_yuan: float = 0.0
     note: str = ""
+    billing_authoritative: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -61,6 +67,7 @@ class DIPImpact:
             "dip_score_ceiling": self.dip_score_ceiling,
             "payment_estimate_yuan": self.payment_estimate_yuan,
             "note": self.note,
+            "billing_authoritative": self.billing_authoritative,
         }
 
 
@@ -105,7 +112,8 @@ class DRGOutputSchema:
 
     # 质量标志
     quality_flags: dict = field(default_factory=dict)
-    manual_review_required: bool = False
+    governance: dict = field(default_factory=dict)
+    manual_review_required: bool = True
 
     # 总结
     review_conclusion: str = "PASS"   # PASS | WARNING | FAIL
@@ -116,6 +124,8 @@ class DRGOutputSchema:
     provider: str = ""          # 哪个 provider 产出
     model: str = ""
     is_mock: bool = False
+    error: bool = False
+    error_reason: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -127,6 +137,7 @@ class DRGOutputSchema:
             "risks": [r.to_dict() for r in self.risks],
             "recommendations": self.recommendations,
             "quality_flags": self.quality_flags,
+            "governance": self.governance,
             "manual_review_required": self.manual_review_required,
             "review_conclusion": self.review_conclusion,
             "confidence": self.confidence,
@@ -134,6 +145,8 @@ class DRGOutputSchema:
             "provider": self.provider,
             "model": self.model,
             "is_mock": self.is_mock,
+            "error": self.error,
+            "error_reason": self.error_reason,
         }
 
     @classmethod
@@ -180,8 +193,10 @@ class DRGOutputSchema:
             cc_level=grouper_result.get("cc_level", ""),
             grouping_method=grouper_result.get("grouping_method", ""),
             coverage=grouper_result.get("coverage", False),
-            payment_weight=_estimate_drg_weight(grouper_result),
-            payment_estimate_yuan=_estimate_payment(grouper_result),
+            payment_weight=0.0,
+            payment_estimate_yuan=0.0,
+            billing_authoritative=False,
+            result_status="experimental_candidate",
         )
 
         # Determine review conclusion
@@ -193,10 +208,12 @@ class DRGOutputSchema:
         elif high_count > 0 or rule_result.manual_review_required:
             review_conclusion = "WARNING"
         else:
-            review_conclusion = "PASS"
+            # An unverified rule pack can never produce an automatic PASS.
+            review_conclusion = "WARNING"
 
         # Confidence based on coverage
-        confidence = 0.95 if grouper_result.get("coverage") else 0.50
+        confidence = 0.50 if grouper_result.get("coverage") else 0.0
+        governance = grouper_result.get("governance", {})
 
         return cls(
             primary_diagnosis=primary_diagnosis,
@@ -207,52 +224,48 @@ class DRGOutputSchema:
             risks=risks,
             recommendations=recommendations,
             quality_flags=rule_result.quality_flags or {},
-            manual_review_required=rule_result.manual_review_required,
+            governance=governance,
+            manual_review_required=True,
             review_conclusion=review_conclusion,
             confidence=confidence,
-            notes=f"CHS-DRG 1.1 grouping. grouper_method={grouper_result.get('grouping_method', 'N/A')}",
+            notes=(
+                "Development-only DRG/DIP risk heuristic; not an official "
+                "grouper or settlement result. Manual review is required. "
+                f"heuristic_method={grouper_result.get('grouping_method', 'N/A')}"
+            ),
             provider="drg-analyzer",
-            model="medical-coding/mock",
+            model="icoder-drg-dip-risk-heuristics-1.0.0-development",
             is_mock=False,
         )
 
     @classmethod
-    def mock_result(cls) -> "DRGOutputSchema":
-        """Default mock for testing."""
+    def failure_result(cls, reason: str) -> "DRGOutputSchema":
+        """Return an empty, auditable failure without synthetic DRG data."""
         return cls(
-            primary_diagnosis={"code": "I21.0", "description": "急性前壁心肌梗死", "confidence": 0.95},
-            secondary_diagnoses=[
-                {"code": "I10", "description": "原发性高血压", "confidence": 0.88},
-            ],
-            procedures=[{"code": "00.66", "description": "经皮冠状动脉支架植入术", "confidence": 0.92}],
-            drg_impact=DRGImpact(
-                predicted_drg="EC13",
-                drg_name="经皮冠状动脉支架植入伴 CC",
-                mdc="MDCE",
-                mdc_name="循环系统疾病及功能障碍",
-                adrg="EC1",
-                cc_level="伴一般合并症/并发症 (CC)",
-                grouping_method="surgical",
-                coverage=True,
-                payment_weight=2.5,
-                payment_estimate_yuan=25000.0,
-            ),
-            dip_impact=DIPImpact(
-                dip_score=120.5,
-                dip_score_ceiling=200.0,
-                payment_estimate_yuan=24100.0,
-                note="DIP 估算:基于 I21.0+00.66 组合",
-            ),
-            risks=[],
-            recommendations=[],
-            quality_flags={"grouper_coverage": True, "grouper_method": "surgical"},
-            manual_review_required=False,
-            review_conclusion="PASS",
-            confidence=0.95,
-            notes="Mock DRG analyzer result.",
+            primary_diagnosis={},
+            secondary_diagnoses=[],
+            procedures=[],
+            drg_impact=DRGImpact(),
+            dip_impact=DIPImpact(),
+            risks=[DRGRisk(
+                rule_id="DRG_RUNTIME_FAILURE",
+                severity="critical",
+                risk_type="grouping",
+                message="DRG analysis did not complete.",
+                suggestion="Check the local grouper/rule set and require manual review.",
+            )],
+            recommendations=["人工复核 DRG/DIP 分组；不得使用本次结果结算。"],
+            quality_flags={"runtime_failure": True},
+            governance={},
+            manual_review_required=True,
+            review_conclusion="FAIL",
+            confidence=0.0,
+            notes="DRG analysis failed closed.",
             provider="drg-analyzer",
-            model="medical-coding/mock",
-            is_mock=True,
+            model="icoder-drg-dip-risk-heuristics-1.0.0-development",
+            is_mock=False,
+            error=True,
+            error_reason=reason,
         )
 
 
@@ -262,9 +275,8 @@ class DRGOutputSchema:
 class DRGAnalysisAdapter:
     """Adapter for running DRG analysis on encoded codes.
 
-    Unlike medical_coding (which uses LLM), this adapter is deterministic:
-    pure rule-based + grouper lookup. Future versions may add LLM-based
-    explanation layer.
+    Unlike medical_coding (which uses LLM), this adapter is deterministic.
+    Its result is a development risk-review candidate, never a billing result.
     """
 
     name = "drg_analysis_adapter"
@@ -289,7 +301,7 @@ class DRGAnalysisAdapter:
             context: patient_gender, patient_age, etc.
 
         Returns:
-            DRGOutputSchema with grouping + rule validation
+            DRGOutputSchema with candidate matching + rule validation
         """
         from app.services.drg_grouper import group_drg
         from compliance_services.rule_engine import RuleEngine
@@ -310,13 +322,19 @@ class DRGAnalysisAdapter:
                 [pd_code] + sec_codes if pd_code else [],
                 procedure_code=main_proc_code or None,
             )
-        except Exception as e:
-            logger.exception("DRG grouper failed: %s", e)
-            grouper_result = {
-                "mdc": "", "mdg_name": "", "adrg": "", "drg": "",
-                "drg_name": "", "cc_level": "", "grouping_method": "",
-                "coverage": False, "error": str(e),
-            }
+        except Exception as exc:
+            logger.error(
+                "DRG grouper failed error_type=%s", type(exc).__name__,
+            )
+            from app.services.clinical_asset_governance import (
+                ClinicalAssetGovernanceError,
+            )
+            reason = (
+                "clinical_asset_governance_failed"
+                if isinstance(exc, ClinicalAssetGovernanceError)
+                else "grouper_failed"
+            )
+            return DRGOutputSchema.failure_result(reason)
 
         # 2. Run rule engine
         try:
@@ -328,17 +346,13 @@ class DRGAnalysisAdapter:
                 "procedures": procedures,
             }
             rule_result = engine.validate("drg_dip", structured, context)
-        except Exception as e:
-            logger.exception("DRG rule engine failed: %s", e)
-            # Fallback: empty result
-            rule_result = type("Stub", (), {
-                "issues": [],
-                "rules_fired": [],
-                "manual_review_required": False,
-                "quality_flags": {},
-            })()
+        except Exception as exc:
+            logger.error(
+                "DRG rule engine failed error_type=%s", type(exc).__name__,
+            )
+            return DRGOutputSchema.failure_result("rule_engine_failed")
 
-        # 3. Build DIP impact (simplified: estimate from grouper)
+        # 3. Build non-authoritative DIP placeholder.  No pseudo-payment math.
         dip_impact = _estimate_dip_impact(grouper_result, primary_diagnosis, procedures)
 
         # 4. Assemble
@@ -352,79 +366,38 @@ class DRGAnalysisAdapter:
         )
 
     def health_check(self) -> dict:
-        return {"engine": self.name, "status": "ready"}
+        from app.config import settings
+        from app.services.clinical_asset_governance import get_drg_risk_governance
 
-
-# ── Helpers ──
-
-
-# CHS-DRG 1.1 简化版权重表 (实际医院需从医保局获取精确权重)
-# 这里给出常见 MDC 的近似权重,基于 2023 年公开数据
-_DRG_WEIGHT_TABLE = {
-    "MDCA": 1.20,  # 神经系统
-    "MDCB": 0.85,  # 眼科
-    "MDCC": 0.80,  # 耳鼻喉
-    "MDCD": 1.15,  # 呼吸系统
-    "MDCE": 1.80,  # 循环系统
-    "MDCF": 1.05,  # 消化系统
-    "MDCG": 1.30,  # 肝胆胰
-    "MDCH": 0.90,  # 骨骼肌肉
-    "MDCI": 1.40,  # 皮肤/乳腺
-    "MDCJ": 0.75,  # 内分泌
-    "MDCK": 1.10,  # 肾脏
-    "MDCL": 1.00,  # 泌尿
-    "MDCM": 0.95,  # 男性生殖
-    "MDCN": 0.90,  # 女性生殖
-    "MDCO": 0.85,  # 妊娠
-    "MDCP": 1.50,  # 新生儿
-    "MDCQ": 1.25,  # 血液
-    "MDCR": 0.95,  # 创伤中毒
-    "MDCS": 1.60,  # 感染
-    "MDCT": 0.80,  # 精神
-    "MDCU": 0.50,  # 其他
-    "MDCV": 1.70,  # 烧伤
-    "MDCW": 1.30,  # 多系统
-    "MDCX": 0.00,  # 错误组
-}
-
-# 平均每权重医保支付 (元) — 2024 年公开数据近似值
-_AVG_PAYMENT_PER_WEIGHT = 10000.0
-
-
-def _estimate_drg_weight(grouper_result: dict) -> float:
-    """Estimate DRG weight from MDC + CC level."""
-    mdc = grouper_result.get("mdc", "")
-    cc_level = grouper_result.get("cc_level", "")
-    base = _DRG_WEIGHT_TABLE.get(mdc, 1.0)
-    if "MCC" in cc_level:
-        return round(base * 1.5, 2)
-    elif "CC" in cc_level:
-        return round(base * 1.2, 2)
-    return round(base, 2)
-
-
-def _estimate_payment(grouper_result: dict) -> float:
-    """Estimate medical insurance payment in yuan."""
-    weight = _estimate_drg_weight(grouper_result)
-    return round(weight * _AVG_PAYMENT_PER_WEIGHT, 2)
+        try:
+            governance = get_drg_risk_governance(
+                deployment_mode=settings.ICODER_DEPLOYMENT_MODE,
+            )
+        except Exception:
+            return {
+                "engine": self.name,
+                "status": "unavailable",
+                "billing_authoritative": False,
+            }
+        return {
+            "engine": self.name,
+            "status": "development_only",
+            "billing_authoritative": False,
+            "governance": governance,
+        }
 
 
 def _estimate_dip_impact(grouper_result: dict, primary_diag: dict, procedures: list[dict]) -> DIPImpact:
-    """Estimate DIP score and payment (simplified).
-
-    Real DIP scoring requires national DIP score table (CHS-DIP 2.0).
-    This is an MVP estimation based on DRG + primary diagnosis category.
-    """
-    if not grouper_result.get("coverage"):
-        return DIPImpact(dip_score=0.0, note="DRG 未匹配,DIP 无法计算")
-
-    base_score = 100.0
-    drg_weight = _estimate_drg_weight(grouper_result)
-    estimated_score = round(base_score * drg_weight, 1)
-
+    """Return a fail-closed placeholder until an authorized DIP pack exists."""
+    del primary_diag, procedures
+    coverage_note = "存在开发期候选匹配" if grouper_result.get("coverage") else "未匹配开发期候选"
     return DIPImpact(
-        dip_score=estimated_score,
-        dip_score_ceiling=round(estimated_score * 1.5, 1),
-        payment_estimate_yuan=round(estimated_score * 200, 2),  # DIP 分单价约 200 元
-        note=f"DIP 估算: DRG 权重 {drg_weight} → DIP 分值 {estimated_score}。实际需对照医保局 DIP 目录。",
+        dip_score=0.0,
+        dip_score_ceiling=0.0,
+        payment_estimate_yuan=0.0,
+        note=(
+            f"{coverage_note}；未安装经授权的地区 DIP 目录，"
+            "因此不计算分值或支付金额。"
+        ),
+        billing_authoritative=False,
     )

@@ -1,0 +1,205 @@
+{
+  "case_id": "G8-CDI-NEG-028",
+  "group": "negation_history",
+  "variant": "",
+  "session_id": "804e0620-8946-492e-b7c5-52dfdc85c809",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 17.22,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Historical condition only — should not query appendicitis complications"
+  },
+  "text_length": 2815,
+  "first_token_at_s": 3.7,
+  "last_token_at_s": 17.22,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":5,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z90.49\",\"code_system\":\"icd-10-cm\",\"description\":\"Acquired absence of other specified parts of digestive tract\",\"next_steps\":[{\"reason\":\"Read coding conventions for t",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z90.49\",\"description\":\"Acquired absence of other specified parts of digestive tract\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",",
+    "message|{\"id\":\"13a741c8-38b9-4571-abc3-b8853b005384\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 50-year-old male with history of appendectomy for acute appendicitis 10 years ago.\\n- Currently asymptomatic: denies abdominal pain, fever, nausea, and vomiting.\\n- Exa",
+    "message|{\"id\":\"13a741c8-38b9-4571-abc3-b8853b005384\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55df-5495-7968-88f0-109670e7a9b7\",\"taskId\":\"019f55df-5495-78f6-aebc-092c06f598f8\",\"credits\":0.05322,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.05322},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 5,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "status post appendectomy",
+      "results": [
+        {
+          "code": "K36",
+          "description": "Other appendicitis",
+          "match_path": "Appendicitis, healed",
+          "related_codes": {
+            "category": "K35-K38",
+            "category_description": "Diseases of appendix (K35-K38)",
+            "count": 4
+          }
+        },
+        {
+          "code": "Z90.81",
+          "description": "Acquired absence of spleen",
+          "match_path": "Asplenia, postsurgical",
+          "related_codes": {
+            "category": "Z90.8",
+            "category_description": "Acquired absence of other organs",
+            "count": 2
+          }
+        },
+        {
+          "code": "Z90.49",
+          "description": "Acquired absence of other specified parts of digestive tract",
+          "match_path": "Status, colectomy",
+          "related_codes": {
+            "category": "Z90.4",
+            "category_description": "Acquired absence of other specified parts of digestive tract",
+            "count": 2
+          }
+        },
+        {
+          "code": "K38.8",
+          "description": "Other specified diseases of appendix",
+          "match_path": "Obliteration, appendix",
+          "related_codes": {
+            "category": "K38",
+            "category_description": "Other diseases of appendix",
+            "count": 6
+          }
+        },
+        {
+          "code": "Z93.52",
+          "description": "Appendico-vesicostomy status",
+          "match_path": "Cystostomy, status, appendico-vesicostomy",
+          "related_codes": {
+            "category": "Z93.5",
+            "category_description": "Cystostomy status",
+            "count": 4
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "Z90.49",
+      "code_system": "icd-10-cm",
+      "description": "Acquired absence of other specified parts of digestive tract",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z90.4",
+        "description": "Acquired absence of other specified parts of digestive tract"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "Z90.41",
+          "description": "Acquired absence of pancreas"
+        }
+      ],
+      "total_related": 1
+    },
+    {
+      "assignable": true,
+      "code": "Z90.49",
+      "description": "Acquired absence of other specified parts of digestive tract",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "Z90.4",
+          "description": "Acquired absence of other specified parts of digestive tract"
+        },
+        {
+          "code": "Z90",
+          "description": "Acquired absence of organs, not elsewhere classified"
+        },
+        {
+          "code": "Z77-Z99",
+          "description": "Persons with potential health hazards related to family and personal history and certain conditions influencing health status (Z77-Z99)"
+        },
+        {
+          "code": "21",
+          "description": "Factors influencing health status and contact with health services (Z00-Z99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55df-5495-7968-88f0-109670e7a9b7",
+    "taskId": "019f55df-5495-78f6-aebc-092c06f598f8",
+    "credits": 0.05322,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 50-year-old male with history of appendectomy for acute appendicitis 10 years ago.\n- Currently asymptomatic: denies abdominal pain, fever, nausea, and vomiting.\n- Exam documented as normal.\n- Current documented diagnosis: “status post appendectomy.”",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and possible query targets.\n  - Requested: Review for CDI/coding specificity needs and potential compliant provider queries using only documented facts.\n  - Accepted: The coding direction that “status post appendectomy” aligns with ICD-10-CM Z90.49 (acquired absence of other specified parts of digestive tract).\n  - Rejected/limited: No additional gap or query suggestions were accepted because the expert output did not provide patient-specific compliant query language beyond the code lookup, and the chart excerpt does not support further querying.\n- AMBOSS Expert: Not consulted; no unclear clinical criteria requiring diagnostic definition review.\n- CDI Web Search Expert: Not consulted; no current external guideline lookup was necessary for this limited excerpt.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 50-year-old male with history of appendectomy for acute appendicitis 10 years ago.\n- Currently asymptomatic: denies abdominal pain, fever, nausea, and vomiting.\n- Exam documented as normal.\n- Current documented diagnosis: “status post appendectomy.”\n\nDocumentation Gaps:\n- No clear CDI query opportunity identified from the excerpt.\n  - Why it matters: The documentation is already specific enough to support a history/status condition rather than an active abdominal diagnosis.\n  - Evidence quote: “status post appendectomy for acute appendicitis 10 years ago,” “Currently asymptomatic,” and “Diagnosis: status post appendectomy.”\n  - Minimal clarification needed: None required based on the excerpt.\n- Coding specificity note only: if this status is being reported for the encounter, the documented history/status is most consistent with acquired absence of part of the digestive tract.\n  - Evidence quote: “status post appendectomy.”\n  - Clarification needed: Only if the organization needs confirmation that this past surgical status is clinically relevant to the current encounter.\n\nProposed Provider Queries:\n- None recommended.\n  - Reason: There is no conflicting, ambiguous, or incomplete documentation in the excerpt, and no supported basis to query for an active condition.\n  - Supporting evidence quote: “Currently asymptomatic. Denies abdominal pain, fever, nausea, vomiting. Normal exam.”\n\nCoding Specificity Checklist:\n- If reporting the past surgical status, document that the appendix is surgically absent/status post appendectomy.\n- Ensure the status is clinically relevant to the encounter if it is being coded.\n- Do not document active appendicitis or postoperative complication unless supported elsewhere in the record.\n\nRisk Flags:\n- Potential unsupported coding risk if an active appendicitis diagnosis were assigned; the excerpt supports only past surgical status.\n- No contradiction identified within the provided excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and possible query targets.\n  - Requested: Review for CDI/coding specificity needs and potential compliant provider queries using only documented facts.\n  - Accepted: The coding direction that “status post appendectomy” aligns with ICD-10-CM Z90.49 (acquired absence of other specified parts of digestive tract).\n  - Rejected/limited: No additional gap or query suggestions were accepted because the expert output did not provide patient-specific compliant query language beyond the code lookup, and the chart excerpt does not support further querying.\n- AMBOSS Expert: Not consulted; no unclear clinical criteria requiring diagnostic definition review.\n- CDI Web Search Expert: Not consulted; no current external guideline lookup was necessary for this limited excerpt."
+}

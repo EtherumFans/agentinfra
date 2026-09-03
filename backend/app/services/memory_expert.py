@@ -1,35 +1,50 @@
-"""Memory Expert — persistent context with semantic vector search.
+"""Tenant-scoped persistent memory with safe semantic/lexical retrieval.
 
 iCoDer Agentic Framework equivalent: memory-expert + Context & Memory management.
-Uses sentence-transformers for local embedding-based semantic search.
+Local sentence-transformers are optional and fail closed on known-crashing
+Windows native stacks. PHI-bearing fields use the platform encryption service.
 """
 import json
 import logging
-import numpy as np
 from datetime import datetime, timedelta, UTC
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.memory import ConversationMemory
+from app.icoder.agent_runtime.context.context_retrieval import lexical_similarity
+from app.services.phi_encryption import decrypt_phi, encrypt_phi
 from app.services.llm_service import llm_service
+from icoder_runtime.providers.medical_coding.runtime_safety import (
+    assess_sentence_transformer_runtime_safety,
+)
 
 logger = logging.getLogger(__name__)
 
 # Lazy-load embedding model (80MB, CPU-friendly)
 _embedding_model = None
+_embedding_runtime_reason = "not_assessed"
 
 
 def _get_embedding_model():
-    global _embedding_model
+    global _embedding_model, _embedding_runtime_reason
     if _embedding_model is None:
+        safety = assess_sentence_transformer_runtime_safety()
+        _embedding_runtime_reason = safety.reason
+        if not safety.safe:
+            logger.error("Memory embeddings disabled: %s", safety.reason)
+            _embedding_model = False
+            return None
         try:
             from sentence_transformers import SentenceTransformer
             _embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+            _embedding_runtime_reason = "embedding_model_loaded"
             logger.info("Embedding model loaded: paraphrase-multilingual-MiniLM-L12-v2")
         except ImportError:
             logger.warning("sentence-transformers not installed. Falling back to keyword search.")
+            _embedding_runtime_reason = "sentence_transformers_not_installed"
             _embedding_model = False
         except Exception as e:
             logger.warning(f"Embedding model load failed: {e}")
+            _embedding_runtime_reason = f"embedding_model_load_failed:{type(e).__name__}"
             _embedding_model = False
     return _embedding_model if _embedding_model is not False else None
 
@@ -44,7 +59,24 @@ def _embed(text: str) -> list[float] | None:
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
     """Cosine similarity between two normalized vectors."""
-    return float(np.dot(a, b))
+    if len(a) != len(b) or not a:
+        return 0.0
+    return float(sum(left * right for left, right in zip(a, b)))
+
+
+def embedding_runtime_status() -> dict:
+    """Expose an auditable status without forcing a native model load."""
+    safety = assess_sentence_transformer_runtime_safety()
+    loaded = _embedding_model not in (None, False)
+    reason = _embedding_runtime_reason if _embedding_model is not None else safety.reason
+    return {
+        "safe": safety.safe,
+        "available": bool(loaded),
+        "reason": reason,
+        "retrieval_fallback": "LEXICAL_CJK_BIGRAM",
+        "torch_version": safety.torch_version,
+        "sentence_transformers_version": safety.sentence_transformers_version,
+    }
 
 MEMORY_SYSTEM_PROMPT = """You are a Memory Expert. Extract key facts from conversations that should be remembered for future interactions.
 
@@ -71,42 +103,49 @@ class MemoryExpert:
         session_id: str,
         role: str,
         content: str,
+        *,
+        organization_id: str,
         expert_id: str | None = None,
         agent_id: str | None = None,
         db: AsyncSession | None = None,
+        extract_facts: bool = False,
     ) -> ConversationMemory | None:
-        """Save a conversation message to memory with auto-extracted key facts."""
+        """Save encrypted memory; LLM fact extraction is explicit, never hidden."""
+        if not organization_id:
+            raise ValueError("organization_id is required for memory isolation")
+        if not content.strip():
+            raise ValueError("content cannot be empty")
         mem = ConversationMemory(
+            organization_id=organization_id,
             user_id=user_id,
             expert_id=expert_id,
             agent_id=agent_id,
             session_id=session_id,
             role=role,
-            content=content[:2000],
+            content=encrypt_phi(content[:2000]),
         )
-        # Auto-extract key facts and importance via LLM
-        try:
-            result = await llm_service.extract_json(
-                prompt=MEMORY_SYSTEM_PROMPT,
-                text=f"Role: {role}\nContent: {content[:500]}",
-                schema_hint="key_facts array and importance score"
-            )
-            if isinstance(result, dict):
-                facts_list = result.get("key_facts", [])
-                mem.importance = float(result.get("importance", 0.5))
-                mem.summary = result.get("summary", "")[:200]
-            else:
+        facts_list = []
+        if extract_facts:
+            try:
+                result = await llm_service.extract_json(
+                    prompt=MEMORY_SYSTEM_PROMPT,
+                    text=f"Role: {role}\nContent: {content[:500]}",
+                    schema_hint="key_facts array and importance score"
+                )
+                if isinstance(result, dict):
+                    facts_list = result.get("key_facts", [])
+                    mem.importance = float(result.get("importance", 0.5))
+                    mem.summary = encrypt_phi(str(result.get("summary", ""))[:200])
+            except Exception as e:
+                logger.warning(f"Memory fact extraction failed: {e}")
                 facts_list = []
-        except Exception as e:
-            logger.warning(f"Memory fact extraction failed: {e}")
-            facts_list = []
 
         # Store embedding alongside key facts in a standardized format
         emb = _embed(content[:500])
-        mem.key_facts = json.dumps({
-            "facts": facts_list,
-            "_embedding": emb if emb is not None else [],
-        }, ensure_ascii=False)
+        mem.key_facts = encrypt_phi(json.dumps({
+                "facts": facts_list,
+                "_embedding": emb if emb is not None else [],
+            }, ensure_ascii=False))
 
         if db:
             db.add(mem)
@@ -116,6 +155,7 @@ class MemoryExpert:
     async def recall(
         self,
         user_id: str,
+        organization_id: str,
         query: str,
         limit: int = 10,
         db: AsyncSession | None = None,
@@ -131,9 +171,12 @@ class MemoryExpert:
         """
         if not db:
             return []
+        if not organization_id:
+            raise ValueError("organization_id is required for memory isolation")
 
         # Get recent high-importance memories (optionally scoped by expert/agent)
         conditions = [
+            ConversationMemory.organization_id == organization_id,
             ConversationMemory.user_id == user_id,
             ConversationMemory.created_at >= datetime.now(UTC) - timedelta(days=30),
             ConversationMemory.importance >= 0.3,
@@ -156,41 +199,41 @@ class MemoryExpert:
 
         relevant = []
         for m in memories:
-            score = 0
+            score = 0.0
+            retrieval_mode = "LEXICAL_CJK_BIGRAM"
+            content = decrypt_phi(m.content) or ""
+            summary = decrypt_phi(m.summary) or ""
+            try:
+                raw_key_facts = decrypt_phi(m.key_facts)
+                key_facts = json.loads(raw_key_facts) if raw_key_facts else {}
+            except (json.JSONDecodeError, RuntimeError, TypeError, ValueError):
+                key_facts = {}
+            facts_list = key_facts.get("facts", []) if isinstance(key_facts, dict) else []
             # Semantic similarity (embedding stored in key_facts._embedding)
-            if query_emb is not None and m.key_facts:
-                try:
-                    kf = json.loads(m.key_facts)
-                    mem_emb = kf.get("_embedding") if isinstance(kf, dict) else None
-                    if isinstance(mem_emb, list) and len(mem_emb) > 10:
-                        score = _cosine_similarity(query_emb, mem_emb)
-                except (json.JSONDecodeError, ValueError):
-                    pass
+            if query_emb is not None and isinstance(key_facts, dict):
+                mem_emb = key_facts.get("_embedding")
+                if isinstance(mem_emb, list) and len(mem_emb) > 10:
+                    score = _cosine_similarity(query_emb, mem_emb)
+                    if score >= 0.3:
+                        retrieval_mode = "LOCAL_EMBEDDING"
 
-            # Keyword fallback
+            # Safe deterministic fallback, including Chinese text without spaces.
             if score < 0.3:
-                query_lower = query.lower()
-                if any(term in m.content.lower() for term in query_lower.split()):
-                    score += 0.5
-                if m.key_facts:
-                    try:
-                        kf = json.loads(m.key_facts)
-                        # Standardized format: {"facts": [...], "_embedding": [...]}
-                        facts_list = kf.get("facts", []) if isinstance(kf, dict) else kf
-                        if any(term in str(f).lower() for f in facts_list for term in query_lower.split()):
-                            score += 0.5
-                    except json.JSONDecodeError:
-                        pass
+                score = max(
+                    lexical_similarity(query, content),
+                    lexical_similarity(query, " ".join(str(f) for f in facts_list)),
+                )
 
             if score > 0:
                 relevant.append({
                     "id": m.id,
                     "role": m.role,
-                    "content": m.content[:300],
-                    "summary": m.summary,
-                    "key_facts": json.loads(m.key_facts) if m.key_facts else [],
+                    "content": content[:300],
+                    "summary": summary,
+                    "key_facts": facts_list,
                     "importance": m.importance,
                     "relevance_score": score,
+                    "retrieval_mode": retrieval_mode,
                     "created_at": m.created_at.isoformat(),
                 })
 
@@ -201,6 +244,7 @@ class MemoryExpert:
     async def get_session_context(
         self,
         user_id: str,
+        organization_id: str,
         session_id: str,
         limit: int = 20,
         db: AsyncSession | None = None,
@@ -212,6 +256,7 @@ class MemoryExpert:
         result = await db.execute(
             select(ConversationMemory)
             .where(
+                ConversationMemory.organization_id == organization_id,
                 ConversationMemory.user_id == user_id,
                 ConversationMemory.session_id == session_id,
             )
@@ -226,24 +271,146 @@ class MemoryExpert:
         lines = []
         for m in memories:
             prefix = "用户" if m.role == "user" else "助手" if m.role == "assistant" else "系统"
-            lines.append(f"[{prefix}]: {m.content[:200]}")
+            lines.append(f"[{prefix}]: {(decrypt_phi(m.content) or '')[:200]}")
 
         return "\n".join(lines)
 
-    async def get_user_profile(self, user_id: str, db: AsyncSession | None = None) -> dict:
+    async def ingest_context_messages(
+        self,
+        context_id: str,
+        user_id: str,
+        organization_id: str,
+        db: AsyncSession,
+        agent_id: str | None = None,
+    ) -> int:
+        """Bridge real Context messages into long-term ConversationMemory rows.
+
+        Called by A1B-AE-R.4.b — wires the persistent memory store to the
+        A2A Context. Reads every ContextMessageRow for the given context,
+        extracts plain-text content from parts_json, and saves one
+        ConversationMemory row per message (de-duplicated by session_id
+        = context_id + message_id).
+
+        Returns the number of memories saved. Skips messages already
+        ingested (idempotent per session_id+content hash).
+        """
+        from app.icoder.agent_runtime.context.db_models import ContextMessageRow, ContextRow
+
+        context_result = await db.execute(
+            select(ContextRow).where(
+                ContextRow.id == context_id,
+                ContextRow.organization_id == organization_id,
+            )
+        )
+        if context_result.scalar_one_or_none() is None:
+            return 0
+
+        result = await db.execute(
+            select(ContextMessageRow)
+            .where(ContextMessageRow.context_id == context_id)
+            .order_by(ContextMessageRow.timestamp)
+        )
+        messages = result.scalars().all()
+        if not messages:
+            return 0
+
+        saved = 0
+        for m in messages:
+            session_key = f"{context_id}:{m.message_id}"
+            try:
+                stored_parts = decrypt_phi(m.parts_json) if m.parts_json else ""
+                parts = json.loads(stored_parts) if stored_parts else []
+                parse_failed = False
+            except (json.JSONDecodeError, TypeError):
+                parts = []
+                parse_failed = True
+
+            text_parts = []
+            if isinstance(parts, list):
+                for p in parts:
+                    if isinstance(p, dict):
+                        text_parts.append(str(p.get("text", "") or p.get("content", "")))
+                    elif isinstance(p, str):
+                        text_parts.append(p)
+            elif isinstance(parts, str):
+                text_parts.append(parts)
+
+            # A1B-AE-R.4.b: when parts_json is a plain string (not JSON),
+            # fall back to using it verbatim. A2A MessagePart is a dict in
+            # the canonical schema, but legacy callers may store raw text.
+            if parse_failed and m.parts_json:
+                text_parts.append(str(decrypt_phi(m.parts_json) or ""))
+
+            content = " ".join(text_parts).strip()
+            if not content:
+                continue
+
+            existing = await db.execute(
+                select(ConversationMemory)
+                .where(
+                    ConversationMemory.organization_id == organization_id,
+                    ConversationMemory.user_id == user_id,
+                    ConversationMemory.session_id == session_key,
+                )
+                .limit(1)
+            )
+            if existing.scalars().first() is not None:
+                continue
+
+            mem = ConversationMemory(
+                organization_id=organization_id,
+                user_id=user_id,
+                agent_id=agent_id,
+                session_id=session_key,
+                role=(m.role or "user").lower(),
+                content=encrypt_phi(content[:2000]),
+            )
+            emb = _embed(content[:500])
+            mem.key_facts = encrypt_phi(json.dumps(
+                {
+                    "facts": [],
+                    "_embedding": emb if emb is not None else [],
+                    "source": "context",
+                    "context_id": context_id,
+                    "message_id": m.message_id,
+                    "redacted": m.redacted,
+                },
+                ensure_ascii=False,
+            ))
+            mem.importance = 0.4
+            db.add(mem)
+            saved += 1
+
+        if saved > 0:
+            await db.commit()
+        return saved
+
+    async def get_user_profile(
+        self,
+        user_id: str,
+        organization_id: str,
+        db: AsyncSession | None = None,
+    ) -> dict:
         """Build a user profile from accumulated memories."""
         if not db:
             return {}
 
         result = await db.execute(
             select(func.count(ConversationMemory.id))
-            .where(ConversationMemory.user_id == user_id)
+            .where(
+                ConversationMemory.organization_id == organization_id,
+                ConversationMemory.user_id == user_id,
+            )
         )
         total = result.scalar() or 0
 
         result = await db.execute(
             select(ConversationMemory)
-            .where(ConversationMemory.user_id == user_id, ConversationMemory.importance >= 0.7)
+            .where(
+                ConversationMemory.organization_id == organization_id,
+                ConversationMemory.user_id == user_id,
+                ConversationMemory.importance >= 0.7,
+            )
             .order_by(desc(ConversationMemory.created_at))
             .limit(20)
         )
@@ -253,11 +420,12 @@ class MemoryExpert:
         for m in high_importance:
             if m.key_facts:
                 try:
-                    kf = json.loads(m.key_facts)
+                    raw_key_facts = decrypt_phi(m.key_facts)
+                    kf = json.loads(raw_key_facts) if raw_key_facts else {}
                     # Standardized format: {"facts": [...], "_embedding": [...]}
                     facts_list = kf.get("facts", []) if isinstance(kf, dict) else kf
                     all_facts.extend(facts_list)
-                except json.JSONDecodeError:
+                except (json.JSONDecodeError, RuntimeError):
                     pass
 
         return {

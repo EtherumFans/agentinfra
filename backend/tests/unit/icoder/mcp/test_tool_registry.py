@@ -44,23 +44,48 @@ def _agent_pack_tools() -> list[dict]:
 
 
 def test_tool_registry_has_exactly_5_tools():
-    """M2 ships exactly 5 MCP tools (audit Part 7.4)."""
-    assert len(TOOL_REGISTRY) == 5
+    """M2 ships exactly 5 MCP tools (audit Part 7.4).
+
+    Phase 3-D2 Task 3: bumped to 8 — added validate_codes /
+    evaluate_compliance / check_documentation_gaps to back the 3 simple
+    agents. Test name kept for git-blame continuity.
+
+    Phase 4-C: bumped to 11 — added get_guidelines / explore_code /
+    search_codes (Corti Code Validation verify/guidelines/explore/search
+    1:1 replication). Test name kept for git-blame continuity.
+    """
+    assert len(TOOL_REGISTRY) == 11
     assert set(TOOL_REGISTRY) == {
         "search_icd",
         "verify_code",
         "get_differentiation_hint",
         "rerank_codes",
         "calibrate_confidence",
+        # Phase 3-D2 Task 3 — 3 agent-backed tools
+        "validate_codes",
+        "evaluate_compliance",
+        "check_documentation_gaps",
+        # Phase 4-C — 3 new Corti-style tools (verify_code was extended
+        # in-place, not added as a new entry)
+        "get_guidelines",
+        "explore_code",
+        "search_codes",
     }
 
 
 def test_tool_registry_names_match_agent_pack():
-    """The Python registry and the Agent Pack JSON must agree on names."""
+    """The Python registry must include every tool the Agent Pack declares.
+
+    Phase 3-D2 Task 3: TOOL_REGISTRY now hosts tools for multiple agents
+    (medcoder-coding-review's 5 + 3 simple-agent tools). The pack-declared
+    tools must be a SUBSET, not an exact match.
+    """
     declared = {t["name"] for t in _agent_pack_tools()}
-    assert set(TOOL_REGISTRY) == declared, (
-        f"registry ({set(TOOL_REGISTRY)}) != agent_pack ({declared}); "
-        "update either side to match."
+    actual = set(TOOL_REGISTRY)
+    missing = declared - actual
+    assert not missing, (
+        f"agent_pack declares {sorted(missing)} but TOOL_REGISTRY "
+        f"does not contain them; TOOL_REGISTRY has {sorted(actual)}."
     )
 
 

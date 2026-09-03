@@ -1,0 +1,83 @@
+{
+  "case_id": "G8-CDI-NEG-027",
+  "group": "negation_history",
+  "variant": "",
+  "session_id": "2cc525e9-6d6f-4936-9b83-abaaf4cbd130",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 23.88,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "All infection signs explicitly denied; agent should not generate CAP query"
+  },
+  "text_length": 3890,
+  "first_token_at_s": 3.47,
+  "last_token_at_s": 23.88,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"06cb4743-79cc-4fb0-aefb-672f704205ba\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 60-year-old female seen for cough for 1 week.\\n- Associated negatives documented: denies fever, purulent sputum, hemoptysis, and chest pain.\\n- Past history includes hy",
+    "message|{\"id\":\"06cb4743-79cc-4fb0-aefb-672f704205ba\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55de-da07-7332-8b85-97d7be094bfc\",\"taskId\":\"019f55de-da07-72bc-b8fa-cb989231e86d\",\"credits\":0.06420000000000001,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.06420000000000001},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55de-da07-7332-8b85-97d7be094bfc",
+    "taskId": "019f55de-da07-72bc-b8fa-cb989231e86d",
+    "credits": 0.06420000000000001,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 60-year-old female seen for cough for 1 week.\n- Associated negatives documented: denies fever, purulent sputum, hemoptysis, and chest pain.\n- Past history includes hypertension.\n- Exam notes: \"clear lungs bilaterally.\"\n- Chest X-ray: \"no active lesions.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Principal respiratory diagnosis not documented beyond symptom level.\n- Why it matters: The record currently supports a symptom code for cough unless the provider documents a confirmed underlying condition. CDI should avoid inferring diagnoses not stated in the excerpt.\n- Evidence quote: \"cough for 1 week\"; \"clear lungs bilaterally\"; \"Chest X-ray: no active lesions.\"\n- Minimal clarification needed: Whether the cough is the final diagnosis/symptom only, or whether another clinically established ca"
+      },
+      {
+        "idx": 2,
+        "text": "Hypertension lacks specificity.\n- Why it matters: Hypertension coding may require confirmation of type/relationship if more specific terminology is clinically intended, but the excerpt only states a history item.\n- Evidence quote: \"History: hypertension.\"\n- Minimal clarification needed: Whether hypertension is an active chronic condition addressed in this encounter versus past medical history only, and if more specific terminology is intended."
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Final diagnosis for cough encounter."
+      },
+      {
+        "idx": 2,
+        "text": "Status of hypertension in this encounter."
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted only the general need to clarify symptom-only documentation and hypertension status because both are directly supported by the excerpt. Rejected any unsupported inference of a more specific respiratory diagnosis.\n- AMBOSS Expert: Not consulted; no clinical criteria clarification was necessary because no diagnosis was documented that required staging/definition.\n- CDI Web Search Expert: Not consulted; no current external guideline was required to answer based on the excerpt alone.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 60-year-old female seen for cough for 1 week.\n- Associated negatives documented: denies fever, purulent sputum, hemoptysis, and chest pain.\n- Past history includes hypertension.\n- Exam notes: \"clear lungs bilaterally.\"\n- Chest X-ray: \"no active lesions.\"\n\nDocumentation Gaps:\n1. Principal respiratory diagnosis not documented beyond symptom level.\n- Why it matters: The record currently supports a symptom code for cough unless the provider documents a confirmed underlying condition. CDI should avoid inferring diagnoses not stated in the excerpt.\n- Evidence quote: \"cough for 1 week\"; \"clear lungs bilaterally\"; \"Chest X-ray: no active lesions.\"\n- Minimal clarification needed: Whether the cough is the final diagnosis/symptom only, or whether another clinically established cause/condition was diagnosed.\n\n2. Hypertension lacks specificity.\n- Why it matters: Hypertension coding may require confirmation of type/relationship if more specific terminology is clinically intended, but the excerpt only states a history item.\n- Evidence quote: \"History: hypertension.\"\n- Minimal clarification needed: Whether hypertension is an active chronic condition addressed in this encounter versus past medical history only, and if more specific terminology is intended.\n\nProposed Provider Queries:\n1. Topic: Final diagnosis for cough encounter.\n- Reason query is needed: The note documents a symptom and negative workup elements, but no definitive respiratory diagnosis.\n- Evidence quote: \"cough for 1 week\"; \"clear lungs bilaterally\"; \"Chest X-ray: no active lesions.\"\n- Non-leading query text: \"For this encounter, can you clarify the final assessment/diagnosis related to the documented cough?\"\n- Suggested response options:\n  - Cough only / symptom not otherwise specified\n  - Acute upper respiratory condition (please specify)\n  - Other diagnosis responsible for the cough (please specify)\n  - No additional diagnosis established\n  - Clinically undetermined\n\n2. Topic: Status of hypertension in this encounter.\n- Reason query is needed: The chart lists hypertension in history, but it is unclear whether it was monitored, evaluated, or impacted care during this encounter.\n- Evidence quote: \"History: hypertension.\"\n- Non-leading query text: \"Please clarify the status of the documented hypertension for this encounter.\"\n- Suggested response options:\n  - Active chronic condition relevant/assessed this encounter\n  - Past medical history only, not addressed this encounter\n  - Other (please specify)\n  - Unable to determine\n\nCoding Specificity Checklist:\n- For cough/respiratory complaint:\n  - Final diagnosis, if established\n  - If only a symptom, document that no more specific diagnosis was established\n  - Duration and associated symptoms if clinically relevant\n- For hypertension:\n  - Whether active and addressed this encounter\n  - Any more specific hypertension terminology if clinically applicable\n\nRisk Flags:\n- No documented evidence supports pneumonia, bronchitis, hemoptysis, respiratory failure, or other acute pulmonary diagnosis in this excerpt.\n- Chest X-ray and exam are not supportive of a more specific lower respiratory diagnosis based on the provided text alone.\n- Querying for infectious pneumonia or other unsupported diagnoses would be non-compliant.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted only the general need to clarify symptom-only documentation and hypertension status because both are directly supported by the excerpt. Rejected any unsupported inference of a more specific respiratory diagnosis.\n- AMBOSS Expert: Not consulted; no clinical criteria clarification was necessary because no diagnosis was documented that required staging/definition.\n- CDI Web Search Expert: Not consulted; no current external guideline was required to answer based on the excerpt alone."
+}

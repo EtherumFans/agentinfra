@@ -1,6 +1,6 @@
 """A2A mounting point.
 
-Aggregates the four A2A routers (inbound, outbound, discovery, task-stub)
+Aggregates the A2A routers (inbound, outbound, discovery, task state machine)
 and exposes :func:`mount_a2a` for the application to call once at startup.
 
 Mounting layout:
@@ -10,9 +10,12 @@ Mounting layout:
 - ``/api/icoder/agents``           — agent list + capability filter
 - ``/api/icoder/agents/{id}/card`` — single AgentCard
 - ``/api/icoder/agents/{id}/v1/message:send`` — inbound message/send
+- ``/api/icoder/agents/{id}/v1/message:stream`` — inbound SSE message/stream
 - ``/api/icoder/internal/experts/{id}/v1/message:send`` — outbound
-- ``/api/icoder/tasks/{id}``       — Phase 1 stub (501)
-- ``/api/icoder/tasks/{id}/cancel`` — Phase 1 stub (501)
+- ``/api/icoder/tasks/{id}``       — A1B-AE-R.1.a real Task state machine
+- ``/api/icoder/tasks/{id}/cancel`` — A1B-AE-R.1.a real Task cancel
+- ``/api/v2/agentic/agents/{id}/a2a`` — A2A v1.0 JSON-RPC binding
+- ``/api/v2/agentic/agents/{id}/message:send`` — A2A v1.0 HTTP+JSON binding
 """
 
 from __future__ import annotations
@@ -22,10 +25,12 @@ from typing import Any
 from fastapi import APIRouter, FastAPI
 
 from ..orchestrator.inbound_handler import InboundHandler
+from .routes_context import build_context_router
 from .routes_discovery import AgentProvider, build_discovery_router
 from .routes_inbound import build_inbound_router
 from .routes_outbound import ExpertCaller, build_outbound_router
-from .routes_task_stub import build_task_stub_router
+from .routes_task import build_task_router
+from .v1 import build_v1_router
 
 
 def build_a2a_routers(
@@ -34,7 +39,7 @@ def build_a2a_routers(
     agent_provider: AgentProvider,
     expert_caller: ExpertCaller,
 ) -> dict[str, Any]:
-    """Build all four A2A routers without mounting.
+    """Build all A2A routers without mounting.
 
     Returns a dict keyed by mount-point category:
 
@@ -42,14 +47,18 @@ def build_a2a_routers(
     - ``"outbound"`` — APIRouter for ``/api/icoder/internal/experts``
     - ``"discovery_root"`` — APIRouter for root-level (well-known, llms.txt)
     - ``"discovery_agents"`` — APIRouter for ``/api/icoder/agents``
-    - ``"task_stub"`` — APIRouter for ``/api/icoder/tasks``
+    - ``"task"`` — APIRouter for ``/api/icoder/tasks``
+    - ``"context"`` — APIRouter for ``/api/icoder/contexts`` (R.1.b)
+    - ``"v1"`` — APIRouter for A2A v1.0 JSON-RPC + HTTP+JSON bindings
     """
     return {
         "inbound": build_inbound_router(handler),
         "outbound": build_outbound_router(expert_caller),
         "discovery_root": build_discovery_router(agent_provider)[0],
         "discovery_agents": build_discovery_router(agent_provider)[1],
-        "task_stub": build_task_stub_router(),
+        "task": build_task_router(),
+        "context": build_context_router(),
+        "v1": build_v1_router(handler, agent_provider),
     }
 
 
@@ -96,8 +105,17 @@ def mount_a2a(
     # Discovery agents — /api/icoder/agents (already prefixed)
     app.include_router(routers["discovery_agents"])
 
-    # Task stub — /api/icoder/tasks (already prefixed)
-    app.include_router(routers["task_stub"])
+    # Task — /api/icoder/tasks (already prefixed)
+    app.include_router(routers["task"])
+
+    # Context — /api/icoder/contexts (already prefixed, R.1.b)
+    app.include_router(routers["context"])
+
+    # A2A v1.0 — independent adapters; v0.3 routes above remain unchanged.
+    app.include_router(routers["v1"])
+    app.state.a2a_task_runtime = getattr(
+        routers["v1"], "a2a_task_runtime", None
+    )
 
     # Mark as mounted (idempotency guard)
     app.state._a2a_mounted = True

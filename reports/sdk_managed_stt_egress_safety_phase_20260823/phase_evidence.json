@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-23T21:04:55.6373314+08:00",
+  "scope": "local_managed_stt_lifecycle_and_audio_egress_safety",
+  "external_llm_used": false,
+  "corti_console_used": false,
+  "official_baseline": [
+    "https://docs.corti.ai/sdk/overview",
+    "https://docs.corti.ai/sdk/js/websockets",
+    "https://docs.corti.ai/sdk/js/reference",
+    "https://docs.corti.ai/sdk/dotnet/websockets"
+  ],
+  "capabilities": {
+    "javascript_managed_stt": true,
+    "python_managed_stt": true,
+    "ready_handshake_wait_default": true,
+    "early_socket_return_option": true,
+    "typed_events": true,
+    "managed_token_refresh_before_connect": true,
+    "bounded_exponential_reconnect": true,
+    "pre_audio_reconnect": true,
+    "post_audio_resume_fails_closed": true,
+    "reconnect_exhaustion_rejects_waiter": true,
+    "server_error_free_text_retained": false,
+    "credential_url_retained_in_errors": false,
+    "tenant_and_machine_scope_enforced": true,
+    "websocket_memory_limit_bytes": 33554432,
+    "implicit_public_google_stt_fallback": false,
+    "native_stt_enabled_by_default_in_api_process": false,
+    "native_failure_temp_audio_cleanup": true,
+    "stt_error_and_log_free_text_retained": false,
+    "corti_websocket_wire_compatible": false,
+    "real_regional_stt_provider_connected": false,
+    "mid_audio_resume_cursor": false,
+    "dotnet_managed_stt_verified": false,
+    "clinical_speech_quality_verified": false
+  },
+  "validation": {
+    "javascript": {
+      "tests_passed": 68,
+      "tests_failed": 0,
+      "build_passed": true,
+      "managed_stt_tests_passed": 5,
+      "combined_targeted_tests_passed": 14
+    },
+    "python": {
+      "tests_passed": 69,
+      "tests_failed": 0,
+      "managed_stt_tests_passed": 5,
+      "combined_targeted_tests_passed": 14
+    },
+    "backend": {
+      "full_tests_passed": 5260,
+      "full_tests_failed": 0,
+      "full_tests_skipped": 20,
+      "full_tests_deselected": 11,
+      "full_duration_seconds": 1670.45,
+      "stt_broad_tests_passed": 40,
+      "stt_security_telemetry_preflight_tests_passed": 18
+    },
+    "deployment_preflight": {
+      "checks_passed": 83,
+      "checks_failed": 0,
+      "report_sha256": "330e2fc6311ef9f1d84a79dfe04adcb2af300be58d4f38665882e6efbb908431"
+    },
+    "packaging": {
+      "javascript": {
+        "filename": "icoder-sdk-1.0.0-beta.28.tgz",
+        "size_bytes": 61876,
+        "file_count": 56,
+        "managed_module_included": true,
+        "declarations_included": true,
+        "sha256": "40698ad5f9d953f3f0fa1695deb2f5a7275b8c8dfc499a3f79df0144813306a4"
+      },
+      "python": {
+        "filename": "icoder_sdk-1.0.0b28-py3-none-any.whl",
+        "size_bytes": 43638,
+        "file_count": 27,
+        "managed_module_included": true,
+        "sha256": "d8afa3a31ba44ce5bd0dbfd5bb272c178d52160b3185968f72779647c9bf8dbd"
+      }
+    },
+    "dotnet": {
+      "executed": false,
+      "reason": "dotnet, csc, and msbuild are not installed on this host"
+    }
+  },
+  "source_sha256": {
+    "backend/app/api/websocket.py": "795729ebcb7ffa91c1182b96553879f8cffd9c80295da042e50e319a695d7ec2",
+    "backend/app/config.py": "e1a9ca51146d3653c7a9dea1e2529a9f9925b299febba7291db4b35d5ae7e8c3",
+    "backend/app/services/stt_service.py": "9d7db0435209c282378fa72ab64aa06a5fb58b587ad979c4a6449e58c68f38b3",
+    "backend/app/services/stt_jobs.py": "613ce64f9ed216fac8e9898fb286bf4246202e1bf35ee0493cded42807224752",
+    "backend/app/services/speaker_diarizer.py": "39c21b106a04c59cc83b44a65faf99566eb06102ce78f1b28ef304619fe8fd11",
+    "backend/scripts/start_visible_deepseek_e2e_backend.ps1": "77a9500d429d8f4fe160575fadf3215f470159d4838265342825fd3b2514960e",
+    "backend/scripts/corti_parity/validate_deployment_candidate.py": "6acacaf8430b044f993fd76835da8c9081e40ca2e713c081b0045fa4a0769c9e",
+    "backend/tests/test_api/test_stt_websocket_security.py": "eb8c8bc790b400629b9031b0f0e39d093744c0cfc92bf3fd2e03417f873b2e0d",
+    "backend/tests/unit/app/services/test_stt_inference_telemetry.py": "02ce4b93713538656ceda7e6fb3fc04e4aeca2ea3fc378e004ab28c0f4398dcd",
+    "backend/tests/unit/corti_parity/test_deployment_candidate_preflight.py": "98c43622867176d5fe4fbe1a1af15cc603552c3765c76d8c49d2b78cf99e0ff7",
+    "packages/icoder-sdk/src/managed-stt-session.ts": "3e06ebeb7784e676045d4b7336eab7f260e8703e937c4c22041da205ab5fc8e1",
+    "packages/icoder-sdk/src/resources/speech-to-text.ts": "ffd0a682f1cbbb64f5175ad09616351491a65b518614d46d1d483429c1b35572",
+    "packages/icoder-sdk/src/client.ts": "8403084b9395d3f5be12479a2ce33c5e46157bd3f67c665368305f500f62d4d8",
+    "packages/icoder-sdk/src/index.ts": "13a5cb0e3cc310c2109bfdb2cce3abde5996f98578ada50bbd616d0209fd1ea5",
+    "packages/icoder-sdk/tests/managed-stt-session.test.mjs": "a49c44d617863d6a2a3c512298c3cca83c91ad85b751611fa8863a314fb73981",
+    "packages/icoder-python/icoder_sdk/managed_stt_session.py": "c58f713753a23fd3fb725e4d6da78547a5b6edbd7e08ba65f7d79f8976c1cc92",
+    "packages/icoder-python/icoder_sdk/resources/speech_to_text.py": "0567fd84908d2667471a7573109f9fb2c83edc4209e34eb897f8bae619eca3d4",
+    "packages/icoder-python/icoder_sdk/client.py": "1e9a458b23c8ede9f284a39e78809357b7ef19d696958aa7296be7250db4e979",
+    "packages/icoder-python/icoder_sdk/__init__.py": "f21b9884eebd6d82a2a5903cdd17b62b25ae2e0f93bed25b98930f93c0e4d40b",
+    "packages/icoder-python/tests/test_managed_stt_session.py": "20f56ffa0bafed5f586dfe7ae5616534800befd4080b67caf803688529ede128"
+  },
+  "safety": {
+    "icoder_credential_llm_length": 0,
+    "deepseek_api_key_length": 0,
+    "external_llm_requests": 0,
+    "protected_ports_listening": 0,
+    "project_runtime_processes": 0,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "docker_available": false
+  },
+  "limitations": [
+    "The managed clients implement the iCoDer start/ready protocol, not Corti CONFIG_ACCEPTED wire compatibility.",
+    "No real regional STT provider, multi-replica session owner, audio resume cursor, long-duration load, or clinical speech corpus was exercised.",
+    "The API process defaults local native STT off; this is a safety boundary and not evidence of an available production transcription engine.",
+    "The .NET managed implementation was not built or executed because the toolchain is absent."
+  ]
+}

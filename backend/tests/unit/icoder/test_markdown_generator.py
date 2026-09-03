@@ -176,7 +176,7 @@ def test_string_input_returns_graceful_fallback():
     """If the v2 data is not a dict (degraded path), return a top-level
     'no output' message rather than crashing."""
     md = generate_markdown("not a dict")  # type: ignore[arg-type]
-    assert "Medical Coding Agent Output" in md
+    assert "医学编码智能体输出" in md
     assert "No structured output available" in md
 
 
@@ -221,3 +221,159 @@ def test_round_trip_does_not_crash_on_real_v2_dict():
         assert header in md
     # And the run_id should appear
     assert "run-test-1" in md
+
+
+# ── Phase 3-D2 Task 4 — per-agent markdown generators ──────────────
+
+
+def test_code_validation_markdown_has_5_sections():
+    """Code Validation markdown must render all 5 sections per spec."""
+    from app.icoder.markdown_generator import generate_code_validation_markdown
+    sample = {
+        "review_conclusion": "WARNING",
+        "issues_found": [
+            {"rule_id": "R004", "severity": "high", "code": "I50.9",
+             "message": "low confidence", "suggestion": "请补充证据"},
+        ],
+        "manual_review_required": True,
+        "rule_set": "medical_coding",
+        "fired_rules": ["R001", "R004", "MC-R-M80-001"],
+        "trace_refs": {"run_id": "cv-1", "agent_ref": "icoder/code-validation-agent@1.0.0"},
+    }
+    md = generate_code_validation_markdown(sample)
+    expected_sections = [
+        "## 1. Review Conclusion",
+        "## 2. Fired Rules",
+        "## 3. Issue Codes",
+        "## 4. Modification Suggestions",
+        "## 5. Manual Review Advice",
+    ]
+    for s in expected_sections:
+        assert s in md, f"missing section: {s}"
+    # Should surface fired rules
+    assert "R001" in md
+    assert "MC-R-M80-001" in md
+    # Should surface issue code + suggestion
+    assert "R004" in md
+    assert "请补充证据" in md
+    # Manual review advice should fire (manual_review_required=True)
+    assert "人工复核" in md
+    # Run ID footer
+    assert "cv-1" in md
+
+
+def test_compliance_guardrail_markdown_has_5_sections():
+    """Compliance Guardrail markdown must render all 5 sections per spec."""
+    from app.icoder.markdown_generator import generate_compliance_guardrail_markdown
+    sample = {
+        "review_conclusion": "WARNING",
+        "issues_found": [
+            {"rule_id": "CG-001", "severity": "high", "code": "I50.9",
+             "message": "DRG 跳跃风险"},
+            {"rule_id": "CG-002", "severity": "medium", "code": "I10",
+             "message": "次要诊断影响 DIP 分值"},
+        ],
+        "manual_review_required": True,
+        "drg_suggestion": "建议核查主要诊断编码",
+        "compliance_checks": [
+            {"check_id": "CG-001", "passed": False, "severity": "high", "detail": "..."},
+        ],
+        "rule_set": "medical_coding",
+        "fired_rules": ["CG-001", "CG-002"],
+        "trace_refs": {"run_id": "cg-1", "agent_ref": "icoder/compliance-guardrail-agent@1.0.0"},
+    }
+    md = generate_compliance_guardrail_markdown(sample)
+    expected_sections = [
+        "## 1. Risk Conclusion",
+        "## 2. DRG/DIP Sensitive Items",
+        "## 3. Compliance Checks",
+        "## 4. Risk Level",
+        "## 5. Audit Advice",
+    ]
+    for s in expected_sections:
+        assert s in md, f"missing section: {s}"
+    # Should surface DRG/DIP sensitive items
+    assert "CG-001" in md
+    assert "DRG 跳跃风险" in md
+    # Should surface risk level (WARNING → MEDIUM)
+    assert "MEDIUM" in md
+    # Audit advice should fire (manual_review_required=True)
+    assert "审计" in md
+    # Run ID footer
+    assert "cg-1" in md
+
+
+def test_compliance_guardrail_markdown_accepts_runtime_check_map():
+    """The runnable agent emits a named boolean map, not legacy list rows."""
+    from app.icoder.markdown_generator import generate_compliance_guardrail_markdown
+
+    md = generate_compliance_guardrail_markdown({
+        "review_conclusion": "WARNING",
+        "compliance_checks": {
+            "primary_dx_present": False,
+            "no_upcoding_risk": True,
+        },
+    })
+
+    assert "primary_dx_present" in md
+    assert "No" in md
+    assert "no_upcoding_risk" in md
+    assert "Yes" in md
+
+
+def test_note_completeness_markdown_has_5_sections():
+    """Note Completeness markdown must render all 5 sections per spec."""
+    from app.icoder.markdown_generator import generate_note_completeness_markdown
+    sample = {
+        "review_conclusion": "WARNING",
+        "completeness_score": 0.6,
+        "missing_sections": ["主诉", "查体"],
+        "present_sections": ["现病史", "诊断"],
+        "documentation_gaps": [
+            {"section": "主诉", "gap_type": "missing_section",
+             "suggestion": "请补充 主诉 章节"},
+        ],
+        "manual_review_required": True,
+        "is_surgical_case": False,
+        "trace_refs": {"run_id": "nc-1", "agent_ref": "icoder/note-completeness-agent@1.0.0"},
+    }
+    md = generate_note_completeness_markdown(sample)
+    expected_sections = [
+        "## 1. Completeness Score",
+        "## 2. Missing Sections",
+        "## 3. Present Sections",
+        "## 4. Supplement Suggestions",
+        "## 5. Coding/DRG/DIP Impact",
+    ]
+    for s in expected_sections:
+        assert s in md, f"missing section: {s}"
+    # Should surface score as percentage
+    assert "60.0%" in md
+    # Should surface missing sections
+    assert "主诉" in md
+    assert "查体" in md
+    # Should surface present sections
+    assert "现病史" in md
+    # Coding impact should fire (missing sections present)
+    assert "DRG" in md
+    assert "DIP" in md
+    # Run ID footer
+    assert "nc-1" in md
+
+
+def test_generate_markdown_for_dispatches_by_agent_id():
+    """generate_markdown_for() dispatches to the right per-agent generator."""
+    from app.icoder.markdown_generator import generate_markdown_for
+    # Code Validation
+    md_cv = generate_markdown_for("code-validation-agent", {"review_conclusion": "PASS"})
+    assert "编码校验智能体输出" in md_cv
+    # Compliance Guardrail
+    md_cg = generate_markdown_for("compliance-guardrail-agent", {"review_conclusion": "PASS"})
+    assert "合规护栏智能体输出" in md_cg
+    # Note Completeness
+    md_nc = generate_markdown_for("note-completeness-agent", {"completeness_score": 1.0})
+    assert "病历完整性智能体输出" in md_nc
+    # Unknown agent_id → fallback
+    md_unknown = generate_markdown_for("mystery-agent", {"foo": "bar"})
+    assert "Agent Output" in md_unknown
+    assert "foo" in md_unknown  # JSON dump fallback

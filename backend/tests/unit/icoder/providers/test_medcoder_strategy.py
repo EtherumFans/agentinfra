@@ -83,15 +83,12 @@ class _StubRetriever:
 
 
 @pytest.mark.asyncio
-async def test_stage1_extraction_no_gateway_returns_mock():
-    """Without a gateway, stage 1 returns the deterministic mock result."""
+async def test_stage1_extraction_no_gateway_fails_closed():
     strat = MedCodERStrategy()
     out = await strat.stage1_extraction("患者主诉胸闷气短")
     # E1.4: ExtractionResult is iterable as diseases for back-compat.
     assert isinstance(out, ExtractionResult)
-    assert len(out) == 1
-    assert out[0]["disease_text"] == "心力衰竭"
-    assert out[0]["llm_initial_code"] == "I50.900"
+    assert out.diseases == []
     assert out.procedure_mentions == []
 
 
@@ -124,16 +121,30 @@ async def test_stage1_extraction_with_gateway_parses_json():
 
 
 @pytest.mark.asyncio
-async def test_stage1_extraction_gateway_failure_falls_back_to_mock():
-    """When the gateway raises, stage 1 falls back to mock (non-fatal)."""
+async def test_stage1_extraction_applies_governed_project_policy():
+    sentinel = "MEDCODER_STAGE1_PROJECT_POLICY_SENTINEL"
+    gw = _StubGateway(
+        '[{"disease_text": "高血压", "supporting_evidence": "BP 160/100", "llm_initial_code": "I10"}]'
+    )
+    strat = MedCodERStrategy(gateway=gw)
+
+    out = await strat.stage1_extraction("BP 160/100, 诊断高血压", sentinel)
+
+    assert len(out) == 1
+    system_prompt = gw.calls[0][0]["content"]
+    assert sentinel in system_prompt
+    assert "IMMUTABLE_MEDICAL_CODING_BOUNDARY" in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_stage1_extraction_gateway_failure_fails_closed():
     class _BrokenGateway:
         async def generate(self, messages, provider="default"):
             raise RuntimeError("LLM offline")
 
     strat = MedCodERStrategy(gateway=_BrokenGateway())
     out = await strat.stage1_extraction("anything")
-    assert len(out) == 1
-    assert out[0]["disease_text"] == "心力衰竭"
+    assert out.diseases == []
 
 
 @pytest.mark.asyncio
@@ -352,6 +363,28 @@ async def test_stage4_rerank_with_llm_parses_ranked():
     assert len(out) == 1
     assert out[0]["code"] == "I50.900"
     assert out[0]["confidence"] == 0.95
+
+
+@pytest.mark.asyncio
+async def test_stage4_rerank_applies_governed_project_policy():
+    sentinel = "MEDCODER_STAGE4_PROJECT_POLICY_SENTINEL"
+    gw = _StubGateway(
+        '{"ranked": [{"final_code": "I50.900", "final_name": "心力衰竭", '
+        '"final_confidence": 0.95, "rationale": "best match"}]}'
+    )
+    strat = MedCodERStrategy(gateway=gw)
+
+    out = await strat.stage4_rerank(
+        "心衰",
+        "胸闷",
+        [{"code": "I50.900", "name": "心力衰竭", "score": 0.9}],
+        project_policy=sentinel,
+    )
+
+    assert out[0]["code"] == "I50.900"
+    system_prompt = gw.calls[0][0]["content"]
+    assert sentinel in system_prompt
+    assert "IMMUTABLE_MEDICAL_CODING_BOUNDARY" in system_prompt
 
 
 @pytest.mark.asyncio
@@ -622,6 +655,8 @@ def test_create_default_retriever_selects_subprocess_on_windows(monkeypatch):
     ``MedCodERRetriever()`` directly, so we assert on call counts.
     """
     monkeypatch.setattr("os.name", "nt")
+    monkeypatch.setenv("MEDCODER_ALLOW_UNSAFE_WINDOWS_BGE", "1")
+    monkeypatch.delenv("ICODER_DISABLE_NATIVE_MEDCODER", raising=False)
     fake_subprocess_cls = MagicMock(name="SubprocessMedCodERRetriever")
     fake_inline_cls = MagicMock(name="MedCodERRetriever")
     monkeypatch.setattr(
@@ -640,10 +675,38 @@ def test_create_default_retriever_selects_subprocess_on_windows(monkeypatch):
     assert result is fake_subprocess_cls.return_value
 
 
+def test_create_default_retriever_fails_closed_on_known_unsafe_native_stack(
+    monkeypatch,
+):
+    from icoder_runtime.providers.medical_coding.runtime_safety import BGERuntimeSafety
+
+    monkeypatch.delenv("MEDCODER_ALLOW_UNSAFE_WINDOWS_BGE", raising=False)
+    monkeypatch.setattr(
+        "icoder_runtime.providers.medical_coding.runtime_safety.assess_bge_runtime_safety",
+        lambda: BGERuntimeSafety(False, "known unsafe test stack"),
+    )
+    fake_subprocess_cls = MagicMock(name="SubprocessMedCodERRetriever")
+    fake_inline_cls = MagicMock(name="MedCodERRetriever")
+    monkeypatch.setattr(
+        "icoder_runtime.providers.medical_coding.medcoder_retriever.SubprocessMedCodERRetriever",
+        fake_subprocess_cls,
+    )
+    monkeypatch.setattr(
+        "icoder_runtime.providers.medical_coding.medcoder_retriever.MedCodERRetriever",
+        fake_inline_cls,
+    )
+
+    assert MedCodERStrategy()._create_default_retriever() is None
+    fake_subprocess_cls.assert_not_called()
+    fake_inline_cls.assert_not_called()
+
+
 def test_create_default_retriever_env_overrides_to_subprocess(monkeypatch):
     """``MEDCODER_SUBPROCESS=1`` forces subprocess wrapper regardless of OS."""
     monkeypatch.setattr("os.name", "posix")
     monkeypatch.setenv("MEDCODER_SUBPROCESS", "1")
+    monkeypatch.setenv("MEDCODER_ALLOW_UNSAFE_WINDOWS_BGE", "1")
+    monkeypatch.delenv("ICODER_DISABLE_NATIVE_MEDCODER", raising=False)
     fake_subprocess_cls = MagicMock(name="SubprocessMedCodERRetriever")
     fake_inline_cls = MagicMock(name="MedCodERRetriever")
     monkeypatch.setattr(
@@ -665,6 +728,7 @@ def test_create_default_retriever_inline_on_posix(monkeypatch):
     """On POSIX without MEDCODER_SUBPROCESS=1, default is in-process retriever."""
     monkeypatch.setattr("os.name", "posix")
     monkeypatch.delenv("MEDCODER_SUBPROCESS", raising=False)
+    monkeypatch.delenv("ICODER_DISABLE_NATIVE_MEDCODER", raising=False)
     fake_subprocess_cls = MagicMock(name="SubprocessMedCodERRetriever")
     fake_inline_cls = MagicMock(name="MedCodERRetriever")
     monkeypatch.setattr(

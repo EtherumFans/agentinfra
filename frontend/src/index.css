@@ -25,8 +25,21 @@
     --input: 40 10% 92%;
     --ring: 9 68% 48%;
 
-    /* Radius scale */
-    --radius: 0.5rem;
+    /* Radius scale — 5-tier documented system (shape consistency lock §4.4)
+       Rule: pick one tier per component class, follow everywhere.
+       - --radius-xs  (2px)  → micro-badges (text-[9px] inline status tags)
+       - --radius-md  (6px)  → buttons, inputs, small chips
+       - --radius-lg  (8px)  → cards, list items, popover surfaces
+       - --radius-xl  (12px) → modals, drawers, dialogs
+       - --radius-2xl (16px) → chat surfaces (message bubbles, composer)
+       - full              → pill badges, avatars
+       Removed: --radius-sm (no usage), --radius-3xl (no usage). */
+    --radius-xs: 0.125rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius: var(--radius-lg);
 
     /* Sidebar — slightly cooler to separate from content */
     --sidebar-background: 40 10% 96%;
@@ -68,10 +81,13 @@
     --muted-foreground: 40 4% 55%;
     --primary: 9 62% 54%;
     --primary-foreground: 0 0% 100%;
+    --secondary: 155 30% 42%;
+    --secondary-foreground: 0 0% 100%;
     --accent: 40 4% 16%;
     --accent-foreground: 40 8% 90%;
     --border: 40 4% 18%;
     --input: 40 4% 18%;
+    --ring: 9 62% 54%;
     --card: 40 4% 12%;
     --card-foreground: 40 14% 96%;
     --popover: 40 4% 14%;
@@ -79,8 +95,18 @@
     --sidebar-background: 40 4% 8%;
     --sidebar-foreground: 40 6% 60%;
     --sidebar-border: 40 4% 16%;
+    --sidebar-primary: 9 62% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 40 4% 14%;
     --sidebar-accent-foreground: 40 8% 88%;
+    --sidebar-ring: 9 62% 54%;
+    --destructive: 0 70% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --chart-1: 9 62% 54%;
+    --chart-2: 155 30% 42%;
+    --chart-3: 40 45% 60%;
+    --chart-4: 200 50% 52%;
+    --chart-5: 280 35% 58%;
   }
 
   body {

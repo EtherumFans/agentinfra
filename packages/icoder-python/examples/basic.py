@@ -3,7 +3,6 @@
 from icoder_sdk import iCoDerClient, iCoDerConfig
 from icoder_sdk.resources.facts import FactsResource
 from icoder_sdk.resources.agents import AgentsResource, ExpertsResource
-from icoder_sdk.resources.reviews import ReviewsResource
 from icoder_sdk.resources.billing import BillingResource, UsageResource
 from icoder_sdk.resources.oauth import OAuthResource
 
@@ -19,7 +18,6 @@ client = iCoDerClient(config)
 facts = FactsResource(client)
 agents = AgentsResource(client)
 experts = ExpertsResource(client)
-reviews = ReviewsResource(client)
 billing = BillingResource(client)
 usage = UsageResource(client)
 oauth = OAuthResource(client)

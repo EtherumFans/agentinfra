@@ -30,8 +30,12 @@ class M2aStore:
     PRODUCTION_FILE = "production_runs.jsonl"
     SAMPLE_FILE = "sample_runs.jsonl"
 
-    def __init__(self, storage_dir: str | Path = ".icoder/m2a"):
-        self._dir = Path(storage_dir)
+    def __init__(self, storage_dir: str | Path | None = None):
+        self._dir = (
+            Path(storage_dir)
+            if storage_dir is not None
+            else Path(os.environ.get("ICODER_REGISTRY_DIR", ".icoder")) / "m2a"
+        )
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._prod_path = self._dir / self.PRODUCTION_FILE

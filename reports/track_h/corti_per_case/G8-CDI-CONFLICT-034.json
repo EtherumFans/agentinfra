@@ -1,0 +1,390 @@
+{
+  "case_id": "G8-CDI-CONFLICT-034",
+  "group": "document_conflict",
+  "variant": "",
+  "session_id": "83b5e2be-3fd6-487e-84f4-c6d65019df95",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 34.64,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "胰腺炎病因",
+      "etiology of pancreatitis",
+      "酒精性 vs 胆源性 vs 特发性"
+    ],
+    "notes": "Three different etiologies across documents — significant alcohol use ignored"
+  },
+  "text_length": 7535,
+  "first_token_at_s": 3.82,
+  "last_token_at_s": 34.64,
+  "event_count": 15,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":5,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"K85.00\",\"code_system\":\"icd-10-cm\",\"description\":\"Idiopathic acute pancreatitis without necrosis or infection\",\"next_steps\":[{\"reason\":\"Read coding conventions for th",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"K85.10\",\"code_system\":\"icd-10-cm\",\"description\":\"Biliary acute pancreatitis without necrosis or infection\",\"next_steps\":[{\"reason\":\"Read coding conventions for this ",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"K85.20\",\"code_system\":\"icd-10-cm\",\"description\":\"Alcohol induced acute pancreatitis without necrosis or infection\",\"next_steps\":[{\"reason\":\"Read coding conventions f",
+    "message|{\"id\":\"2d05e7a0-b821-41b2-8f57-0773b13ea9c0\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 50-year-old female with documented \\\"acute pancreatitis.\\\"\\n- Admission diagnosis documents \\\"biliary pancreatitis.\\\"\\n- Imaging states: \\\"MRI: no choledocholithiasis, ",
+    "message|{\"id\":\"2d05e7a0-b821-41b2-8f57-0773b13ea9c0\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e3-4d5b-745b-a049-6d031ee4bd3d\",\"taskId\":\"019f55e3-4d5b-73e2-ae10-59fdcefc910d\",\"credits\":0.09895599999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.09895599999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "acute pancreatitis idiopathic",
+      "results": [
+        {
+          "code": "K85.00",
+          "description": "Idiopathic acute pancreatitis without necrosis or infection",
+          "match_path": "Pancreatitis, acute, idiopathic",
+          "related_codes": {
+            "category": "K85.0",
+            "category_description": "Idiopathic acute pancreatitis",
+            "count": 3
+          }
+        },
+        {
+          "code": "K85.90",
+          "description": "Acute pancreatitis without necrosis or infection, unspecified",
+          "match_path": "Pancreatitis, acute",
+          "related_codes": {
+            "category": "K85.9",
+            "category_description": "Acute pancreatitis, unspecified",
+            "count": 3
+          }
+        },
+        {
+          "code": "K85.80",
+          "description": "Other acute pancreatitis without necrosis or infection",
+          "match_path": "Pancreatitis, acute, specified, other specified",
+          "related_codes": {
+            "category": "K85.8",
+            "category_description": "Other acute pancreatitis",
+            "count": 3
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "biliary pancreatitis",
+      "results": [
+        {
+          "code": "K85.10",
+          "description": "Biliary acute pancreatitis without necrosis or infection",
+          "match_path": "Pancreatitis, acute, biliary",
+          "related_codes": {
+            "category": "K85.1",
+            "category_description": "Biliary acute pancreatitis",
+            "count": 3
+          }
+        },
+        {
+          "code": "K85.90",
+          "description": "Acute pancreatitis without necrosis or infection, unspecified",
+          "match_path": "Pancreatitis",
+          "related_codes": {
+            "category": "K85.9",
+            "category_description": "Acute pancreatitis, unspecified",
+            "count": 3
+          }
+        },
+        {
+          "code": "K83.09",
+          "description": "Other cholangitis",
+          "match_path": "Cholangitis, primary",
+          "related_codes": {
+            "category": "K83.0",
+            "category_description": "Cholangitis",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 5,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "alcohol induced pancreatitis",
+      "results": [
+        {
+          "code": "K85.20",
+          "description": "Alcohol induced acute pancreatitis without necrosis or infection",
+          "match_path": "Pancreatitis, acute, alcohol induced",
+          "related_codes": {
+            "category": "K85.2",
+            "category_description": "Alcohol induced acute pancreatitis",
+            "count": 3
+          }
+        },
+        {
+          "code": "K86.0",
+          "description": "Alcohol-induced chronic pancreatitis",
+          "match_path": "Pancreatitis, chronic, alcohol-induced",
+          "related_codes": {
+            "category": "K86",
+            "category_description": "Other diseases of pancreas",
+            "count": 6
+          }
+        },
+        {
+          "code": "K85.21",
+          "description": "Alcohol induced acute pancreatitis with uninfected necrosis",
+          "match_path": "Pancreatitis, acute, alcohol induced, with necrosis",
+          "related_codes": {
+            "category": "K85.2",
+            "category_description": "Alcohol induced acute pancreatitis",
+            "count": 3
+          }
+        },
+        {
+          "code": "K85.22",
+          "description": "Alcohol induced acute pancreatitis with infected necrosis",
+          "match_path": "Pancreatitis, acute, alcohol induced, with necrosis, infected",
+          "related_codes": {
+            "category": "K85.2",
+            "category_description": "Alcohol induced acute pancreatitis",
+            "count": 3
+          }
+        },
+        {
+          "code": "K29.20",
+          "description": "Alcoholic gastritis without bleeding",
+          "match_path": "Gastritis, alcoholic",
+          "related_codes": {
+            "category": "K29.2",
+            "category_description": "Alcoholic gastritis",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "K85.00",
+      "code_system": "icd-10-cm",
+      "description": "Idiopathic acute pancreatitis without necrosis or infection",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "K85.0",
+        "description": "Idiopathic acute pancreatitis"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "K85.01",
+          "description": "Idiopathic acute pancreatitis with uninfected necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "K85.02",
+          "description": "Idiopathic acute pancreatitis with infected necrosis"
+        }
+      ],
+      "total_related": 2
+    },
+    {
+      "assignable": true,
+      "code": "K85.10",
+      "code_system": "icd-10-cm",
+      "description": "Biliary acute pancreatitis without necrosis or infection",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "K85.1",
+        "description": "Biliary acute pancreatitis"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "K85.11",
+          "description": "Biliary acute pancreatitis with uninfected necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "K85.12",
+          "description": "Biliary acute pancreatitis with infected necrosis"
+        }
+      ],
+      "total_related": 2
+    },
+    {
+      "assignable": true,
+      "code": "K85.20",
+      "code_system": "icd-10-cm",
+      "description": "Alcohol induced acute pancreatitis without necrosis or infection",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "K85.2",
+        "description": "Alcohol induced acute pancreatitis"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "K85.21",
+          "description": "Alcohol induced acute pancreatitis with uninfected necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "K85.22",
+          "description": "Alcohol induced acute pancreatitis with infected necrosis"
+        }
+      ],
+      "total_related": 2
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e3-4d5b-745b-a049-6d031ee4bd3d",
+    "taskId": "019f55e3-4d5b-73e2-ae10-59fdcefc910d",
+    "credits": 0.09895599999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 50-year-old female with documented \"acute pancreatitis.\"\n- Admission diagnosis documents \"biliary pancreatitis.\"\n- Imaging states: \"MRI: no choledocholithiasis, pancreatic swelling with exudate.\"\n- History includes \"Alcohol history: 100ml liquor daily for 10 years.\"\n- Discharge diagnosis documents \"idiopathic pancreatitis.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Conflicting documented etiology of acute pancreatitis\n- Why it matters: Etiology changes code assignment and clinical classification. The excerpt supports multiple possible etiologies, but the record is internally inconsistent.\n- Evidence:\n  - \"Admission diagnosis: biliary pancreatitis.\"\n  - \"Discharge diagnosis: idiopathic pancreatitis.\"\n  - \"Alcohol history: 100ml liquor daily for 10 years.\"\n- Minimal clarification needed: Final documented etiology of the acute pancreatitis for this encounter."
+      },
+      {
+        "idx": 2,
+        "text": "Severity/specification of pancreatitis not fully documented\n- Why it matters: ICD-10-CM options differ by presence of necrosis/infected necrosis.\n- Evidence:\n  - \"acute pancreatitis\"\n  - \"MRI: no choledocholithiasis, pancreatic swelling with exudate.\"\n- Minimal clarification needed: Whether acute pancreatitis was without necrosis/infection, with uninfected necrosis, with infected necrosis, or if this cannot be determined from the clinical course.\n- Limitation: The excerpt mentions \"pancreatic sw"
+      },
+      {
+        "idx": 3,
+        "text": "Alcohol use is documented, but relationship to pancreatitis is not clarified\n- Why it matters: If clinically linked by the provider, etiology would differ from idiopathic or biliary classification.\n- Evidence:\n  - \"Alcohol history: 100ml liquor daily for 10 years.\"\n  - \"Discharge diagnosis: idiopathic pancreatitis.\"\n- Minimal clarification needed: Whether the alcohol use was considered contributory/causal, unrelated, or etiology remained undetermined.\n- Limitation: Alcohol history alone is not e"
+      },
+      {
+        "idx": 4,
+        "text": "Biliary basis is not clearly supported in the excerpt\n- Why it matters: \"Biliary pancreatitis\" requires clear final provider documentation, especially where available imaging in the excerpt does not show duct stone.\n- Evidence:\n  - \"Admission diagnosis: biliary pancreatitis.\"\n  - \"MRI: no choledocholithiasis\"\n- Minimal clarification needed: Whether biliary pancreatitis remained the final diagnosis despite MRI findings, whether another biliary mechanism was present, or whether the etiology was re"
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Final etiology of acute pancreatitis"
+      },
+      {
+        "idx": 2,
+        "text": "Presence of necrosis/infected necrosis"
+      },
+      {
+        "idx": 3,
+        "text": "Clinical significance of alcohol history in relation to pancreatitis"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity, query targets, and diagnosis-code distinctions. Accepted: need to clarify etiology among idiopathic, biliary, and alcohol-induced acute pancreatitis, and need to clarify necrosis/infection specificity. Supporting coding options identified by expert included idiopathic acute pancreatitis without necrosis/infection (K85.00), biliary acute pancreatitis without necrosis/infection (K85.10), and alcohol-induced acute pancreatitis without necrosis/infection (K85.20). Rejected: any code assignment as final, because the chart excerpt is internally conflicting and insufficient for definitive coding without provider clarification.\n- AMBOSS Expert: Not consulted. Reason: the main issue is documentation conflict and coding specificity rather than needing external clinical criteria to support a patient-specific query.\n- CDI Web Search Expert: Not consulted. Reason: no current external guideline was necessary to identify the chart-based contradiction and compliant clarification needs.\n\nCoding note:\n- Based on the coding expert output, potentially relevant ICD-10-CM pathways depend on provider clarification: idiopathic acute pancreatitis without necrosis or infection (K85.00), biliary acute pancreatitis without necrosis or infection (K85.10), or alcohol-induced acute pancreatitis without necrosis or infection (K85.20). These should not be finalized from the excerpt alone because the etiology is contradictory and necrosis/infection status is not documented.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 50-year-old female with documented \"acute pancreatitis.\"\n- Admission diagnosis documents \"biliary pancreatitis.\"\n- Imaging states: \"MRI: no choledocholithiasis, pancreatic swelling with exudate.\"\n- History includes \"Alcohol history: 100ml liquor daily for 10 years.\"\n- Discharge diagnosis documents \"idiopathic pancreatitis.\"\n\nDocumentation Gaps:\n1. Conflicting documented etiology of acute pancreatitis\n- Why it matters: Etiology changes code assignment and clinical classification. The excerpt supports multiple possible etiologies, but the record is internally inconsistent.\n- Evidence:\n  - \"Admission diagnosis: biliary pancreatitis.\"\n  - \"Discharge diagnosis: idiopathic pancreatitis.\"\n  - \"Alcohol history: 100ml liquor daily for 10 years.\"\n- Minimal clarification needed: Final documented etiology of the acute pancreatitis for this encounter.\n\n2. Severity/specification of pancreatitis not fully documented\n- Why it matters: ICD-10-CM options differ by presence of necrosis/infected necrosis.\n- Evidence:\n  - \"acute pancreatitis\"\n  - \"MRI: no choledocholithiasis, pancreatic swelling with exudate.\"\n- Minimal clarification needed: Whether acute pancreatitis was without necrosis/infection, with uninfected necrosis, with infected necrosis, or if this cannot be determined from the clinical course.\n- Limitation: The excerpt mentions \"pancreatic swelling with exudate\" but does not explicitly document necrosis or infection.\n\n3. Alcohol use is documented, but relationship to pancreatitis is not clarified\n- Why it matters: If clinically linked by the provider, etiology would differ from idiopathic or biliary classification.\n- Evidence:\n  - \"Alcohol history: 100ml liquor daily for 10 years.\"\n  - \"Discharge diagnosis: idiopathic pancreatitis.\"\n- Minimal clarification needed: Whether the alcohol use was considered contributory/causal, unrelated, or etiology remained undetermined.\n- Limitation: Alcohol history alone is not enough to assign alcohol-induced pancreatitis without provider documentation.\n\n4. Biliary basis is not clearly supported in the excerpt\n- Why it matters: \"Biliary pancreatitis\" requires clear final provider documentation, especially where available imaging in the excerpt does not show duct stone.\n- Evidence:\n  - \"Admission diagnosis: biliary pancreatitis.\"\n  - \"MRI: no choledocholithiasis\"\n- Minimal clarification needed: Whether biliary pancreatitis remained the final diagnosis despite MRI findings, whether another biliary mechanism was present, or whether the etiology was revised.\n- Limitation: Absence of choledocholithiasis on the cited MRI does not by itself establish or exclude all biliary causes, so provider clarification is needed.\n\nProposed Provider Queries:\n1. Topic: Final etiology of acute pancreatitis\n- Reason query is needed: The chart contains conflicting etiologic documentation.\n- Evidence quote(s):\n  - \"Admission diagnosis: biliary pancreatitis.\"\n  - \"Discharge diagnosis: idiopathic pancreatitis.\"\n  - \"Alcohol history: 100ml liquor daily for 10 years.\"\n- Non-leading query text:\n  - \"For this admission with acute pancreatitis, please clarify the final documented etiology of the pancreatitis based on your clinical assessment.\"\n- Suggested response options:\n  - Biliary acute pancreatitis\n  - Idiopathic acute pancreatitis\n  - Alcohol-induced acute pancreatitis\n  - Other specified etiology\n  - Multiple possible etiologies considered, final etiology clinically undetermined\n  - Unable to determine\n\n2. Topic: Presence of necrosis/infected necrosis\n- Reason query is needed: Coding specificity for acute pancreatitis depends on whether necrosis is present and whether infected.\n- Evidence quote(s):\n  - \"acute pancreatitis\"\n  - \"MRI: no choledocholithiasis, pancreatic swelling with exudate.\"\n- Non-leading query text:\n  - \"Please clarify the severity/morphologic classification of the acute pancreatitis for this encounter, if known.\"\n- Suggested response options:\n  - Acute pancreatitis without necrosis or infection\n  - Acute pancreatitis with uninfected necrosis\n  - Acute pancreatitis with infected necrosis\n  - Other description\n  - Clinically undetermined\n\n3. Topic: Clinical significance of alcohol history in relation to pancreatitis\n- Reason query is needed: A substantial alcohol history is documented, but the relationship to pancreatitis is not clarified in the final diagnosis.\n- Evidence quote(s):\n  - \"Alcohol history: 100ml liquor daily for 10 years.\"\n  - \"Discharge diagnosis: idiopathic pancreatitis.\"\n- Non-leading query text:\n  - \"Please clarify whether the documented alcohol history was considered related to the patient’s acute pancreatitis during this encounter.\"\n- Suggested response options:\n  - Alcohol-induced acute pancreatitis\n  - Alcohol use present but not considered causative of this pancreatitis\n  - Relationship considered but etiology remained clinically undetermined\n  - Other\n  - Unable to determine\n\nCoding Specificity Checklist:\n- Final etiology of acute pancreatitis: idiopathic vs biliary vs alcohol-induced vs other specified.\n- Whether necrosis is present.\n- If necrosis is present, whether infected or uninfected.\n- Ensure final diagnosis is reconciled across admission and discharge documentation.\n- If alcohol is clinically relevant, document the relationship rather than alcohol history alone.\n- If biliary etiology is retained, document the clinical basis clearly in the final diagnosis.\n\nRisk Flags:\n- Direct contradiction: \"Admission diagnosis: biliary pancreatitis\" versus \"Discharge diagnosis: idiopathic pancreatitis.\"\n- Ambiguity: \"Alcohol history: 100ml liquor daily for 10 years\" introduces a possible alternate etiology, but causation is not documented.\n- Unsupported specificity risk: The excerpt does not document necrosis or infection, so those should not be inferred.\n- Imaging/diagnosis tension: \"MRI: no choledocholithiasis\" may appear inconsistent with the admission label \"biliary pancreatitis,\" requiring reconciliation by the provider.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity, query targets, and diagnosis-code distinctions. Accepted: need to clarify etiology among idiopathic, biliary, and alcohol-induced acute pancreatitis, and need to clarify necrosis/infection specificity. Supporting coding options identified by expert included idiopathic acute pancreatitis without necrosis/infection (K85.00), biliary acute pancreatitis without necrosis/infection (K85.10), and alcohol-induced acute pancreatitis without necrosis/infection (K85.20). Rejected: any code assignment as final, because the chart excerpt is internally conflicting and insufficient for definitive coding without provider clarification.\n- AMBOSS Expert: Not consulted. Reason: the main issue is documentation conflict and coding specificity rather than needing external clinical criteria to support a patient-specific query.\n- CDI Web Search Expert: Not consulted. Reason: no current external guideline was necessary to identify the chart-based contradiction and compliant clarification needs.\n\nCoding note:\n- Based on the coding expert output, potentially relevant ICD-10-CM pathways depend on provider clarification: idiopathic acute pancreatitis without necrosis or infection (K85.00), biliary acute pancreatitis without necrosis or infection (K85.10), or alcohol-induced acute pancreatitis without necrosis or infection (K85.20). These should not be finalized from the excerpt alone because the etiology is contradictory and necrosis/infection status is not documented."
+}

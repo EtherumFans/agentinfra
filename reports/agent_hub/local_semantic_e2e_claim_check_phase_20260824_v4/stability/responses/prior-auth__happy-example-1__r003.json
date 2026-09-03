@@ -1,0 +1,482 @@
+{
+  "agent_id": "prior-auth",
+  "run_id": "run-3caa2c25-6587-410d-8c3b-55458a8eacdf",
+  "trace_id": "trace-f2f667eaa3124fe9",
+  "trace_url": "/ai-studio/runs/run-3caa2c25-6587-410d-8c3b-55458a8eacdf/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 89,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已装配 21 条明确记录；未评估支付政策或医疗必要性，禁止自动提交。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"authorization_packet_draft\": \"## 预授权证据包草案\\n患者姓名：<REDACTED:NAME>\\n出生日期：<REDACTED:DATE_OF_BIRTH>\\n参保人编号：<REDACTED:INSURANCE_NO>\\n申请医师：<REDACTED:NAME>\\n医师资质：主任医师\\n医师执业编号/NPI：<REDACTED:PROVIDER_ID>\\n申请机构：未记录\\n申请方联系方式：未记录\\n支付方：示例省医保\\n保险/医保计划：未记录\\n统筹区/参保地：未记录\\n申请类型：药品预授权\\n申请药品/项目：阿达木单抗\\n剂量/途径/频次/疗程：40mg / 皮下注射 / 每两周一次 / 未记录\\n已记录编码：未记录\\n已记录诊断及编码：类风湿关节炎\\n申请原因：<REDACTED:NAME>用已记录药品\\n临床文书摘录：门诊记录载明关节症状持续\\n客观证据：未记录\\n既往治疗/用药：未记录\\n禁忌或不耐受：未记录\\n支付方要求：需提供带日期的既往治疗记录；需提供相关检验记录\\n政策编号/版本/生效日期：TEST-PA-001 / 2026.1 / 2026-07-01\\n政策来源：用户提供的示例支付政策摘要\\n医师已记录的医疗必要性说明：未记录\\n既往拒绝原因：未记录\\n政策评估状态：DOCUMENTED_POLICY_ONLY\\n医疗必要性评估状态：NOT_ASSESSED_POLICY_AND_CLINICAL_REVIEW_REQUIRED\\n声明：本草案仅逐字装配已提供材料，不构成支付政策符合性或医疗必要性结论；禁止自动提交或写回。\", \"authorization_status\": \"READY_FOR_REVIEW\", \"clinical_documentation\": [{\"documented_text\": \"门诊记录载明关节症状持续\", \"evidence_ref\": \"prior-auth-evidence-15\"}], \"clinical_inference_performed\": false, \"contraindications_intolerances\": [], \"denial_reason\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"diagnosis_context\": [{\"documented_text\": \"类风湿关节炎\", \"evidence_ref\": \"prior-auth-evidence-13\"}], \"documented_medical_necessity\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"draft_generation_status\": \"VERBATIM_TEMPLATE_ASSEMBLY_ONLY\", \"evidence_items\": [{\"char_span\": [5, 20], \"evidence_id\": \"prior-auth-evidence-1\", \"evidence_text\": \"<REDACTED:NAME>\", \"field\": \"patient_name\", \"source_label\": \"患者姓名\"}, {\"char_span\": [26, 50], \"evidence_id\": \"prior-auth-evidence-2\", \"evidence_text\": \"<REDACTED:DATE_OF_BIRTH>\", \"field\": \"date_of_birth\", \"source_label\": \"出生日期\"}, {\"char_span\": [57, 80], \"evidence_id\": \"prior-auth-evidence-3\", \"evidence_text\": \"<REDACTED:INSURANCE_NO>\", \"field\": \"member_id\", \"source_label\": \"参保人编号\"}, {\"char_span\": [86, 101], \"evidence_id\": \"prior-auth-evidence-4\", \"evidence_text\": \"<REDACTED:NAME>\", \"field\": \"provider_name\", \"source_label\": \"申请医师\"}, {\"char_span\": [109, 113], \"evidence_id\": \"prior-auth-evidence-5\", \"evidence_text\": \"主任医师\", \"field\": \"provider_credentials\", \"source_label\": \"申请医师资质\"}, {\"char_span\": [121, 143], \"evidence_id\": \"prior-auth-evidence-6\", \"evidence_text\": \"<REDACTED:PROVIDER_ID>\", \"field\": \"provider_identifier\", \"source_label\": \"医师执业编号\"}, {\"char_span\": [148, 153], \"evidence_id\": \"prior-auth-evidence-7\", \"evidence_text\": \"示例省医保\", \"field\": \"payer_name\", \"source_label\": \"支付方\"}, {\"char_span\": [159, 164], \"evidence_id\": \"prior-auth-evidence-8\", \"evidence_text\": \"药品预授权\", \"field\": \"request_type\", \"source_label\": \"申请类型\"}, {\"char_span\": [170, 175], \"evidence_id\": \"prior-auth-evidence-9\", \"evidence_text\": \"阿达木单抗\", \"field\": \"requested_item_name\", \"source_label\": \"申请药品\"}, {\"char_span\": [179, 183], \"evidence_id\": \"prior-auth-evidence-10\", \"evidence_text\": \"40mg\", \"field\": \"dose\", \"source_label\": \"剂量\"}, {\"char_span\": [189, 193], \"evidence_id\": \"prior-auth-evidence-11\", \"evidence_text\": \"皮下注射\", \"field\": \"route\", \"source_label\": \"给药途径\"}, {\"char_span\": [199, 204], \"evidence_id\": \"prior-auth-evidence-12\", \"evidence_text\": \"每两周一次\", \"field\": \"frequency\", \"source_label\": \"用药频次\"}, {\"char_span\": [211, 217], \"evidence_id\": \"prior-auth-evidence-13\", \"evidence_text\": \"类风湿关节炎\", \"field\": \"diagnosis_context\", \"source_label\": \"已记录诊断\"}, {\"char_span\": [223, 244], \"evidence_id\": \"prior-auth-evidence-14\", \"evidence_text\": \"<REDACTED:NAME>用已记录药品\", \"field\": \"request_reason\", \"source_label\": \"申请原因\"}, {\"char_span\": [252, 264], \"evidence_id\": \"prior-auth-evidence-15\", \"evidence_text\": \"门诊记录载明关节症状持续\", \"field\": \"clinical_documentation\", \"source_label\": \"临床文书摘录\"}, {\"char_span\": [271, 284], \"evidence_id\": \"prior-auth-evidence-16\", \"evidence_text\": \"需提供带日期的既往治疗记录\", \"field\": \"payer_requirements\", \"source_label\": \"支付方要求\"}, {\"char_span\": [285, 294], \"evidence_id\": \"prior-auth-evidence-17\", \"evidence_text\": \"需提供相关检验记录\", \"field\": \"payer_requirements\", \"source_label\": \"支付方要求\"}, {\"char_span\": [302, 313], \"evidence_id\": \"prior-auth-evidence-18\", \"evidence_text\": \"TEST-PA-001\", \"field\": \"policy_identifier\", \"source_label\": \"支付政策编号\"}, {\"char_span\": [321, 327], \"evidence_id\": \"prior-auth-evidence-19\", \"evidence_text\": \"2026.1\", \"field\": \"policy_version\", \"source_label\": \"支付政策版本\"}, {\"char_span\": [335, 345], \"evidence_id\": \"prior-auth-evidence-20\", \"evidence_text\": \"2026-07-01\", \"field\": \"policy_effective_date\", \"source_label\": \"政策生效日期\"}, {\"char_span\": [351, 364], \"evidence_id\": \"prior-auth-evidence-21\", \"evidence_text\": \"用户提供的示例支付政策摘要\", \"field\": \"policy_source\", \"source_label\": \"政策来源\"}], \"external_knowledge_used\": false, \"limitations\": [\"仅解析明确的中英文预授权字段标题；未标注自由叙事不会被自动总结。\", \"仅逐字装配已记录事实；未评估、确认或推断医疗必要性、适应证、严重程度或支付资格。\", \"未调用支付方网站、医保目录、商保规则、PubMed、指南、药品库或其他外部知识。\", \"未计算风险或严重程度评分，未校验 ICD、药品、项目或耗材编码。\", \"未新增诊断、既往治疗失败、禁忌、不耐受、检查结果、政策条款或缺失临床项目。\", \"未连接真实 HIS/EMR、医保/商保平台、表单、传真或提交接口。\", \"证据包禁止自动提交或写回，必须由临床人员和医保/商保专员逐项复核。\"], \"manual_review_required\": true, \"medical_calculator_used\": false, \"medical_coding_validation_performed\": false, \"medical_necessity_assessment_status\": \"NOT_ASSESSED_POLICY_AND_CLINICAL_REVIEW_REQUIRED\", \"missing_policy_items\": [], \"missing_required_fields\": [], \"missing_supporting_items\": [\"疗程/申请时长\", \"客观证据\", \"既往治疗/用药\", \"禁忌或不耐受\", \"已记录医疗必要性说明\"], \"new_diagnosis_generated\": false, \"new_treatment_recommended\": false, \"objective_evidence\": [], \"patient_information\": {\"date_of_birth\": {\"documented_text\": \"<REDACTED:DATE_OF_BIRTH>\", \"evidence_ref\": \"prior-auth-evidence-2\"}, \"member_id\": {\"documented_text\": \"<REDACTED:INSURANCE_NO>\", \"evidence_ref\": \"prior-auth-evidence-3\"}, \"name\": {\"documented_text\": \"<REDACTED:NAME>\", \"evidence_ref\": \"prior-auth-evidence-1\"}}, \"payer_information\": {\"payer_name\": {\"documented_text\": \"示例省医保\", \"evidence_ref\": \"prior-auth-evidence-7\"}, \"plan_name\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"region\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"payer_policy\": {\"effective_date\": {\"documented_text\": \"2026-07-01\", \"evidence_ref\": \"prior-auth-evidence-20\"}, \"policy_identifier\": {\"documented_text\": \"TEST-PA-001\", \"evidence_ref\": \"prior-auth-evidence-18\"}, \"requirements\": [{\"documented_text\": \"需提供带日期的既往治疗记录\", \"evidence_ref\": \"prior-auth-evidence-16\"}, {\"documented_text\": \"需提供相关检验记录\", \"evidence_ref\": \"prior-auth-evidence-17\"}], \"source\": {\"documented_text\": \"用户提供的示例支付政策摘要\", \"evidence_ref\": \"prior-auth-evidence-21\"}, \"version\": {\"documented_text\": \"2026.1\", \"evidence_ref\": \"prior-auth-evidence-19\"}}, \"policy_evaluation_status\": \"DOCUMENTED_POLICY_ONLY\", \"prior_treatments\": [], \"production_submission_blocked\": true, \"production_writeback_blocked\": true, \"provider_information\": {\"contact\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"credentials\": {\"documented_text\": \"主任医师\", \"evidence_ref\": \"prior-auth-evidence-5\"}, \"facility\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"name\": {\"documented_text\": \"<REDACTED:NAME>\", \"evidence_ref\": \"prior-auth-evidence-4\"}, \"provider_identifier\": {\"documented_text\": \"<REDACTED:PROVIDER_ID>\", \"evidence_ref\": \"prior-auth-evidence-6\"}}, \"request_reason\": {\"documented_text\": \"<REDACTED:NAME>用已记录药品\", \"evidence_ref\": \"prior-auth-evidence-14\"}, \"request_type\": {\"documented_text\": \"药品预授权\", \"evidence_ref\": \"prior-auth-evidence-8\"}, \"requested_item\": {\"documented_code\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"dose\": {\"documented_text\": \"40mg\", \"evidence_ref\": \"prior-auth-evidence-10\"}, \"duration\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"frequency\": {\"documented_text\": \"每两周一次\", \"evidence_ref\": \"prior-auth-evidence-12\"}, \"name\": {\"documented_text\": \"阿达木单抗\", \"evidence_ref\": \"prior-auth-evidence-9\"}, \"route\": {\"documented_text\": \"皮下注射\", \"evidence_ref\": \"prior-auth-evidence-11\"}}, \"trace_refs\": {\"provider_trace_refs\": [\"run-3caa2c25-6587-410d-8c3b-55458a8eacdf:governed-prior-authorization\"], \"run_id\": \"run-3caa2c25-6587-410d-8c3b-55458a8eacdf\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-prior-authorization.v1",
+    "backend_type": "rule_engine",
+    "authorization_packet_draft": "## 预授权证据包草案\n患者姓名：<REDACTED:NAME>\n出生日期：<REDACTED:DATE_OF_BIRTH>\n参保人编号：<REDACTED:INSURANCE_NO>\n申请医师：<REDACTED:NAME>\n医师资质：主任医师\n医师执业编号/NPI：<REDACTED:PROVIDER_ID>\n申请机构：未记录\n申请方联系方式：未记录\n支付方：示例省医保\n保险/医保计划：未记录\n统筹区/参保地：未记录\n申请类型：药品预授权\n申请药品/项目：阿达木单抗\n剂量/途径/频次/疗程：40mg / 皮下注射 / 每两周一次 / 未记录\n已记录编码：未记录\n已记录诊断及编码：类风湿关节炎\n申请原因：<REDACTED:NAME>用已记录药品\n临床文书摘录：门诊记录载明关节症状持续\n客观证据：未记录\n既往治疗/用药：未记录\n禁忌或不耐受：未记录\n支付方要求：需提供带日期的既往治疗记录；需提供相关检验记录\n政策编号/版本/生效日期：TEST-PA-001 / 2026.1 / 2026-07-01\n政策来源：用户提供的示例支付政策摘要\n医师已记录的医疗必要性说明：未记录\n既往拒绝原因：未记录\n政策评估状态：DOCUMENTED_POLICY_ONLY\n医疗必要性评估状态：NOT_ASSESSED_POLICY_AND_CLINICAL_REVIEW_REQUIRED\n声明：本草案仅逐字装配已提供材料，不构成支付政策符合性或医疗必要性结论；禁止自动提交或写回。",
+    "authorization_status": "READY_FOR_REVIEW",
+    "clinical_documentation": [
+      {
+        "documented_text": "门诊记录载明关节症状持续",
+        "evidence_ref": "prior-auth-evidence-15"
+      }
+    ],
+    "clinical_inference_performed": false,
+    "contraindications_intolerances": [],
+    "denial_reason": {
+      "documented_text": "",
+      "evidence_ref": ""
+    },
+    "diagnosis_context": [
+      {
+        "documented_text": "类风湿关节炎",
+        "evidence_ref": "prior-auth-evidence-13"
+      }
+    ],
+    "documented_medical_necessity": {
+      "documented_text": "",
+      "evidence_ref": ""
+    },
+    "draft_generation_status": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY",
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          20
+        ],
+        "evidence_id": "prior-auth-evidence-1",
+        "evidence_text": "<REDACTED:NAME>",
+        "field": "patient_name",
+        "source_label": "患者姓名"
+      },
+      {
+        "char_span": [
+          26,
+          50
+        ],
+        "evidence_id": "prior-auth-evidence-2",
+        "evidence_text": "<REDACTED:DATE_OF_BIRTH>",
+        "field": "date_of_birth",
+        "source_label": "出生日期"
+      },
+      {
+        "char_span": [
+          57,
+          80
+        ],
+        "evidence_id": "prior-auth-evidence-3",
+        "evidence_text": "<REDACTED:INSURANCE_NO>",
+        "field": "member_id",
+        "source_label": "参保人编号"
+      },
+      {
+        "char_span": [
+          86,
+          101
+        ],
+        "evidence_id": "prior-auth-evidence-4",
+        "evidence_text": "<REDACTED:NAME>",
+        "field": "provider_name",
+        "source_label": "申请医师"
+      },
+      {
+        "char_span": [
+          109,
+          113
+        ],
+        "evidence_id": "prior-auth-evidence-5",
+        "evidence_text": "主任医师",
+        "field": "provider_credentials",
+        "source_label": "申请医师资质"
+      },
+      {
+        "char_span": [
+          121,
+          143
+        ],
+        "evidence_id": "prior-auth-evidence-6",
+        "evidence_text": "<REDACTED:PROVIDER_ID>",
+        "field": "provider_identifier",
+        "source_label": "医师执业编号"
+      },
+      {
+        "char_span": [
+          148,
+          153
+        ],
+        "evidence_id": "prior-auth-evidence-7",
+        "evidence_text": "示例省医保",
+        "field": "payer_name",
+        "source_label": "支付方"
+      },
+      {
+        "char_span": [
+          159,
+          164
+        ],
+        "evidence_id": "prior-auth-evidence-8",
+        "evidence_text": "药品预授权",
+        "field": "request_type",
+        "source_label": "申请类型"
+      },
+      {
+        "char_span": [
+          170,
+          175
+        ],
+        "evidence_id": "prior-auth-evidence-9",
+        "evidence_text": "阿达木单抗",
+        "field": "requested_item_name",
+        "source_label": "申请药品"
+      },
+      {
+        "char_span": [
+          179,
+          183
+        ],
+        "evidence_id": "prior-auth-evidence-10",
+        "evidence_text": "40mg",
+        "field": "dose",
+        "source_label": "剂量"
+      },
+      {
+        "char_span": [
+          189,
+          193
+        ],
+        "evidence_id": "prior-auth-evidence-11",
+        "evidence_text": "皮下注射",
+        "field": "route",
+        "source_label": "给药途径"
+      },
+      {
+        "char_span": [
+          199,
+          204
+        ],
+        "evidence_id": "prior-auth-evidence-12",
+        "evidence_text": "每两周一次",
+        "field": "frequency",
+        "source_label": "用药频次"
+      },
+      {
+        "char_span": [
+          211,
+          217
+        ],
+        "evidence_id": "prior-auth-evidence-13",
+        "evidence_text": "类风湿关节炎",
+        "field": "diagnosis_context",
+        "source_label": "已记录诊断"
+      },
+      {
+        "char_span": [
+          223,
+          244
+        ],
+        "evidence_id": "prior-auth-evidence-14",
+        "evidence_text": "<REDACTED:NAME>用已记录药品",
+        "field": "request_reason",
+        "source_label": "申请原因"
+      },
+      {
+        "char_span": [
+          252,
+          264
+        ],
+        "evidence_id": "prior-auth-evidence-15",
+        "evidence_text": "门诊记录载明关节症状持续",
+        "field": "clinical_documentation",
+        "source_label": "临床文书摘录"
+      },
+      {
+        "char_span": [
+          271,
+          284
+        ],
+        "evidence_id": "prior-auth-evidence-16",
+        "evidence_text": "需提供带日期的既往治疗记录",
+        "field": "payer_requirements",
+        "source_label": "支付方要求"
+      },
+      {
+        "char_span": [
+          285,
+          294
+        ],
+        "evidence_id": "prior-auth-evidence-17",
+        "evidence_text": "需提供相关检验记录",
+        "field": "payer_requirements",
+        "source_label": "支付方要求"
+      },
+      {
+        "char_span": [
+          302,
+          313
+        ],
+        "evidence_id": "prior-auth-evidence-18",
+        "evidence_text": "TEST-PA-001",
+        "field": "policy_identifier",
+        "source_label": "支付政策编号"
+      },
+      {
+        "char_span": [
+          321,
+          327
+        ],
+        "evidence_id": "prior-auth-evidence-19",
+        "evidence_text": "2026.1",
+        "field": "policy_version",
+        "source_label": "支付政策版本"
+      },
+      {
+        "char_span": [
+          335,
+          345
+        ],
+        "evidence_id": "prior-auth-evidence-20",
+        "evidence_text": "2026-07-01",
+        "field": "policy_effective_date",
+        "source_label": "政策生效日期"
+      },
+      {
+        "char_span": [
+          351,
+          364
+        ],
+        "evidence_id": "prior-auth-evidence-21",
+        "evidence_text": "用户提供的示例支付政策摘要",
+        "field": "policy_source",
+        "source_label": "政策来源"
+      }
+    ],
+    "external_knowledge_used": false,
+    "limitations": [
+      "仅解析明确的中英文预授权字段标题；未标注自由叙事不会被自动总结。",
+      "仅逐字装配已记录事实；未评估、确认或推断医疗必要性、适应证、严重程度或支付资格。",
+      "未调用支付方网站、医保目录、商保规则、PubMed、指南、药品库或其他外部知识。",
+      "未计算风险或严重程度评分，未校验 ICD、药品、项目或耗材编码。",
+      "未新增诊断、既往治疗失败、禁忌、不耐受、检查结果、政策条款或缺失临床项目。",
+      "未连接真实 HIS/EMR、医保/商保平台、表单、传真或提交接口。",
+      "证据包禁止自动提交或写回，必须由临床人员和医保/商保专员逐项复核。"
+    ],
+    "manual_review_required": true,
+    "medical_calculator_used": false,
+    "medical_coding_validation_performed": false,
+    "medical_necessity_assessment_status": "NOT_ASSESSED_POLICY_AND_CLINICAL_REVIEW_REQUIRED",
+    "missing_policy_items": [],
+    "missing_required_fields": [],
+    "missing_supporting_items": [
+      "疗程/申请时长",
+      "客观证据",
+      "既往治疗/用药",
+      "禁忌或不耐受",
+      "已记录医疗必要性说明"
+    ],
+    "new_diagnosis_generated": false,
+    "new_treatment_recommended": false,
+    "objective_evidence": [],
+    "patient_information": {
+      "date_of_birth": {
+        "documented_text": "<REDACTED:DATE_OF_BIRTH>",
+        "evidence_ref": "prior-auth-evidence-2"
+      },
+      "member_id": {
+        "documented_text": "<REDACTED:INSURANCE_NO>",
+        "evidence_ref": "prior-auth-evidence-3"
+      },
+      "name": {
+        "documented_text": "<REDACTED:NAME>",
+        "evidence_ref": "prior-auth-evidence-1"
+      }
+    },
+    "payer_information": {
+      "payer_name": {
+        "documented_text": "示例省医保",
+        "evidence_ref": "prior-auth-evidence-7"
+      },
+      "plan_name": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "region": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "payer_policy": {
+      "effective_date": {
+        "documented_text": "2026-07-01",
+        "evidence_ref": "prior-auth-evidence-20"
+      },
+      "policy_identifier": {
+        "documented_text": "TEST-PA-001",
+        "evidence_ref": "prior-auth-evidence-18"
+      },
+      "requirements": [
+        {
+          "documented_text": "需提供带日期的既往治疗记录",
+          "evidence_ref": "prior-auth-evidence-16"
+        },
+        {
+          "documented_text": "需提供相关检验记录",
+          "evidence_ref": "prior-auth-evidence-17"
+        }
+      ],
+      "source": {
+        "documented_text": "用户提供的示例支付政策摘要",
+        "evidence_ref": "prior-auth-evidence-21"
+      },
+      "version": {
+        "documented_text": "2026.1",
+        "evidence_ref": "prior-auth-evidence-19"
+      }
+    },
+    "policy_evaluation_status": "DOCUMENTED_POLICY_ONLY",
+    "prior_treatments": [],
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "provider_information": {
+      "contact": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "credentials": {
+        "documented_text": "主任医师",
+        "evidence_ref": "prior-auth-evidence-5"
+      },
+      "facility": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "name": {
+        "documented_text": "<REDACTED:NAME>",
+        "evidence_ref": "prior-auth-evidence-4"
+      },
+      "provider_identifier": {
+        "documented_text": "<REDACTED:PROVIDER_ID>",
+        "evidence_ref": "prior-auth-evidence-6"
+      }
+    },
+    "request_reason": {
+      "documented_text": "<REDACTED:NAME>用已记录药品",
+      "evidence_ref": "prior-auth-evidence-14"
+    },
+    "request_type": {
+      "documented_text": "药品预授权",
+      "evidence_ref": "prior-auth-evidence-8"
+    },
+    "requested_item": {
+      "documented_code": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "dose": {
+        "documented_text": "40mg",
+        "evidence_ref": "prior-auth-evidence-10"
+      },
+      "duration": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "frequency": {
+        "documented_text": "每两周一次",
+        "evidence_ref": "prior-auth-evidence-12"
+      },
+      "name": {
+        "documented_text": "阿达木单抗",
+        "evidence_ref": "prior-auth-evidence-9"
+      },
+      "route": {
+        "documented_text": "皮下注射",
+        "evidence_ref": "prior-auth-evidence-11"
+      }
+    },
+    "trace_refs": {
+      "run_id": "run-3caa2c25-6587-410d-8c3b-55458a8eacdf",
+      "trace_id": "trace-f2f667eaa3124fe9",
+      "provider_trace_refs": [
+        "run-3caa2c25-6587-410d-8c3b-55458a8eacdf:governed-prior-authorization"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/PriorAuthorizationOutput/v5",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "authorization_status",
+        "request_type",
+        "patient_information",
+        "provider_information",
+        "payer_information",
+        "requested_item",
+        "diagnosis_context",
+        "request_reason",
+        "clinical_documentation",
+        "objective_evidence",
+        "prior_treatments",
+        "contraindications_intolerances",
+        "payer_policy",
+        "documented_medical_necessity",
+        "denial_reason",
+        "missing_required_fields",
+        "missing_supporting_items",
+        "missing_policy_items",
+        "authorization_packet_draft",
+        "policy_evaluation_status",
+        "medical_necessity_assessment_status",
+        "evidence_items",
+        "limitations",
+        "draft_generation_status",
+        "clinical_inference_performed",
+        "new_diagnosis_generated",
+        "new_treatment_recommended",
+        "external_knowledge_used",
+        "medical_calculator_used",
+        "medical_coding_validation_performed",
+        "production_submission_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/PriorAuthorizationOutput/v5",
+  "result_attestation": "eyJhIjoicHJpb3ItYXV0aCIsImQiOiI4ZDUzYjg4NGQwNTE1YTljYTAzYjg3YjY3MDRkNzY2NGFiY2I5M2M1ZTMyZGUwZmY4NGU1OGMzZDUwMjVhOTlmIiwiZSI6MTc4NzY0NzA5MSwibyI6IjUxMmM0NmI2ZWE0NSIsInIiOiJydW4tM2NhYTJjMjUtNjU4Ny00MTBkLThjM2ItNTU0NThhOGVhY2RmIiwicyI6Imljb2Rlci9QcmlvckF1dGhvcml6YXRpb25PdXRwdXQvdjUiLCJ2IjoxfQ.XJKSUfAGv-SQzrxrn00zOHUFDDQe3HJ5azOu9vrRWlk",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 89,
+      "metadata": {
+        "agent_id": "prior-auth",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 89
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.147
+}

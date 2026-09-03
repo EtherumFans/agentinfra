@@ -1,0 +1,51 @@
+{
+  "schema_version": "icoder.sdk-stt-recovery-e2e/v1",
+  "generated_at": "2026-08-23T18:13:47.7272604+00:00",
+  "status": "passed",
+  "transport": "real_loopback_websocket",
+  "api_processes": 2,
+  "proxy_upstream_policy": "round_robin_across_independent_api_processes",
+  "fault": "close_after_sequence_1_ack",
+  "resume_protocol": "icoder.stt-resume.v1",
+  "resume_mode": "client_replay",
+  "sdk_executions": [
+    {
+      "sdk": "javascript",
+      "status": "passed",
+      "reconnects": 1,
+      "acknowledgements": 2,
+      "synthetic_audio_bytes": 6,
+      "real_stt_engine_used": false
+    },
+    {
+      "acknowledgements": 2,
+      "real_stt_engine_used": false,
+      "reconnects": 1,
+      "sdk": "python",
+      "status": "passed",
+      "synthetic_audio_bytes": 6
+    },
+    {
+      "sdk": "dotnet",
+      "status": "passed",
+      "acknowledgements": 2,
+      "acknowledged_audio_sequence": 1,
+      "synthetic_audio_bytes": 6,
+      "real_stt_engine_used": false
+    }
+  ],
+  "proxy": {
+    "clinical_payload_captured": false,
+    "forced_disconnects": 3,
+    "schema_version": "icoder.stt-fault-proxy/v1",
+    "sessions_with_reconnect": 3,
+    "total_resume_connections": 6,
+    "unique_sessions": 3
+  },
+  "authenticated_tenant_token": true,
+  "temporary_database": "created_migrated_removed",
+  "synthetic_non_audio_bytes_only": true,
+  "real_stt_engine_used": false,
+  "real_llm_used": false,
+  "clinical_payload_captured": false
+}

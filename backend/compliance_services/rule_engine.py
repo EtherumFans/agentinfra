@@ -40,7 +40,7 @@ class RuleValidationResult:
     total_rules: int = 0
     rules_fired: list[str] = field(default_factory=list)
     issues: list[RuleIssue] = field(default_factory=list)
-    quality_flags: dict[str, bool] = field(default_factory=dict)
+    quality_flags: dict[str, Any] = field(default_factory=dict)
     manual_review_required: bool = False
 
     def to_dict(self) -> dict:

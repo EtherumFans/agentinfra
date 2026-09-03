@@ -1,0 +1,82 @@
+{
+  "_meta": {
+    "source": "Track H1.1 — Mechanism Probe Cases (PDF §6)",
+    "version": "1.0",
+    "case_count": 2,
+    "groups": [
+      "EVIDENCE_STRENGTH",
+      "EXPERT_ROUTING",
+      "HISTORY",
+      "NEGATION",
+      "COMPLETE_CHART",
+      "CONTRADICTION",
+      "FAMILY_HISTORY",
+      "QUERY_CARDINALITY",
+      "SUSPECTED"
+    ],
+    "repeatability_subset": [
+      {
+        "case_id": "H-NEG-A-001",
+        "reason": "NO_QUERY baseline — variance should be 0"
+      },
+      {
+        "case_id": "H-CMP-A-005",
+        "reason": "Complete chart — variance measures over-query flakiness"
+      },
+      {
+        "case_id": "H-CTR-A-006",
+        "reason": "Contradiction case — variance measures gap detection stability"
+      },
+      {
+        "case_id": "H-EXP-COD-009",
+        "reason": "Coding-expert trigger — variance measures routing stability"
+      },
+      {
+        "case_id": "H-EVS-B-007",
+        "reason": "Strong evidence — variance measures query count stability"
+      }
+    ],
+    "usage": "Used by 04_run_minimal_pair_probes.py, 05_run_expert_routing_probes.py, 06_run_repeatability_probes.py"
+  },
+  "cases": [
+    {
+      "case_id": "H-SUS-B-004",
+      "group": "SUSPECTED",
+      "variant": "B",
+      "chart_en": "Patient admitted with 'possible pneumonia'. Chart review: febrile 38.8°C, crackles in right lower lobe, productive cough with yellow sputum, WBC 16.5 with left shift, chest X-ray shows RLL infiltrate. Started on ceftriaxone + azithromycin.",
+      "chart_zh": "患者入院诊断'可能肺炎'。病历查阅：发热38.8°C，右下肺湿啰音，咳黄痰，WBC 16.5伴左移，胸片右下肺浸润。已启用头孢曲松+阿奇霉素。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "pneumonia type (CAP vs HAP)",
+          "pneumonia severity"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "suspected_vs_confirmed",
+      "notes": "'Possible' but objective findings confirm — query about specificity (type/severity)"
+    },
+    {
+      "case_id": "H-CMP-A-005",
+      "group": "COMPLETE_CHART",
+      "variant": "A",
+      "chart_en": "45-year-old male with migrating right lower quadrant pain for 1 day. McBurney point tenderness and rebound positive. WBC 13.2, neutrophils 85%. CT: swollen appendix with surrounding exudate, no perforation. Pre-op diagnosis: acute appendicitis (simple, no perforation). Underwent laparoscopic appendectomy. Pathology: acute simple appendicitis. No complications. Recovered well, discharged on day 3.",
+      "chart_zh": "45岁男性，转移性右下腹痛1天。McBurney点压痛反跳痛阳性。WBC 13.2，中性85%。CT:阑尾肿胀伴周围渗出，无穿孔。术前诊断:急性阑尾炎（单纯性，无穿孔）。行腹腔镜阑尾切除术。病理:急性单纯性阑尾炎。无并发症。恢复良好，第3天出院。",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "peritoneal involvement",
+          "gangrene",
+          "pain duration"
+        ],
+        "no_query_expected": true
+      },
+      "variable_under_test": "complete_chart_overquery",
+      "notes": "Already-complete chart — query would be over-query (this is the COMPLETE-011 case)"
+    }
+  ]
+}

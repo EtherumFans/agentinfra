@@ -23,10 +23,10 @@ from app.icoder.agent_runtime.orchestrator.delegator import (
     ExpertInvocation,
     ExpertInvocationError,
 )
+from app.icoder.agent_runtime.orchestrator.planner import PlannerError
 from app.icoder.agent_runtime.orchestrator.wiring import (
     LMGatewaySyncAdapter,
     _dispatch_expert_invocation,
-    _stub_expert_invoker,
     build_expert_invoker_for_medcoder,
     build_expert_invoker_from_hybrid,
     build_llm_call_from_gateway,
@@ -216,19 +216,16 @@ def test_invoker_dispatch_coding_expert_passes_context_kwarg():
     assert h._strategy.run_variant.call_args.args[2] == {"trace_id": "t-1"}
 
 
-def test_invoker_dispatch_non_coding_expert_returns_stub():
-    """drg-expert / compliance-expert are Phase 1 stubs — the dispatcher
-    must NOT route them to CodingExpert."""
+def test_invoker_dispatch_non_coding_expert_fails_closed():
+    """An unimplemented Expert must not be represented as a success."""
     h = _make_hybrid_mock(
         return_value=_StubStrategyResult({"code": "I50.900"}),
     )
     invoker = build_expert_invoker_from_hybrid(h)
 
-    out = invoker(_make_invocation("drg-expert", "分组"))
-
-    assert out["expert_id"] == "drg-expert"
-    assert out["echo"] == "分组"
-    assert out["phase1_stub"] is True
+    with pytest.raises(ExpertInvocationError, match="backend unavailable") as excinfo:
+        invoker(_make_invocation("drg-expert", "分组"))
+    assert excinfo.value.retryable is False
     # Real MedCodER must NOT be called for non-coding experts
     h._strategy.run_variant.assert_not_called()
 
@@ -302,27 +299,21 @@ def test_invoker_dispatch_helper_handles_coding_expert_directly():
     assert out["code"] == "I50.900"
 
 
-def test_invoker_dispatch_helper_returns_stub_when_expert_none():
-    """When no CodingExpert is available (e.g. hybrid without strategy),
-    the helper falls back to the stub for every expert id."""
-    out = _dispatch_expert_invocation(
-        None, _make_invocation("coding-expert", "x"),
-    )
-    assert out["phase1_stub"] is True
-    assert out["expert_id"] == "coding-expert"
+def test_invoker_dispatch_helper_fails_closed_when_expert_none():
+    with pytest.raises(ExpertInvocationError, match="backend unavailable"):
+        _dispatch_expert_invocation(
+            None, _make_invocation("coding-expert", "x"),
+        )
 
 
-def test_invoker_dispatch_helper_non_coding_expert_returns_stub():
-    """The dispatcher always returns the stub for non-coding experts,
-    regardless of whether a CodingExpert is wired up."""
+def test_invoker_dispatch_helper_non_coding_expert_fails_closed():
     strategy = MagicMock(name="Strategy")
     strategy.run_variant = AsyncMock(
         return_value=_StubStrategyResult({"code": "I50.900"}),
     )
     expert = CodingExpert(strategy)
-    out = _dispatch_expert_invocation(expert, _make_invocation("drg-expert", "x"))
-
-    assert out["phase1_stub"] is True
+    with pytest.raises(ExpertInvocationError, match="backend unavailable"):
+        _dispatch_expert_invocation(expert, _make_invocation("drg-expert", "x"))
     strategy.run_variant.assert_not_called()
 
 
@@ -331,18 +322,24 @@ def test_invoker_dispatch_helper_non_coding_expert_returns_stub():
 # ---------------------------------------------------------------------------
 
 
-def test_build_llm_call_returns_stub_when_gateway_is_none():
+def test_build_llm_call_fails_closed_when_gateway_is_none():
     fn = build_llm_call_from_gateway(None)
-    out = fn("sys", "user")
-    assert out["content"] == "{}"
-    assert out["model"] == "stub"
+    with pytest.raises(PlannerError) as exc_info:
+        fn("sys", "user")
+    assert exc_info.value.code == "planning_failed"
+    assert exc_info.value.http_status == 503
+    assert exc_info.value.retryable is True
 
 
-def test_build_llm_call_returns_stub_when_gateway_not_configured():
+def test_build_llm_call_fails_closed_when_gateway_not_configured():
     gw = _make_gateway_mock(is_configured=False)
     fn = build_llm_call_from_gateway(gw)
-    out = fn("sys", "user")
-    assert out["model"] == "stub"
+    with pytest.raises(PlannerError) as exc_info:
+        fn("sys", "user")
+    assert exc_info.value.code == "planning_failed"
+    assert exc_info.value.http_status == 503
+    assert exc_info.value.retryable is True
+    gw.generate.assert_not_called()
 
 
 def test_build_llm_call_returns_real_adapter_when_configured():
@@ -351,21 +348,19 @@ def test_build_llm_call_returns_real_adapter_when_configured():
     assert isinstance(fn, LMGatewaySyncAdapter)
 
 
-def test_build_expert_invoker_returns_stub_when_hybrid_is_none():
+def test_build_expert_invoker_fails_closed_when_hybrid_is_none():
     fn = build_expert_invoker_from_hybrid(None)
-    out = fn(_make_invocation("coding-expert"))
-    assert out["phase1_stub"] is True
+    with pytest.raises(ExpertInvocationError, match="backend unavailable"):
+        fn(_make_invocation("coding-expert"))
 
 
-def test_build_expert_invoker_returns_stub_when_hybrid_has_no_strategy():
-    """Legacy / non-medcoder hybrid modes don't build a strategy; the
-    factory must still return a callable (the stub)."""
+def test_build_expert_invoker_fails_closed_when_hybrid_has_no_strategy():
     h = MagicMock(name="HybridCodingAdapter")
     h._mode = "hybrid"
     h._strategy = None
     fn = build_expert_invoker_from_hybrid(h)
-    out = fn(_make_invocation("coding-expert"))
-    assert out["phase1_stub"] is True
+    with pytest.raises(ExpertInvocationError, match="backend unavailable"):
+        fn(_make_invocation("coding-expert"))
 
 
 def test_build_expert_invoker_returns_dispatcher_when_hybrid_has_strategy():
@@ -378,17 +373,6 @@ def test_build_expert_invoker_returns_dispatcher_when_hybrid_has_strategy():
     # returned dict includes the expert_id (set by CodingExpert).
     assert out["code"] == "I50.900"
     assert out["expert_id"] == "coding-expert"
-
-
-def test_stub_expert_invoker_contract():
-    """Smoke test: the stub's return shape is stable (used by many
-    downstream tests + the Phase 5 expert stub wiring)."""
-    out = _stub_expert_invoker(_make_invocation("any-expert", "any"))
-    assert out == {
-        "expert_id": "any-expert",
-        "echo": "any",
-        "phase1_stub": True,
-    }
 
 
 # ---------------------------------------------------------------------------
@@ -486,31 +470,22 @@ def test_e1_invoker_coding_expert_uses_hybrid_fallback_when_provided():
     assert "phase1_stub" not in out
 
 
-def test_e1_invoker_coding_expert_falls_back_to_stub_without_hybrid():
-    """E1 back-compat: when no ``hybrid_fallback`` is provided, the
-    ``coding-expert`` (M1 path) returns the Phase-1 stub. This is the
-    E1 design — the canonical Agent path is 4 expert packs; the M1
-    hybrid wrapper is opt-in via ``hybrid_fallback``."""
+def test_e1_invoker_coding_expert_fails_closed_without_hybrid():
     invoker = build_expert_invoker_for_medcoder(
         llm_gateway=None,
         hybrid_fallback=None,
     )
-    out = invoker(_make_invocation("coding-expert", "病历文本"))
-    assert out["phase1_stub"] is True
-    assert out["expert_id"] == "coding-expert"
+    with pytest.raises(ExpertInvocationError, match="backend unavailable"):
+        invoker(_make_invocation("coding-expert", "病历文本"))
 
 
-def test_e1_invoker_unknown_expert_id_falls_back_to_stub():
-    """E1: any expert_id not in the 4 D2 packs (and not 'coding-expert'
-    with a hybrid_fallback) returns the Phase-1 stub. This is the
-    forward-compat path for Phase 5 (drg-expert, compliance-expert)."""
+def test_e1_invoker_unknown_expert_id_fails_closed():
     invoker = build_expert_invoker_for_medcoder(
         llm_gateway=None,
         hybrid_fallback=None,
     )
-    out = invoker(_make_invocation("drg-expert", "分组"))
-    assert out["phase1_stub"] is True
-    assert out["expert_id"] == "drg-expert"
+    with pytest.raises(ExpertInvocationError, match="backend unavailable"):
+        invoker(_make_invocation("drg-expert", "分组"))
 
 
 def test_e1_invoker_4_expert_ids_match_d2_class_constants():

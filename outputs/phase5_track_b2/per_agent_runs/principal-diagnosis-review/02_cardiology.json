@@ -1,0 +1,56 @@
+{
+  "agent_id": "principal-diagnosis-review",
+  "run_id": "run-53cfc3aa-276b-4f82-92c0-7d41ef117e10",
+  "trace_id": "trace-bf2d7b28d5a64ba8",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 12016,
+  "cost": {
+    "amount": 0.00037,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"candidates\": [\n    {\n      \"code\": \"I21.0\",\n      \"display\": \"急性前壁 ST 段抬高型心肌梗死\",\n      \"evidence_text\": \"患者因「突发胸骨后压榨样疼痛 3 小时」急诊入院，心电图示 V1-V4 ST 段弓背向上抬高 0.3-0.5mV，肌钙蛋白 I 12.5 ng/mL，急诊冠脉造影示 LAD 近段 100% 闭塞，行 LAD PCI 术\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"急性前壁 ST 段抬高型心肌梗死对患者健康危害最严重（心肌坏死、心功能受损），消耗医疗资源最多（急诊冠脉造影、PCI 术、支架植入、术后监护），且为住院期间主要治疗（直接针对病因的介入治疗），符合主诊断选择优先级\"\n    },\n    {\n      \"code\": \"I25.1\",\n      \"display\": \"冠状动脉单支病变（PCI 术后）\",\n      \"evidence_text\": \"急诊冠脉造影示 LAD 近段 100% 闭塞，RCA 中段 80% 狭窄，LCX 30% 狭窄，行 LAD PCI 术，术后 TIMI 血流 3 级\",\n      \"severity\": \"medium\",\n      \"resource_usage\": \"medium\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"冠状动脉单支病变（PCI 术后）是急性心肌梗死的病因和后续治疗状态，但急性心肌梗死本身是更直接、更严重的临床表现，且为住院主要治疗对象，因此不应作为主诊断\"\n    },\n    {\n      \"code\": \"E78.0\",\n      \"display\": \"高脂血症\",\n      \"evidence_text\": \"入院诊断中提及高脂血症\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"高脂血症为慢性合并症，非本次住院主要治疗原因，消耗资源极少，不应作为主诊断\"\n    },\n    {\n      \"code\": \"Z72.0\",\n      \"display\": \"吸烟者\",\n      \"evidence_text\": \"既往史：吸烟 40 年，每日 20 支\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"吸烟者为行为危险因素，非疾病诊断，不应作为主诊断\"\n    }\n  ],\n  \"recommended\": \"I21.0\",\n  \"not_recommended\": [\n    {\n      \"code\": \"I25.1\",\n      \"reason\": \"冠状动脉单支病变（PCI 术后）是急性心肌梗死的病因和后续治疗状态，但急性心肌梗死本身是更直接、更严重的临床表现，且为住院主要治疗对象，因此不应作为主诊断\"\n    },\n    {\n      \"code\": \"E78.0\",\n      \"reason\": \"高脂血症为慢性合并症，非本次住院主要治疗原因，消耗资源极少，不应作为主诊断\"\n    },\n    {\n      \"code\": \"Z72.0\",\n      \"reason\": \"吸烟者为行为危险因素，非疾病诊断，不应作为主诊断\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 I21.0（急性前壁 ST 段抬高型心肌梗死），因为该诊断对患者健康危害最严重（心肌坏死、心功能受损），消耗医疗资源最多（急诊冠脉造影、PCI 术、支架植入、术后监护），且为住院期间主要治疗（直接针对病因的介入治疗）。I25.1（冠状动脉单支病变 PCI 术后）为病因和后续状态，E78.0（高脂血症）和 Z72.0（吸烟者）为慢性合并症或危险因素，均不应作为主诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 I21.0（急性前壁 ST 段抬高型心肌梗死）为最优选择。注意：患者 Killip II 级提示轻度心衰，但未单独编码心衰，需确认是否需补充编码；高脂血症和吸烟者作为次要诊断编码即可。\"\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"candidates\": [\n    {\n      \"code\": \"I21.0\",\n      \"display\": \"急性前壁 ST 段抬高型心肌梗死\",\n      \"evidence_text\": \"患者因「突发胸骨后压榨样疼痛 3 小时」急诊入院，心电图示 V1-V4 ST 段弓背向上抬高 0.3-0.5mV，肌钙蛋白 I 12.5 ng/mL，急诊冠脉造影示 LAD 近段 100% 闭塞，行 LAD PCI 术\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"急性前壁 ST 段抬高型心肌梗死对患者健康危害最严重（心肌坏死、心功能受损），消耗医疗资源最多（急诊冠脉造影、PCI 术、支架植入、术后监护），且为住院期间主要治疗（直接针对病因的介入治疗），符合主诊断选择优先级\"\n    },\n    {\n      \"code\": \"I25.1\",\n      \"display\": \"冠状动脉单支病变（PCI 术后）\",\n      \"evidence_text\": \"急诊冠脉造影示 LAD 近段 100% 闭塞，RCA 中段 80% 狭窄，LCX 30% 狭窄，行 LAD PCI 术，术后 TIMI 血流 3 级\",\n      \"severity\": \"medium\",\n      \"resource_usage\": \"medium\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"冠状动脉单支病变（PCI 术后）是急性心肌梗死的病因和后续治疗状态，但急性心肌梗死本身是更直接、更严重的临床表现，且为住院主要治疗对象，因此不应作为主诊断\"\n    },\n    {\n      \"code\": \"E78.0\",\n      \"display\": \"高脂血症\",\n      \"evidence_text\": \"入院诊断中提及高脂血症\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"高脂血症为慢性合并症，非本次住院主要治疗原因，消耗资源极少，不应作为主诊断\"\n    },\n    {\n      \"code\": \"Z72.0\",\n      \"display\": \"吸烟者\",\n      \"evidence_text\": \"既往史：吸烟 40 年，每日 20 支\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"吸烟者为行为危险因素，非疾病诊断，不应作为主诊断\"\n    }\n  ],\n  \"recommended\": \"I21.0\",\n  \"not_recommended\": [\n    {\n      \"code\": \"I25.1\",\n      \"reason\": \"冠状动脉单支病变（PCI 术后）是急性心肌梗死的病因和后续治疗状态，但急性心肌梗死本身是更直接、更严重的临床表现，且为住院主要治疗对象，因此不应作为主诊断\"\n    },\n    {\n      \"code\": \"E78.0\",\n      \"reason\": \"高脂血症为慢性合并症，非本次住院主要治疗原因，消耗资源极少，不应作为主诊断\"\n    },\n    {\n      \"code\": \"Z72.0\",\n      \"reason\": \"吸烟者为行为危险因素，非疾病诊断，不应作为主诊断\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 I21.0（急性前壁 ST 段抬高型心肌梗死），因为该诊断对患者健康危害最严重（心肌坏死、心功能受损），消耗医疗资源最多（急诊冠脉造影、PCI 术、支架植入、术后监护），且为住院期间主要治疗（直接针对病因的介入治疗）。I25.1（冠状动脉单支病变 PCI 术后）为病因和后续状态，E78.0（高脂血症）和 Z72.0（吸烟者）为慢性合并症或危险因素，均不应作为主诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 I21.0（急性前壁 ST 段抬高型心肌梗死）为最优选择。注意：患者 Killip II 级提示轻度心衰，但未单独编码心衰，需确认是否需补充编码；高脂血症和吸烟者作为次要诊断编码即可。\"\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 726,
+        "output_tokens": 957
+      },
+      "cost_usd": 0.00037,
+      "latency_ms": 12016
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 12016,
+      "metadata": {
+        "agent_id": "principal-diagnosis-review",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 12016
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 13767,
+  "_fixture": "fixtures/phase5_track_b2/02_cardiology.json",
+  "_agent": "principal-diagnosis-review",
+  "_tag": "02_cardiology",
+  "_ts": "2026-07-11T14:20:57"
+}

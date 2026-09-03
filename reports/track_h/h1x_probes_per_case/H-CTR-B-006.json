@@ -1,0 +1,83 @@
+{
+  "case_id": "H-CTR-B-006",
+  "group": "CONTRADICTION",
+  "variant": "B",
+  "session_id": "74eb0d0b-3eed-4f65-aba9-ae253cda8865",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 29.26,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_query_topics": [],
+    "forbidden_query_topics": [],
+    "no_query_expected": true
+  },
+  "text_length": 4612,
+  "first_token_at_s": 4.05,
+  "last_token_at_s": 29.26,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"4de2ba78-e963-4ba0-b9a1-abf3b05777ba\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- ED, orthopedic, and radiology documentation all describe a left wrist fracture after a fall.\\n- The most specific anatomic description in the excerpt is radiology: \\\"Le",
+    "message|{\"id\":\"4de2ba78-e963-4ba0-b9a1-abf3b05777ba\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc6-bf73-77c0-8812-90a9c4b6a7ec\",\"taskId\":\"019f5bc6-bf73-774d-b51d-a688206d3102\",\"credits\":0.06658,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.06658},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc6-bf73-77c0-8812-90a9c4b6a7ec",
+    "taskId": "019f5bc6-bf73-774d-b51d-a688206d3102",
+    "credits": 0.06658,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- ED, orthopedic, and radiology documentation all describe a left wrist fracture after a fall.\n- The most specific anatomic description in the excerpt is radiology: \"Left distal radius fracture.\"\n- Orthopedic management documented: \"cast applied.\"\n- Symptom documented: \"Patient reports left wrist pain.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Fracture specificity is incomplete in provider documentation.\n   - Why it matters: Coding specificity for fractures typically depends on the exact bone/site and often additional fracture descriptors. The provider notes say only \"left wrist fracture,\" while radiology is more specific.\n   - Evidence quote(s):\n     - ED note: \"Patient with left wrist fracture after fall.\"\n     - Orthopedic note: \"Left wrist fracture confirmed, cast applied.\"\n     - Radiology: \"Left distal radius fracture.\"\n   - Min"
+      },
+      {
+        "idx": 2,
+        "text": "Encounter/fracture detail elements are not stated in the excerpt.\n   - Why it matters: Fracture coding often requires encounter details and fracture characteristics, but these elements are not documented here.\n   - Evidence quote(s): The excerpt includes only \"left wrist fracture after fall,\" \"Left wrist fracture confirmed, cast applied,\" and \"Left distal radius fracture\" without further descriptors.\n   - Minimal clarification needed: If clinically documented elsewhere, specify fracture characte"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Final fracture site diagnosis clarification"
+      },
+      {
+        "idx": 2,
+        "text": "Fracture descriptor clarification"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and query appropriateness. Output was not substantively useful for gap identification, so final analysis was based directly on the chart excerpt.\n- AMBOSS Expert: Not consulted; no unclear clinical criteria required for this limited excerpt.\n- CDI Web Search Expert: Not consulted; no current external guidance was necessary to identify the basic documentation clarification opportunity.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- ED, orthopedic, and radiology documentation all describe a left wrist fracture after a fall.\n- The most specific anatomic description in the excerpt is radiology: \"Left distal radius fracture.\"\n- Orthopedic management documented: \"cast applied.\"\n- Symptom documented: \"Patient reports left wrist pain.\"\n\nDocumentation Gaps:\n1. Fracture specificity is incomplete in provider documentation.\n   - Why it matters: Coding specificity for fractures typically depends on the exact bone/site and often additional fracture descriptors. The provider notes say only \"left wrist fracture,\" while radiology is more specific.\n   - Evidence quote(s):\n     - ED note: \"Patient with left wrist fracture after fall.\"\n     - Orthopedic note: \"Left wrist fracture confirmed, cast applied.\"\n     - Radiology: \"Left distal radius fracture.\"\n   - Minimal clarification needed: Clarify whether the diagnosis being treated/documented is specifically a left distal radius fracture and document the final provider diagnosis using the most specific supported site.\n\n2. Encounter/fracture detail elements are not stated in the excerpt.\n   - Why it matters: Fracture coding often requires encounter details and fracture characteristics, but these elements are not documented here.\n   - Evidence quote(s): The excerpt includes only \"left wrist fracture after fall,\" \"Left wrist fracture confirmed, cast applied,\" and \"Left distal radius fracture\" without further descriptors.\n   - Minimal clarification needed: If clinically documented elsewhere, specify fracture characteristics relevant to coding, such as whether displaced/nondisplaced, open/closed, and encounter type. Because these elements are not present in the excerpt, any query should remain limited to clarification rather than assumption.\n\nProposed Provider Queries:\n1. Topic: Final fracture site diagnosis clarification\n   - Reason query is needed: Provider documentation uses the broader term \"left wrist fracture,\" while radiology documents a more specific site.\n   - Evidence quote(s):\n     - \"Patient with left wrist fracture after fall.\"\n     - \"Left wrist fracture confirmed, cast applied.\"\n     - \"Left distal radius fracture.\"\n   - Non-leading query text:\n     - \"The record documents 'left wrist fracture' in the ED and orthopedic notes, and radiology documents 'left distal radius fracture.' For the final diagnosis for this encounter, can you please clarify the specific fracture site being treated?\"\n   - Suggested response options:\n     - Left distal radius fracture\n     - Other left wrist fracture site (please specify)\n     - Unable to determine from current information\n     - Other (please specify)\n\n2. Topic: Fracture descriptor clarification\n   - Reason query is needed: The excerpt does not document common fracture descriptors needed for specificity.\n   - Evidence quote(s):\n     - \"Left wrist fracture after fall\"\n     - \"Left distal radius fracture\"\n   - Non-leading query text:\n     - \"For the documented left wrist/distal radius fracture, if known and clinically supported, please clarify any additional fracture descriptors documented for this encounter (for example, displaced or nondisplaced; open or closed; other applicable descriptor).\"\n   - Suggested response options:\n     - Additional descriptor documented elsewhere (please specify)\n     - No additional descriptor can be determined/documented\n     - Clinically undetermined\n     - Other (please specify)\n\nCoding Specificity Checklist:\n- Exact fracture site/bone\n- Laterality\n- Whether provider final diagnosis matches imaging specificity\n- Displaced vs nondisplaced, if documented and clinically supported\n- Open vs closed, if documented and clinically supported\n- Encounter/fracture episode details, if required in the coding context\n- Associated injury details only if documented\n\nRisk Flags:\n- No major contradiction is present; documentation appears consistent.\n- The main ambiguity is terminology: provider notes say \"left wrist fracture\" while radiology is more specific with \"left distal radius fracture.\"\n- No supported basis in the excerpt to query additional conditions beyond the fracture itself.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and query appropriateness. Output was not substantively useful for gap identification, so final analysis was based directly on the chart excerpt.\n- AMBOSS Expert: Not consulted; no unclear clinical criteria required for this limited excerpt.\n- CDI Web Search Expert: Not consulted; no current external guidance was necessary to identify the basic documentation clarification opportunity."
+}

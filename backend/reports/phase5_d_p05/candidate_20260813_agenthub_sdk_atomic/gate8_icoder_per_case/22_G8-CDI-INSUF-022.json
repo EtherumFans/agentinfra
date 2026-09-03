@@ -1,0 +1,308 @@
+{
+  "case_id": "CASE-79b90361bafb",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-79b90361bafb/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "主诉乏力，但未明确乏力的病因、严重程度或相关临床表现。",
+      "why_it_matters": "乏力是非特异性症状，缺乏具体病因或临床关联，影响诊断编码的准确性和临床相关性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者男性, 50岁, 乏力。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-79b90361bafb/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "建议进一步检查，但未明确具体检查项目或目的。",
+      "why_it_matters": "缺乏具体检查计划，无法确定诊断或排除的疾病，影响编码和临床决策。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "建议进一步检查。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-79b90361bafb/GAP-002",
+      "topic": "进一步检查的具体项目及目的",
+      "reason": "建议进一步检查，但未明确具体检查项目或目的，需明确。",
+      "query_text": "建议进一步检查，请明确具体检查项目及其目的。",
+      "response_options": [
+        "A. 血常规、铁代谢检查，以明确是否存在贫血",
+        "B. 甲状腺功能检查，以排除甲状腺功能减退",
+        "C. 肝功能、腹部超声，以评估肝脏情况",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "建议进一步检查。",
+          "char_start": 14,
+          "char_end": 22,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the chart already defers diagnosis to further evaluation"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-79b90361bafb/GAP-001",
+      "topic": "乏力病因及严重程度",
+      "reason": "主诉乏力，但未明确病因、严重程度及相关临床表现，需进一步明确。",
+      "query_text": "患者主诉乏力，请描述乏力的可能病因、严重程度及伴随的临床表现。",
+      "response_options": [
+        "A. 乏力由贫血引起，表现为面色苍白、活动后心悸气短",
+        "B. 乏力由甲状腺功能减退引起，表现为怕冷、体重增加、反应迟钝",
+        "C. 乏力由慢性肝病引起，表现为食欲减退、黄疸、肝区不适",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "患者男性, 50岁, 乏力。",
+          "char_start": 0,
+          "char_end": 14,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['etiology', 'severity']",
+        "SD-002: axes in 40-char window = ['etiology', 'severity']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "etiology",
+        "severity"
+      ],
+      "rewrite_attempt_status": "REJECTED_BY_SAFETY_GATES",
+      "rewrite_attempt_reasons": [
+        "rewrite clinical dimension does not match source gap: expected=['etiology', 'severity'], got=['type']"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 50岁, 乏力。建议进一步检查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，50岁",
+      "主诉乏力",
+      "建议进一步检查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "empty chart — no coding substrate",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-9ed9c3aa4fac",
+    "gap_identification": "run-745658ef0682",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-4d1dd76a91f5",
+    "query_generation": "run-aef470a00520",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=2;llm_complete=False;llm_reasoning=该图表仅包含非特异性症状和模糊建议，缺乏诊断、病因、严重程度或具体检查计划，无法支持准确编码。",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_dimension_rewrite": "run-70eb81c7e650",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=severity;rewrite_attempted=1;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-defb4f1aee50",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-7b7122301f6f",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-4ff117247691"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-849b6326da18",
+    "gap_identification": "trace-6ac3044044d7",
+    "expert_consultation": "trace-f4cd5b9efa52",
+    "query_generation": "trace-86871e4c7cd5",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-1e623c916816",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d6c5652cd21d",
+    "semantic_necessity_gate": "trace-d87be7d8465a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-7ba07d82874b"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2358,
+      "prompt_tokens": 185,
+      "completion_tokens": 61,
+      "total_tokens": 246,
+      "run_id": "run-9ed9c3aa4fac",
+      "trace_id": "trace-849b6326da18",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4276,
+      "prompt_tokens": 977,
+      "completion_tokens": 329,
+      "total_tokens": 1306,
+      "run_id": "run-745658ef0682",
+      "trace_id": "trace-6ac3044044d7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5075,
+      "prompt_tokens": 1016,
+      "completion_tokens": 459,
+      "total_tokens": 1475,
+      "run_id": "run-aef470a00520",
+      "trace_id": "trace-86871e4c7cd5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3508,
+      "prompt_tokens": 618,
+      "completion_tokens": 221,
+      "total_tokens": 839,
+      "run_id": "run-70eb81c7e650",
+      "trace_id": "trace-1e623c916816",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-62cd511781eb",
+      "trace_id": "trace-595566f06983",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5ff6a59e2a30",
+      "trace_id": "trace-decc09ade3a1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-81b4e7584f55",
+      "trace_id": "trace-bdbfb86a9417",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1872a371c78d",
+      "trace_id": "trace-10f653d73acc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:36:46.619925Z"
+}

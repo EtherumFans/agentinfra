@@ -1,0 +1,83 @@
+{
+  "schema_version": "icoder/phase-evidence/v1",
+  "phase": "delegated-machine-subject-and-scoped-medical-connectors",
+  "date": "2026-08-22",
+  "result": "development_slice_passed_external_gates_open",
+  "llm": {
+    "provider": "mock_or_not_invoked",
+    "real_credential_used": false,
+    "external_llm_network_used": false
+  },
+  "identity_contract": {
+    "request_body_api_client_id_authoritative": false,
+    "verified_bearer_client_id_authoritative": true,
+    "runtime_preview_is_machine_client": false,
+    "token_revocation_rechecked": true,
+    "live_client_enabled_rechecked": true,
+    "live_scope_subset_rechecked": true,
+    "owner_active_rechecked": true,
+    "owner_membership_rechecked": true,
+    "delegated_subject_source": "oauth_client_owner",
+    "per_client_agent_allowlist": false,
+    "per_client_purpose_grant": false
+  },
+  "connector_scope_contract": {
+    "validate_codes": "coding:validate",
+    "evaluate_compliance": "compliance:evaluate",
+    "check_documentation_gaps": "documentation:check",
+    "wrong_scope_fails_closed": true,
+    "persistent_memory_machine_access": false
+  },
+  "audit_contract": {
+    "actor_type_persisted": true,
+    "actor_id_persisted": true,
+    "delegated_subject_id_persisted": true,
+    "granted_scopes_persisted": true,
+    "token_or_secret_persisted": false,
+    "input_or_output_body_persisted_in_connector_audit": false
+  },
+  "migration": {
+    "revision": "048",
+    "fresh_database_001_047_048": "passed",
+    "round_trip_048_047_048": "passed",
+    "verified_columns": [
+      "actor_type",
+      "actor_id",
+      "delegated_subject_id",
+      "granted_scopes"
+    ],
+    "development_database_schema_changed": false,
+    "development_database_version": "041",
+    "deployment_note": "reconcile create_all schema with alembic version before controlled restart"
+  },
+  "openapi": {
+    "paths": 259,
+    "bytes": 802027,
+    "request_body_api_client_id_deprecated": true
+  },
+  "verification": [
+    {"suite": "medical_scope_and_mcp_contract_units", "passed": 36, "failed": 0, "duration_seconds": 3.36},
+    {"suite": "oauth_live_state_and_membership", "passed": 16, "failed": 0, "duration_seconds": 9.71},
+    {"suite": "body_attribution_trace_regression", "passed": 7, "failed": 0, "duration_seconds": 4.59},
+    {"suite": "api_client_gate_full", "passed": 15, "failed": 0, "duration_seconds": 23.38},
+    {"suite": "connector_executor_full", "passed": 13, "failed": 0, "warnings": 1, "duration_seconds": 3.33},
+    {"suite": "connector_graph_runtime_full", "passed": 16, "failed": 0, "warnings": 6, "duration_seconds": 111.86},
+    {"suite": "startup_and_billing_identity", "passed": 14, "failed": 0, "duration_seconds": 15.85},
+    {"suite": "connector_memory_boundary", "passed": 8, "failed": 0, "duration_seconds": 3.01},
+    {"suite": "openapi_and_runtime_token", "passed": 12, "failed": 0, "duration_seconds": 10.23},
+    {"suite": "frontend_attribution_boundary", "passed": 2, "failed": 0},
+    {"suite": "frontend_production_build", "status": "passed"},
+    {"suite": "javascript_sdk", "passed": 41, "failed": 0},
+    {"suite": "python_sdk", "passed": 48, "failed": 0, "duration_seconds": 52.71},
+    {"suite": "dotnet_sdk", "status": "source_updated_toolchain_unavailable"},
+    {"suite": "alembic_fresh_and_round_trip", "passed": 2, "failed": 0}
+  ],
+  "external_gates": [
+    "development database schema/version reconciliation before controlled restart",
+    "per-client Agent allowlist and purpose-of-use delegation",
+    "dotnet CI compile and contract tests",
+    "isolated MedCodER worker and index E2E",
+    "PostgreSQL multi-replica authorization and audit verification",
+    "hospital privacy, security, legal, and clinical reviewer approval"
+  ]
+}

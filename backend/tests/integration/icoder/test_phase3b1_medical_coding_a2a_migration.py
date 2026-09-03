@@ -200,9 +200,9 @@ def test_a2a_medical_coding_agent_red_lines_in_metadata(client):
     )
     assert icoder_meta.get("phi_redaction") == "required"
     assert icoder_meta.get("human_review") == "required"
-    assert icoder_meta.get("maturity") == "mvp"
+    assert icoder_meta.get("maturity") == "runnable"
     assert icoder_meta.get("production_ready") is False, (
-        "Medical Coding Agent must declare production_ready=false (MVP)"
+        "Medical Coding Agent must remain production_ready=false until external gates pass"
     )
 
 
@@ -231,14 +231,17 @@ def test_a2a_medical_coding_agent_response_red_lines(client):
 # --- D.7: RunTrace records A2A state_history ---
 
 def test_a2a_medical_coding_agent_state_history_in_metadata(client):
-    """The response metadata must include state_history from the
-    InboundHandler state machine (received → planning → delegating →
-    aggregating → completed), NOT the legacy bypass trace.
+    """The response metadata for ``medical-coding-agent`` is produced by
+    the Corti-style fast path (``CodingRuntimeDispatcher`` in
+    ``a2a_facade.py``), which replaced the legacy InboundHandler state
+    machine in Phase A1D-DEV. The ``state_history`` field was part of
+    the InboundHandler contract and is no longer emitted on this path.
 
-    The state machine records transitions (not the initial state), so
-    history serializes as the targets: ``planning, delegating,
-    aggregating, completed``. The initial ``received`` is the
-    ``from_state`` of the first transition and is implicit.
+    This test now verifies the contemporary metadata shape:
+      - run_id / trace_id / agent_id / interaction_id are present
+      - phi_redacted + production_writeback_blocked red lines preserved
+      - output_contract is the v2 Corti-shaped schema
+      - v1_to_v2_projected flags the projection from MedCodER v1
     """
     body = _make_a2a_request("患者, 男, 65岁, 诊断为冠心病。")
     r = client.post(
@@ -247,28 +250,29 @@ def test_a2a_medical_coding_agent_state_history_in_metadata(client):
         headers=_a2a_headers(),
     )
     if r.status_code != 200:
-        pytest.skip(f"run returned {r.status_code}; state_history only verified on 200")
+        pytest.skip(f"run returned {r.status_code}; metadata only verified on 200")
     result = r.json().get("result", {})
     metadata = result.get("metadata", {})
-    state_history = metadata.get("state_history", [])
-    # Must have ≥4 transitions (planning → delegating → aggregating → completed)
-    assert len(state_history) >= 4, (
-        f"state_history must have ≥4 transitions (planning→delegating→"
-        f"aggregating→completed); got: {state_history}"
+    # Identity + tracing fields must be present.
+    for key in ("run_id", "trace_id", "agent_id", "interaction_id"):
+        assert key in metadata, (
+            f"metadata missing {key}; got keys: {sorted(metadata.keys())}"
+        )
+    # Phase 3-A red lines preserved.
+    assert metadata.get("phi_redacted") is True, (
+        f"phi_redacted red line must be enforced; got {metadata.get('phi_redacted')!r}"
     )
-    # First transition target is "planning" (received is the implicit from_state)
-    assert state_history[0] == "planning", (
-        f"state_history must start with 'planning' (first transition target "
-        f"from implicit 'received'); got: {state_history}"
+    assert metadata.get("production_writeback_blocked") is True, (
+        f"production_writeback_blocked red line must be enforced; "
+        f"got {metadata.get('production_writeback_blocked')!r}"
     )
-    # Should include planning, delegating, aggregating, completed
-    expected_states = {"planning", "delegating", "aggregating", "completed"}
-    found_states = set(state_history)
-    overlap = expected_states & found_states
-    assert overlap == expected_states, (
-        f"state_history must include all 4 A2A mainline states "
-        f"(planning/delegating/aggregating/completed); "
-        f"missing: {expected_states - found_states}; found: {state_history}"
+    # Corti-style v2 output contract with v1 projection provenance.
+    from app.icoder.agent_runtime.a2a_facade import medical_coding_schema_ref
+    assert metadata.get("output_contract") == medical_coding_schema_ref(), (
+        f"output_contract must be the v2 Corti shape; got {metadata.get('output_contract')!r}"
+    )
+    assert metadata.get("v1_to_v2_projected") is True, (
+        "v1_to_v2_projected must be true (MedCodER v1 → Corti v2 projection)"
     )
 
 
@@ -317,7 +321,7 @@ def test_a2a_medical_coding_agent_malformed_body_returns_parse_error(client):
     """
     r = client.post(
         "/api/icoder/agents/medical-coding-agent/v1/message:send",
-        data="not-valid-json",
+        content="not-valid-json",
         headers={**_a2a_headers(), "Content-Type": "application/json"},
     )
     # Parse error → 400 per routes_inbound.py
@@ -345,7 +349,8 @@ def test_a2a_medical_coding_agent_v1_to_v2_projection_metadata(client):
     assert metadata.get("v1_to_v2_projected") is True, (
         f"v1→v2 projection must run for medical-coding-agent; metadata: {metadata}"
     )
-    assert metadata.get("output_contract") == "icoder/MedicalCodingAgentOutputV2/v1"
+    from app.icoder.agent_runtime.a2a_facade import medical_coding_schema_ref
+    assert metadata.get("output_contract") == medical_coding_schema_ref()
 
 
 # --- medcoder-coding-review NOT projected (passthrough) ---

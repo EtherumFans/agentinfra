@@ -1,0 +1,75 @@
+{
+  "results": [
+    {
+      "case_id": "G8-CDI-CONFLICT-031",
+      "category": "document_conflict",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "骨折侧别",
+          "laterality of fracture"
+        ],
+        "notes": "Left vs right inconsistency across documents"
+      },
+      "status": 200,
+      "elapsed_s": 27.4,
+      "completion_state": "BLOCKED",
+      "degraded": false,
+      "circuit_breaker_open": false,
+      "final_queries": 1,
+      "gap_count": 4,
+      "query_topics": [
+        "肋骨骨折侧别不一致"
+      ],
+      "case_run_id": "CASE-e36a538d5e27"
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-033",
+      "category": "document_conflict",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "加重严重程度",
+          "exacerbation severity"
+        ],
+        "notes": "Three different severity levels across documents"
+      },
+      "status": 200,
+      "elapsed_s": 25.0,
+      "completion_state": "BLOCKED",
+      "degraded": false,
+      "circuit_breaker_open": false,
+      "final_queries": 2,
+      "gap_count": 3,
+      "query_topics": [
+        "高碳酸血症与呼吸衰竭类型",
+        "COPD急性加重病因"
+      ],
+      "case_run_id": "CASE-0eb702303df3"
+    },
+    {
+      "case_id": "G8-CDI-LAB-036",
+      "category": "lab_positive_uncertain",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Single positive lab without supporting evidence — must not assume GI malignancy"
+      },
+      "status": 200,
+      "elapsed_s": 14.4,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "circuit_breaker_open": false,
+      "final_queries": 0,
+      "gap_count": 2,
+      "query_topics": [],
+      "case_run_id": "CASE-a5c0e82a3c8d"
+    }
+  ]
+}

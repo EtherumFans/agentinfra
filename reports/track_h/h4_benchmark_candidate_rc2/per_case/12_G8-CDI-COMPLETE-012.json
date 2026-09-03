@@ -1,0 +1,189 @@
+{
+  "case_id": "CASE-340bf4d00b2c",
+  "completion_state": "AUTO_PASS",
+  "documentation_gaps": [],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者女性, 32岁, 第2胎, 孕39周, 自然分娩, 男活婴, 体重 3350g。产程顺利, 出血 200ml。Apgar 评分 1/5/10分钟均 10分。产后恢复好, 母乳喂养。第3天出院。诊断:足月顺产, 单胎, 活婴。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "女性, 32岁",
+      "第2胎",
+      "孕39周",
+      "自然分娩",
+      "男活婴, 体重3350g",
+      "产程顺利, 出血200ml",
+      "Apgar评分1/5/10分钟均10分",
+      "产后恢复好, 母乳喂养",
+      "第3天出院",
+      "诊断:足月顺产, 单胎, 活婴"
+    ],
+    "encounter_metadata": {
+      "patient_age": "32岁",
+      "patient_sex": "女性",
+      "encounter_type": "分娩"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "no coding-relevant gaps survived earlier gates",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'评分' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-450dc5c8cad4",
+    "gap_identification": "run-c40b962f25aa",
+    "gap_identification_risk_flags": "emitted=0",
+    "expert_consultation": "run-2e6ec3643c03",
+    "query_generation": "",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.25;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=Y;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a normal spontaneous vaginal delivery at term with a healthy",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-5679ee5dadd8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-1d4c0ad964bd",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-22f717bd6f0a"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-ef5322e8f9cf",
+    "gap_identification": "trace-df0f36f0c16d",
+    "expert_consultation": "trace-7e574b53fa87",
+    "query_generation": "",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-692336218403",
+    "semantic_necessity_gate": "trace-94c3abb60e52",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-b897ad3c86f3"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2807,
+      "prompt_tokens": 258,
+      "completion_tokens": 144,
+      "total_tokens": 402,
+      "run_id": "run-450dc5c8cad4",
+      "trace_id": "trace-ef5322e8f9cf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2784,
+      "prompt_tokens": 934,
+      "completion_tokens": 101,
+      "total_tokens": 1035,
+      "run_id": "run-c40b962f25aa",
+      "trace_id": "trace-df0f36f0c16d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5b895cd87b0d",
+      "trace_id": "trace-9c9512ad735e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1fe0ac15cbd7",
+      "trace_id": "trace-2652e5d4d7a7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ab7a9d24a367",
+      "trace_id": "trace-9626e71bf4f7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6b868bb62278",
+      "trace_id": "trace-f3dbe30fb383",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T00:33:44.929934Z"
+}

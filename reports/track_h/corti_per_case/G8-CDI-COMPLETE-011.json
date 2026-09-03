@@ -1,0 +1,328 @@
+{
+  "case_id": "G8-CDI-COMPLETE-011",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "c3ef108b-2fc1-47b5-8696-28f014b996a2",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 26.66,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Complete documentation: type, severity, etiology, procedure, pathology, complications, course all explicit"
+  },
+  "text_length": 5585,
+  "first_token_at_s": 3.71,
+  "last_token_at_s": 26.66,
+  "event_count": 13,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"0DTJ4ZZ\",\"code_system\":\"icd-10-pcs\",\"description\":\"Medical and Surgical, Gastrointestinal System, Resection, Appendix, Percutaneous Endoscopic, No Device, No Qualifi",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"K35.30\",\"description\":\"Acute appendicitis with localized peritonitis, without perforation or gangrene\",\"next_steps\":[{\"reason\":\"Compare with related codes if this is",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"0DTJ4ZZ\",\"description\":\"Medical and Surgical, Gastrointestinal System, Resection, Appendix, Percutaneous Endoscopic, No Device, No Qualifier\",\"next_steps\":[{\"reason\"",
+    "message|{\"id\":\"1f78fd14-a54e-42e4-add1-9fea72f5608f\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 45-year-old male presented with 1 day of migrating right lower quadrant pain.\\n- Exam/lab/imaging support acute appendicitis: \\\"McBurney point tenderness and rebound po",
+    "message|{\"id\":\"1f78fd14-a54e-42e4-add1-9fea72f5608f\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55ca-da4c-7ec7-a7ce-62b963344aba\",\"taskId\":\"019f55ca-da4c-7e58-b401-d6508cb078c2\",\"credits\":0.088572,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.088572},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "acute simple appendicitis",
+      "results": [
+        {
+          "code": "K35.80",
+          "description": "Unspecified acute appendicitis",
+          "match_path": "Appendicitis, acute",
+          "related_codes": {
+            "category": "K35.8",
+            "category_description": "Other and unspecified acute appendicitis",
+            "count": 2
+          }
+        },
+        {
+          "code": "K35.30",
+          "description": "Acute appendicitis with localized peritonitis, without perforation or gangrene",
+          "match_path": "Acute appendicitis with localized peritonitis NOS",
+          "related_codes": {
+            "category": "K35.3",
+            "category_description": "Acute appendicitis with localized peritonitis",
+            "count": 4
+          }
+        },
+        {
+          "code": "K35.32",
+          "description": "Acute appendicitis with perforation, localized peritonitis, and gangrene, without abscess",
+          "match_path": "Appendicitis, ruptured, unspecified",
+          "related_codes": {
+            "category": "K35.3",
+            "category_description": "Acute appendicitis with localized peritonitis",
+            "count": 4
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "0DTJ4ZZ",
+      "code_system": "icd-10-pcs",
+      "description": "Medical and Surgical, Gastrointestinal System, Resection, Appendix, Percutaneous Endoscopic, No Device, No Qualifier",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "0DT",
+        "description": "Medical and Surgical, Gastrointestinal System, Resection"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "0DT10ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT14ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT17ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Via Natural or Artificial Opening, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT18ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT20ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT24ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT27ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Via Natural or Artificial Opening, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT28ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT30ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT34ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT37ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Via Natural or Artificial Opening, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT38ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT40ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT44ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT47ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Via Natural or Artificial Opening, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT48ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT50ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT54ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT57ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Via Natural or Artificial Opening, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0DT58ZZ",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+        }
+      ],
+      "total_related": 105
+    },
+    {
+      "assignable": true,
+      "code": "K35.30",
+      "description": "Acute appendicitis with localized peritonitis, without perforation or gangrene",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "K35.3",
+          "description": "Acute appendicitis with localized peritonitis"
+        },
+        {
+          "code": "K35",
+          "description": "Acute appendicitis"
+        },
+        {
+          "code": "K35-K38",
+          "description": "Diseases of appendix (K35-K38)"
+        },
+        {
+          "code": "11",
+          "description": "Diseases of the digestive system (K00-K95)"
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "0DTJ4ZZ",
+      "description": "Medical and Surgical, Gastrointestinal System, Resection, Appendix, Percutaneous Endoscopic, No Device, No Qualifier",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "0DT",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection"
+        },
+        {
+          "code": "0D",
+          "description": "Medical and Surgical, Gastrointestinal System"
+        },
+        {
+          "code": "0",
+          "description": "Medical and Surgical"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55ca-da4c-7ec7-a7ce-62b963344aba",
+    "taskId": "019f55ca-da4c-7e58-b401-d6508cb078c2",
+    "credits": 0.088572,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 45-year-old male presented with 1 day of migrating right lower quadrant pain.\n- Exam/lab/imaging support acute appendicitis: \"McBurney point tenderness and rebound positive,\" \"WBC 13.2, neutrophils 85%,\" and \"CT: swollen appendix with surrounding exudate.\"\n- Pre-op diagnosis documented as \"acute appendicitis (simple, no perforation).\"\n- Patient underwent laparoscopic appendectomy; pathology confirmed \"acute simple appendicitis.\"\n- \"No complications,\" recovered well, and discharged on day 3.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Localized peritoneal involvement is suggested but not explicitly diagnosed.\n- Why it matters: Coding specificity for acute appendicitis differs depending on whether localized peritonitis is documented.\n- Evidence quote(s): \"McBurney point tenderness and rebound positive\" and \"CT: swollen appendix with surrounding exudate.\"\n- Minimal clarification needed: Whether the appendicitis was associated with localized peritoneal inflammation/peritonitis, or whether the findings reflect appendicitis w"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Final diagnostic statement could better reconcile pre-op, imaging, operative, and pathology terminology.\n- Why it matters: The record uses \"acute appendicitis (simple, no perforation)\" and \"acute simple appendicitis,\" but does not explicitly state whether there was any gangrene, abscess, or localized peritonitis in the final diagnosis.\n- Evidence quote(s): \"Pre-op diagnosis: acute appendicitis (simple, no perforation)\" and \"Pathology: acute simple appendicitis.\"\n- Minimal clarification need"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Appendicitis specificity / localized peritoneal involvement"
+      },
+      {
+        "idx": 2,
+        "text": "Final appendicitis characterization"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity opportunities and possible appendicitis/procedure code direction. Accepted: need to clarify whether documentation supports a more specific appendicitis characterization; laparoscopic appendectomy corresponds to ICD-10-PCS 0DTJ4ZZ; acute appendicitis with localized peritonitis without perforation/gangrene is a related specific ICD-10-CM option (K35.30). Rejected/limited: no unsupported diagnosis assignment made because the excerpt does not explicitly document localized peritonitis.\n- AMBOSS Expert: Not consulted; no additional clinical criteria review was required to identify the documentation gap conservatively.\n- CDI Web Search Expert: Not consulted; no current external guideline citation was necessary for this chart-limited CDI review.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 45-year-old male presented with 1 day of migrating right lower quadrant pain.\n- Exam/lab/imaging support acute appendicitis: \"McBurney point tenderness and rebound positive,\" \"WBC 13.2, neutrophils 85%,\" and \"CT: swollen appendix with surrounding exudate.\"\n- Pre-op diagnosis documented as \"acute appendicitis (simple, no perforation).\"\n- Patient underwent laparoscopic appendectomy; pathology confirmed \"acute simple appendicitis.\"\n- \"No complications,\" recovered well, and discharged on day 3.\n\nDocumentation Gaps:\n1. Gap: Localized peritoneal involvement is suggested but not explicitly diagnosed.\n- Why it matters: Coding specificity for acute appendicitis differs depending on whether localized peritonitis is documented.\n- Evidence quote(s): \"McBurney point tenderness and rebound positive\" and \"CT: swollen appendix with surrounding exudate.\"\n- Minimal clarification needed: Whether the appendicitis was associated with localized peritoneal inflammation/peritonitis, or whether the findings reflect appendicitis without peritonitis.\n\n2. Gap: Final diagnostic statement could better reconcile pre-op, imaging, operative, and pathology terminology.\n- Why it matters: The record uses \"acute appendicitis (simple, no perforation)\" and \"acute simple appendicitis,\" but does not explicitly state whether there was any gangrene, abscess, or localized peritonitis in the final diagnosis.\n- Evidence quote(s): \"Pre-op diagnosis: acute appendicitis (simple, no perforation)\" and \"Pathology: acute simple appendicitis.\"\n- Minimal clarification needed: Final diagnosis with explicit statement regarding presence/absence of perforation, gangrene, abscess, and any localized peritoneal involvement.\n\nProposed Provider Queries:\n1. Topic: Appendicitis specificity / localized peritoneal involvement\n- Reason query is needed: The chart documents rebound tenderness and surrounding exudate, but the final diagnosis does not clearly state whether localized peritoneal inflammation/peritonitis was present.\n- Evidence quote(s): \"McBurney point tenderness and rebound positive\"; \"CT: swollen appendix with surrounding exudate\"; \"acute appendicitis (simple, no perforation).\"\n- Non-leading query text: \"Based on the documented findings of McBurney point tenderness with rebound positivity and CT showing a swollen appendix with surrounding exudate, please clarify the most specific final diagnosis for the appendicitis episode.\"\n- Suggested response options:\n  - Acute appendicitis without perforation, gangrene, abscess, or localized peritoneal involvement\n  - Acute appendicitis with localized peritoneal inflammation/peritonitis, without perforation or gangrene\n  - Other specified acute appendicitis (please specify)\n  - Clinically undetermined\n\n2. Topic: Final appendicitis characterization\n- Reason query is needed: The record documents \"simple\" appendicitis, but a more explicit final characterization would improve consistency across the chart.\n- Evidence quote(s): \"Pre-op diagnosis: acute appendicitis (simple, no perforation)\"; \"Pathology: acute simple appendicitis.\"\n- Non-leading query text: \"For the final diagnosis, please document the most specific characterization of the patient’s acute appendicitis, including whether any perforation, gangrene, abscess, or localized peritoneal involvement was present or absent.\"\n- Suggested response options:\n  - Acute appendicitis without perforation, gangrene, abscess, or localized peritoneal involvement\n  - Acute appendicitis with localized peritoneal inflammation/peritonitis, without perforation or gangrene\n  - Other specified acute appendicitis (please specify)\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Final diagnosis should state whether appendicitis was:\n  - with or without localized peritoneal inflammation/peritonitis\n  - with or without perforation\n  - with or without gangrene\n  - with or without abscess\n- Procedure specificity present: laparoscopic appendectomy supports ICD-10-PCS 0DTJ4ZZ.\n- If provider confirms localized peritonitis without perforation/gangrene, a more specific ICD-10-CM option may be supported than unspecified acute appendicitis (coding expert surfaced K35.30 as related specific option).\n- If not clarified, unspecified acute appendicitis may remain the supported diagnosis description from the excerpt.\n\nRisk Flags:\n- Ambiguity: \"surrounding exudate\" and rebound tenderness may suggest local peritoneal irritation, but localized peritonitis is not explicitly documented.\n- No contradiction identified between pre-op diagnosis, pathology, and postop course regarding perforation; both support non-perforated simple appendicitis.\n- No evidence in the excerpt to query sepsis, postoperative complication, abscess, gangrene, or perforation.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity opportunities and possible appendicitis/procedure code direction. Accepted: need to clarify whether documentation supports a more specific appendicitis characterization; laparoscopic appendectomy corresponds to ICD-10-PCS 0DTJ4ZZ; acute appendicitis with localized peritonitis without perforation/gangrene is a related specific ICD-10-CM option (K35.30). Rejected/limited: no unsupported diagnosis assignment made because the excerpt does not explicitly document localized peritonitis.\n- AMBOSS Expert: Not consulted; no additional clinical criteria review was required to identify the documentation gap conservatively.\n- CDI Web Search Expert: Not consulted; no current external guideline citation was necessary for this chart-limited CDI review."
+}

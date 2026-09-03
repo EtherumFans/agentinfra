@@ -1,0 +1,160 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-668ecb0d-1942-40db-8273-27ca83df4ce5",
+  "trace_id": "trace-782ca2495d344dce",
+  "trace_url": "/ai-studio/runs/run-668ecb0d-1942-40db-8273-27ca83df4ce5/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 3341,
+  "cost": {
+    "amount": 0.00023394,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，30岁",
+        "急性胃肠炎1天后复诊",
+        "症状完全缓解，无腹痛腹泻呕吐",
+        "查体正常",
+        "大便常规正常",
+        "诊断：急性胃肠炎恢复期，已治愈",
+        "建议：正常饮食"
+      ],
+      "encounter_metadata": {
+        "patient_age": "30岁",
+        "patient_sex": "女性",
+        "encounter_type": "复诊"
+      }
+    },
+    "documentation_gaps": [],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": false
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "no coding-relevant gaps survived earlier gates",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-6fba1227ea59",
+        "trace_id": "trace-eb4046728656"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-455e39007891",
+        "trace_id": "trace-9fbb78197431"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-5e14d03d74f5",
+        "trace_id": "trace-c5718efde474"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-8752c3a43368",
+        "trace_id": "trace-4cb0bfddf910"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-668ecb0d-1942-40db-8273-27ca83df4ce5",
+      "stage_trace": {
+        "encounter_synthesis": "trace-0f2a1b5259ba",
+        "gap_identification": "trace-c910a43a08a0",
+        "expert_consultation": "trace-10c85ac7fb17",
+        "query_generation": "",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-067bce5f1959",
+        "semantic_necessity_gate": "trace-707ea6f4c8c7",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-c0999c5da827"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-06e15ab6dfaa",
+        "gap_identification": "run-3b35a3905225",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-2973a795a322",
+        "query_generation": "",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a resolved acute gastroenteritis with complete symptom resol",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-34404d7d6225",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-93a87554db6c",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-e7f9ca90af52"
+      },
+      "trace_id": "trace-782ca2495d344dce"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIxNTIxMzJmYjAzMzc1YmFhOGVkNGFhOGYxYzBhODJjYzRkNWMyMGU0ZWQzZDk1YWM1NjFmOTE1ZGYwMGQyY2U2IiwiZSI6MTc4Nzg4MjE5MywibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tNjY4ZWNiMGQtMTk0Mi00MGRiLTgyNzMtMjdjYTgzZGY0Y2U1IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.OU_uK2Ib2Rz1ZnQy6OPIqMk7z4FtoTv1Fy47Bpiko2Y",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 3.448
+}

@@ -1,0 +1,122 @@
+{
+  "schema_version": "icoder.governed-icd-navigator-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_local_runtime_gate_passed_with_external_release_gates_open",
+  "agent": {
+    "agent_id": "icd10-navigator",
+    "agent_ref": "icoder/icd10-navigator@1.1.0",
+    "execution_path": "provider_registry",
+    "execution_target": "icoder.governed-icd-navigator.v1",
+    "backend_type": "rule_engine",
+    "default_runtime_mode": "governed_local_index_navigation",
+    "external_llm_required": false,
+    "network_required": false,
+    "cost_usd": 0.0,
+    "output_contract": "icoder/Icd10NavigatorOutput/v4",
+    "pack_sha256": "27d83b6cb4cb5234b21c1327c9792eaeed978c936f1fb6c92145afd8a07b9ccb",
+    "human_review_required": true,
+    "production_ready": false
+  },
+  "clinical_asset": {
+    "asset_id": "cn.icd10cn.catalog",
+    "version": "observed-local-2026-05-19",
+    "catalog_record_count": 37897,
+    "catalog_size_bytes": 25996500,
+    "catalog_sha256": "c83d35e65c4d17a3167221964a65df67659745d630f9f0b9d41f7d4a22bf0984",
+    "term_index_count": 56424,
+    "synonym_category_count": 21,
+    "term_index_size_bytes": 15292266,
+    "term_index_sha256": "714424136ae80ac08cc67d8ad4a6768120d4b61b1b508e0d7aacfcf54dc6b5d0",
+    "authority_status": "source_unverified",
+    "license_status": "external_review_required",
+    "billing_authoritative": false,
+    "use_restriction": "development_only_until_source_and_license_are_independently_verified"
+  },
+  "capability_boundary": {
+    "verified": [
+      "hash_and_size_verified_catalog_and_term_index_loading",
+      "explicit_term_exact_code_prefix_and_bounded_lexical_search",
+      "at_most_one_explicit_compound_rephrasing",
+      "at_most_three_candidates",
+      "one_level_parent_sibling_and_child_explore",
+      "no_guessed_code_or_invented_instructional_notes",
+      "generated_category_display_suppression",
+      "cloud_tamper_and_adversarial_input_fail_closed",
+      "unified_run_a2a_hub_and_trace_provider_attribution"
+    ],
+    "not_claimed": [
+      "official_or_redistribution_authorized_catalog_provenance",
+      "authoritative_index_hierarchy_or_instructional_notes",
+      "code_verification_guideline_interpretation_or_assignment",
+      "billing_or_claim_submission_authority",
+      "current_corti_same_case_equivalence",
+      "independent_clinical_quality",
+      "production_approval"
+    ]
+  },
+  "runtime_matrix": {
+    "hub_visible_agents": 26,
+    "visible_external_llm_required": 22,
+    "visible_external_llm_optional": 1,
+    "visible_local_only_execution": 3,
+    "visible_local_baseline_available": 4,
+    "visible_offline_safe_fail_closed_expected": 22,
+    "visible_semantic_live_e2e_verified": 0,
+    "visible_production_ready_verified": 0,
+    "artifact": "runtime_matrix/agent_hub_runtime_matrix.json"
+  },
+  "tests": {
+    "expanded_agent_hub_provider_a2a_run_regression": {
+      "passed": 967,
+      "failed": 0,
+      "seconds": 225.21
+    },
+    "offline_visible_agent_e2e": {
+      "passed": 52,
+      "failed": 0,
+      "seconds": 11.62,
+      "local_baseline_success_per_matrix": 4,
+      "external_model_safe_fail_closed_per_matrix": 22,
+      "unsafe_or_invalid_per_matrix": 0
+    },
+    "deployment_candidate_preflight": {
+      "passed": 81,
+      "failed": 0,
+      "artifact": "preflight/deployment_preflight.json"
+    }
+  },
+  "corti_public_comparison": {
+    "source": "https://www.corti.ai/agents/icd-10-index-navigator-agent",
+    "checked_at": "2026-08-23",
+    "aligned_public_boundaries": [
+      "search_clinical_term_for_candidates",
+      "at_most_one_rephrasing",
+      "one_level_up_and_down_with_siblings_and_children",
+      "at_most_three_main_candidate_blocks",
+      "only_show_instructional_notes_when_returned",
+      "search_and_explore_only_without_verify_or_guidelines",
+      "no_assignment_validation_recommendation_or_note_interpretation"
+    ],
+    "material_open_gaps": [
+      "authoritative_and_licensed_index_hierarchy_and_instructional_notes",
+      "corti_managed_search_and_explore_tool_equivalence",
+      "current_corti_same_case_and_repeatability_comparison",
+      "independent_clinical_gold_set_and_hospital_acceptance"
+    ]
+  },
+  "final_safety_state": {
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_hash_matches_expected": true,
+    "current_process_icoder_credential_length": 0,
+    "current_process_deepseek_key_length": 0,
+    "protected_port_listener_count": 0,
+    "python_or_uvicorn_process_count": 0
+  },
+  "limitations": [
+    "No signed-in Corti console operation was executed because the host has a documented browser memory-crash risk.",
+    "No real external LLM call was executed and no exposed credential was read or used.",
+    "The local catalog and term index remain source-unverified, redistribution-unapproved and development-only.",
+    "Generated hierarchy labels are suppressed where the source-derived category name may be misleading.",
+    "No hospital, cloud, legal, regulatory, independent clinical or production-operations gate is satisfied."
+  ]
+}

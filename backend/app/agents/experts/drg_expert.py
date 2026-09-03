@@ -8,7 +8,7 @@ from app.services.drg_grouper import group_drg
 
 class DRGDIPExpert(BaseExpert):
     name = "DRG/DIP Expert"
-    description = "Analyzes coding impact on DRG/DIP grouping and payment risk"
+    description = "Development-only DRG/DIP coding risk review; not a payment engine"
 
     async def run(self, context: dict) -> dict:
         start = time.time()
@@ -40,13 +40,13 @@ class DRGDIPExpert(BaseExpert):
                 "severity": "medium",
                 "description": f"主诊断 {diag_code} 为未特指编码。如果能从病历中获取更特异信息，建议使用更特异的编码以提高DRG分组精度。",
             })
-            recommendations.append("尽量使用更特异的诊断编码替代.9编码，以提高DRG权重准确性。")
+            recommendations.append("仅在病历证据支持时使用更特异的诊断编码；不得为分组收益推断未记录事实。")
 
         # Check for missing MCC/CC
         known_mcc = ["N17", "J96", "I50", "A41", "R57", "K72", "J80", "G93", "I61", "I62", "I63"]
         has_mcc = any(s.get("code", "").startswith(tuple(known_mcc)) for s in secondary_diag)
         if not has_mcc:
-            recommendations.append("请确认是否遗漏了重要合并症/并发症(MCC/CC)编码。遗漏MCC可能导致DRG分组较轻。")
+            recommendations.append("请仅依据病历证据核实是否遗漏重要合并症/并发症(MCC/CC)编码，不得为提高权重补码。")
 
         # Procedure mismatch check
         if proc_code and diag_code:
@@ -65,10 +65,19 @@ class DRGDIPExpert(BaseExpert):
         })
 
     def _group_drg(self, diag_code: str, proc_code: str) -> dict:
-        """DRG 分组（**仅作为非生产联调或研究参考**）: 调用分组器适配器（OpenDRG CHS-DRG 1.1 仅作联调参考）;未配置真实分组器时返回 unavailable/degraded。"""
-        if not proc_code:
-            return {"drg": "", "drg_name": "内科病例 (无手术操作)", "coverage": False}
-        return group_drg([diag_code], proc_code)
+        """Return a governed, non-authoritative development candidate."""
+        try:
+            return group_drg([diag_code], proc_code or None)
+        except Exception:
+            return {
+                "drg": "",
+                "drg_name": "开发期规则资产治理门未满足",
+                "coverage": False,
+                "candidate_only": True,
+                "billing_authoritative": False,
+                "manual_review_required": True,
+                "status": "unavailable",
+            }
 
 
 class DocumentationGapExpert(BaseExpert):

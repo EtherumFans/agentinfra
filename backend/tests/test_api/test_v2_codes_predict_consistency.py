@@ -28,8 +28,11 @@ Phase 1.1 endpoint (Chinese-only MedCodER 5-stage pipeline) was relocated to
 
 from __future__ import annotations
 
+import asyncio
+import json
 import os
 import re
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -84,9 +87,55 @@ def codes_predict_spec() -> dict[str, Any]:
 
 
 @pytest.fixture
-def icoder_client():
+def icoder_client(monkeypatch):
     from app.main import app
+    from app.api import v2_tools_coding as api_mod
     from fastapi.testclient import TestClient
+
+    # Keep this contract test hermetic. The endpoint's credential gate must
+    # remain fail-closed in real deployments, while the provider itself is
+    # replaced below and must never consume a developer-machine/real key.
+    monkeypatch.setenv("ICODER_CREDENTIAL_LLM", "test-fake-key-cycle18")
+
+    async def fake_real_provider(body):
+        source_index, source_text = next(
+            (index, item.text)
+            for index, item in enumerate(body.context)
+            if item.type == "text" and item.text and item.text.strip()
+        )
+        include = list(body.filter.include) if body.filter else []
+        prefix = include[0] if include else "TST"
+        primary_code = f"{prefix}.9"
+        candidate_code = f"{prefix}.8"
+        evidence = {
+            "contextIndex": source_index,
+            "text": source_text,
+            "start": 0,
+            "end": len(source_text),
+        }
+        system = body.system[0]
+        return {
+            "content": json.dumps({
+                "codes": [{
+                    "system": system,
+                    "code": primary_code,
+                    "display": "Test provider primary",
+                    "evidences": [evidence],
+                    "alternatives": [],
+                }],
+                "candidates": [{
+                    "system": system,
+                    "code": candidate_code,
+                    "display": "Test provider candidate",
+                    "evidences": [evidence],
+                    "alternatives": [],
+                }],
+            }),
+            "usage": {"input_tokens": 100, "output_tokens": 50},
+            "provider": "test-real-provider",
+        }
+
+    monkeypatch.setattr(api_mod, "_invoke_general_coding_model", fake_real_provider)
     return TestClient(app)
 
 
@@ -249,8 +298,7 @@ def test_codes_predict_usage_info_credits_consumed(icoder_client):
 
 
 def test_codes_predict_filter_include(icoder_client):
-    """``filter.include`` is honored — the candidate code is anchored to the
-    first include token."""
+    """``filter.include`` restricts every promoted code to that category."""
     r = icoder_client.post(
         "/api/v2/tools/coding/",
         json={
@@ -265,9 +313,28 @@ def test_codes_predict_filter_include(icoder_client):
     )
     assert r.status_code == 200, r.text
     j = r.json()
-    # The stub's candidate code is derived from the first filter.include token.
-    cand_codes = {c["code"] for c in j["candidates"]}
-    assert "E11" in cand_codes, f"expected E11 in candidates, got {cand_codes}"
+    returned_codes = {c["code"] for c in j["codes"] + j["candidates"]}
+    assert returned_codes
+    assert all(code.startswith("E11") for code in returned_codes)
+
+
+def test_codes_predict_filter_expand_false_requires_exact_code(icoder_client):
+    """``expand=false`` must not treat a category as a prefix."""
+    r = icoder_client.post(
+        "/api/v2/tools/coding/",
+        json={
+            "system": ["icd10cm-outpatient"],
+            "context": [{"type": "text", "text": "Patient with E11.9."}],
+            "filter": {
+                "include": ["E11"],
+                "exclude": [],
+                "expand": False,
+            },
+        },
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["codes"] == []
+    assert r.json()["candidates"] == []
 
 
 def test_codes_predict_filter_exclude(icoder_client):
@@ -390,20 +457,92 @@ def test_codes_predict_unknown_system_rejected(icoder_client):
     assert "bogus-system-name" in detail.get("received", [])
 
 
-def test_codes_predict_no_text_context_rejected(icoder_client):
-    """All context blocks are documentId (no text) → 400 ``no_text_context``.
+def test_codes_predict_resolves_saved_document_context(icoder_client):
+    """A tenant-scoped saved Guided Document is accepted as coding input."""
+    from app.database import AsyncSessionLocal
+    from app.services.guided_document_repository import guided_document_repository
 
-    iCoDer stub does not support documentId-only contexts (a future cycle
-    would wire the doc lookup)."""
+    source = "Acute appendicitis is documented in the discharge summary."
+
+    async def _seed_document() -> str:
+        async with AsyncSessionLocal() as db:
+            row = await guided_document_repository.create(
+                db,
+                organization_id="org_default1",
+                owner_id="u-test-bypass",
+                interaction_id=None,
+                name=f"Coding source {uuid.uuid4()}",
+                template_id=str(uuid.uuid4()),
+                template_version_id=str(uuid.uuid4()),
+                language="en-US",
+                string_document={"assessment": source},
+                structured_document=None,
+                labels=[],
+                credits_consumed=0.0,
+            )
+            await db.commit()
+            return row.document_id
+
+    document_id = asyncio.run(_seed_document())
     r = icoder_client.post(
         "/api/v2/tools/coding/",
         json={
             "system": ["icd10cm-outpatient"],
-            "context": [{"type": "documentId", "documentId": "doc-123"}],
+            "context": [{"type": "documentId", "documentId": document_id}],
+        },
+    )
+    assert r.status_code == 200, r.text
+    evidence = r.json()["codes"][0]["evidences"][0]
+    assert evidence == {
+        "contextIndex": 0,
+        "text": source,
+        "start": 0,
+        "end": len(source),
+    }
+
+
+def test_codes_predict_unknown_document_is_404(icoder_client):
+    r = icoder_client.post(
+        "/api/v2/tools/coding/",
+        json={
+            "system": ["icd10cm-outpatient"],
+            "context": [{"type": "documentId", "documentId": str(uuid.uuid4())}],
+        },
+    )
+    assert r.status_code == 404, r.text
+    assert r.json()["detail"].get("error") == "document_not_found"
+
+
+def test_codes_predict_rejects_mixed_document_and_text_context(icoder_client):
+    r = icoder_client.post(
+        "/api/v2/tools/coding/",
+        json={
+            "system": ["icd10cm-outpatient"],
+            "context": [
+                {"type": "documentId", "documentId": str(uuid.uuid4())},
+                {"type": "text", "text": "Inline note."},
+            ],
         },
     )
     assert r.status_code == 400, r.text
-    assert r.json()["detail"].get("error") == "no_text_context"
+    assert r.json()["detail"].get("error") == "mixed_context_not_supported"
+
+
+@pytest.mark.parametrize(
+    "context",
+    [
+        {"type": "documentId", "documentId": ""},
+        {"type": "text", "text": ""},
+        {"type": "documentId", "documentId": "doc", "text": "ambiguous"},
+        {"type": "audio", "text": "unsupported"},
+    ],
+)
+def test_codes_predict_rejects_invalid_context_variant(icoder_client, context):
+    r = icoder_client.post(
+        "/api/v2/tools/coding/",
+        json={"system": ["icd10cm-outpatient"], "context": [context]},
+    )
+    assert r.status_code == 422, r.text
 
 
 def test_codes_predict_trailing_slash_optional(icoder_client):
@@ -440,3 +579,93 @@ def test_codes_predict_codes_candidates_split(icoder_client):
     assert primary_code not in candidate_codes, (
         "primary code must not appear in candidates (spec semantics)"
     )
+    assert not primary_code.startswith("EXAMPLE-")
+
+
+def test_codes_predict_invalid_model_evidence_fails_closed(icoder_client, monkeypatch):
+    from app.api import v2_tools_coding as api_mod
+
+    async def invalid_evidence_provider(body):
+        return {
+            "content": json.dumps({
+                "codes": [{
+                    "system": body.system[0],
+                    "code": "R10.9",
+                    "display": "Abdominal pain",
+                    "evidences": [{
+                        "contextIndex": 0,
+                        "text": "invented text",
+                        "start": 0,
+                        "end": 13,
+                    }],
+                    "alternatives": [],
+                }],
+                "candidates": [],
+            }),
+            "usage": {},
+        }
+
+    monkeypatch.setattr(
+        api_mod,
+        "_invoke_general_coding_model",
+        invalid_evidence_provider,
+    )
+    response = icoder_client.post(
+        "/api/v2/tools/coding/",
+        json={
+            "system": ["icd10cm-outpatient"],
+            "context": [{"type": "text", "text": "Patient has abdominal pain."}],
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["reason"] == "coding_provider_evidence_invalid"
+
+
+def test_codes_predict_missing_credential_fails_before_model(
+    icoder_client,
+    monkeypatch,
+):
+    monkeypatch.delenv("ICODER_CREDENTIAL_LLM", raising=False)
+
+    response = icoder_client.post(
+        "/api/v2/tools/coding/",
+        json={
+            "system": ["icd10cm-outpatient"],
+            "context": [{"type": "text", "text": "Patient has abdominal pain."}],
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["reason"] == "llm_credential_missing"
+
+
+@pytest.mark.asyncio
+async def test_codes_predict_rejects_degraded_gateway_result(monkeypatch):
+    from app.main import app
+    from app.api.v2_tools_coding import _invoke_general_coding_model
+    from app.schemas.v2_tools_coding import CodesGeneralPredictRequest
+
+    class DegradedGateway:
+        async def generate(self, *args, **kwargs):
+            return {
+                "content": "{}",
+                "provider": "mock",
+                "is_mock": True,
+                "degraded": True,
+                "degraded_reason": "mock_provider",
+            }
+
+    monkeypatch.setattr(
+        app.state,
+        "platform_gateway",
+        DegradedGateway(),
+        raising=False,
+    )
+    body = CodesGeneralPredictRequest.model_validate({
+        "system": ["icd10cm-outpatient"],
+        "context": [{"type": "text", "text": "Patient has abdominal pain."}],
+    })
+
+    with pytest.raises(RuntimeError, match="coding_provider_degraded"):
+        await _invoke_general_coding_model(body)

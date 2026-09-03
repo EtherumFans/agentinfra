@@ -1,0 +1,18 @@
+mode_id,mode_name_zh,mode_name_en,trigger,expected_response_status,expected_error_code,mitigation_implementation,mitigation_status,test_coverage,test_status,pilot_required_action
+FM-01,正常调用,normal_call,POST valid chat completion request,200,(none),LLMGateway.httpx POST + JSON parse,IMPLEMENTED,tests/integration/icoder/llm/test_*.py,PASS,—
+FM-02,流式调用,streaming_call,POST with stream=true,200 SSE,（none）,LLMGateway.async_iterator + Phase 7 Gate 9 SSE endpoint,IMPLEMENTED,tests/test_api/test_phase7_gate9_sse.py,PASS,—
+FM-03,timeout,timeout,Upstream response > 60s,504,UPSTREAM_TIMEOUT,httpx.Timeout(60s) + tenacity retry (3 attempts exponential),IMPLEMENTED,DESIGN — explicit timeout test,DESIGN — Pilot,真实 LLM 慢响应测试
+FM-04,429 rate limit,rate_limited,DeepSeek returns 429,200 (after retry) or 429, RATE_LIMITED,tenacity retry + Retry-After header + Phase 7 Gate 8 quota,IMPLEMENTED,DESIGN — explicit 429 test,DESIGN — Pilot,DeepSeek 真实 429 注入
+FM-05,5xx upstream,upstream_5xx,DeepSeek returns 500/502/503,200 (after retry) or 502, UPSTREAM_ERROR,tenacity retry (3 attempts) + LLMGateway fallback,IMPLEMENTED (retry); DESIGN (fallback),DESIGN — 5xx injection test,DESIGN — Pilot,fallback provider 配置
+FM-06,DNS 失败,dns_failure,DNS resolve api.deepseek.com fail,502,UPSTREAM_ERROR / DNS_FAIL,httpx.ConnectError caught by LLMGateway,IMPLEMENTED,DESIGN — DNS failure test,DESIGN — Pilot,hosts file 注入无效域名
+FM-07,TLS 失败,tls_failure,TLS handshake fail (cert expired / untrusted),502,UPSTREAM_ERROR / TLS_FAIL,httpx.ConnectError caught,IMPLEMENTED,DESIGN — TLS cert injection,DESIGN — Pilot,自签证书注入
+FM-08,响应截断,response_truncated,Upstream closes connection mid-stream,502,UPSTREAM_ERROR / TRUNCATED,DESIGN — finish_reason=length 检测 + max_tokens 一致性校验,DESIGN,DESIGN — truncation test,DESIGN — Pilot,实现截断检测 + 测试
+FM-09,非法 JSON,invalid_json,Upstream returns malformed JSON,502,UPSTREAM_ERROR / JSON_DECODE_FAIL,httpx → json.JSONDecodeError caught,IMPLEMENTED,DESIGN — JSON injection test,DESIGN — Pilot,mock 返回非法 JSON
+FM-10,内容过滤,content_filtered,DeepSeek content_filter flag,200 with content_filter field + fallback,（none）,LLMGateway detects content_filter → fallback message,IMPLEMENTED,DESIGN — content_filter mock,DESIGN — Pilot,真实触发内容过滤
+FM-11,token 超限,token_limit_exceeded,Prompt > context_length,422,CONTEXT_LENGTH_EXCEEDED,LLMGateway returns 422 + token count hint,IMPLEMENTED,DESIGN — oversized prompt test,DESIGN — Pilot,4k 字 prompt 注入
+FM-12,成本上限,cost_cap_exceeded,User monthly budget exhausted,402,COST_CAP_EXCEEDED,billing_service.check_budget before LLM call,IMPLEMENTED,tests/test_api/test_billing*.py,PASS,—
+FM-13,重试,retry,Any transient error triggers retry,200 (eventually),（none）,tenacity stop_after_attempt(3) + wait_exponential,IMPLEMENTED,tests/unit/services/test_llm_*.py,PASS,—
+FM-14,熔断,circuit_breaker,N consecutive failures open circuit,503,SERVICE_UNAVAILABLE,DESIGN — circuit breaker (Pilot),DESIGN,DESIGN — circuit breaker test,DESIGN — Pilot,实现 circuit breaker (e.g. pybreaker)
+FM-15,降级,fallback_provider,Primary (DeepSeek) unreachable → fallback,200 (via fallback),（none）,DESIGN — fallback provider (e.g. azure-openai / qwen),DESIGN,DESIGN — fallback test,DESIGN — Pilot,配置 LLM_FALLBACK_PROVIDER + 测试
+FM-16,幂等,idempotent_replay,Same Idempotency-Key replayed,200 (cached),（none）,Phase 7 Gate 3 IdempotencyRecord,IMPLEMENTED,tests/test_api/test_phase7_gate3_*.py,PASS,—
+FM-17,trace,trace_emit,Every LLM call emits run_trace events,200 with trace_url,（none）,Phase 7 Gate 7 trace_token + Phase 3 run_trace store,IMPLEMENTED,tests/test_api/test_phase7_gate7_*.py,PASS,—

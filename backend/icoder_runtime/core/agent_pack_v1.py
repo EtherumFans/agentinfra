@@ -17,7 +17,14 @@ from .errors import ValidationError
 FORMAT_VERSION_V1 = "1.1"
 
 # Fields that are excluded from the integrity hash (metadata that changes post-pack)
-_INTEGRITY_EXCLUDE = {"integrity", "downloads", "published_at", "loaded_at"}
+_INTEGRITY_EXCLUDE = {
+    "integrity",
+    "downloads",
+    "published_at",
+    "loaded_at",
+    # Hub-only presentation metadata injected after reading the signed pack.
+    "_pack_mtime_iso",
+}
 
 
 def _sha256(data: dict) -> str:

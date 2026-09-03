@@ -102,7 +102,9 @@ class RuleEngineAdapter(CodingEngineAdapter):
     async def infer_async(
         self, messages=None, tools=None, response_schema=None, context=None,
     ) -> MedicalCodingOutputSchema:
-        return MedicalCodingOutputSchema.mock_result()
+        return MedicalCodingOutputSchema.failure_result(
+            self.name, reason="rule_engine_requires_structured_coding_input"
+        )
 
     def validate(self, coding_output: MedicalCodingOutputSchema) -> RuleValidationResult:
         """Validate coding output against all enabled rules."""

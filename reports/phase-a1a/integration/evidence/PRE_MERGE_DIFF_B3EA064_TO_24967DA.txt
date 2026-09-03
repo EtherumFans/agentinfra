@@ -1,0 +1,102 @@
+=== PRE_MERGE_DIFF_B3EA064_TO_24967DA.txt ===
+Range: b3ea064..24967da (what the Gate 4R branch added on top of b3ea064)
+
+--- git diff --stat b3ea064..24967da ---
+ .gitignore                                         |     4 +
+ backend/app/middleware/rate_limit.py               |   130 +-
+ backend/pytest.ini                                 |     1 +
+ backend/tests/conftest.py                          |    17 +-
+ gate4r_diff/baseline_only_nodeids.txt              |     0
+ gate4r_diff/common_nodeids.txt                     |  3591 ++
+ gate4r_diff/error_to_error.txt                     |    81 +
+ gate4r_diff/fail_to_fail.txt                       |   218 +
+ gate4r_diff/fail_to_pass.txt                       |    31 +
+ gate4r_diff/gate4_only_nodeids.txt                 |    77 +
+ gate4r_diff/gate4r_baseline_nodeids.txt            |  3591 ++
+ gate4r_diff/gate4r_gate4_nodeids.txt               |  3668 ++
+ gate4r_diff/hermeticity/error_to_error.txt         |    27 +
+ gate4r_diff/hermeticity/fail_to_fail.txt           |    62 +
+ gate4r_diff/hermeticity/fail_to_pass.txt           |     1 +
+ gate4r_diff/hermeticity/pass_to_pass.count.txt     |     1 +
+ .../hermeticity/skipped_to_skipped.count.txt       |     1 +
+ gate4r_diff/hermeticity/transition_ledger.json     | 14652 +++++++
+ gate4r_diff/hermeticity/transition_summary.json    |    14 +
+ gate4r_diff/pass_to_fail.txt                       |    77 +
+ gate4r_diff/pass_to_pass.count.txt                 |     1 +
+ gate4r_diff/pass_to_skipped.txt                    |     1 +
+ gate4r_diff/skipped_to_skipped.count.txt           |     1 +
+ gate4r_diff/transition_ledger.json                 | 14424 +++++++
+ gate4r_diff/transition_summary.json                |    16 +
+ ..._GATE4R_1_NODE_ID_DIFF_AND_TRANSITION_LEDGER.md |   337 +
+ .../A1A_GATE4R_2_TEST_HARNESS_HERMETICITY.md       |   291 +
+ ...A_GATE4R_3_PER_REGRESSION_LIQUIDATION_LEDGER.md |   559 +
+ .../A1A_GATE4R_P0_5_CLOSURE_NOTICE.md              |   272 +
+ ...A_GATE4R_0_EVIDENCE_FREEZE_CORRECTION_NOTICE.md |   360 +
+ .../evidence-freeze/GATE4R_GIT_STATE.txt           |    40 +
+ .../GATE4R_TEST_ENVIRONMENT_MANIFEST.json          |   127 +
+ .../adversarial-audit/evidence-freeze/SHA256SUMS   |     4 +
+ .../evidence-freeze/audit_baseline_full.log        |   557 +
+ .../evidence-freeze/audit_baseline_full.xml        | 38730 +++++++++++++++++++
+ .../evidence-freeze/audit_gate4_full.log           |    29 +
+ .../evidence-freeze/audit_gate4_summary.txt        |     3 +
+ .../evidence-freeze/audit_gate4r2_run1.log         |   332 +
+ .../evidence-freeze/audit_gate4r2_run1.xml         |   121 +
+ .../evidence-freeze/audit_gate4r2_run2.log         |   331 +
+ .../evidence-freeze/audit_gate4r2_run2.xml         |   117 +
+ scripts/audit/gate4r_build_transition_ledger.py    |   161 +
+ scripts/audit/gate4r_node_filter.py                |    52 +
+ scripts/audit/gate4r_order_experiments.py          |   127 +
+ 44 files changed, 83205 insertions(+), 32 deletions(-)
+
+--- git diff --name-status b3ea064..24967da ---
+M	.gitignore
+M	backend/app/middleware/rate_limit.py
+M	backend/pytest.ini
+M	backend/tests/conftest.py
+A	gate4r_diff/baseline_only_nodeids.txt
+A	gate4r_diff/common_nodeids.txt
+A	gate4r_diff/error_to_error.txt
+A	gate4r_diff/fail_to_fail.txt
+A	gate4r_diff/fail_to_pass.txt
+A	gate4r_diff/gate4_only_nodeids.txt
+A	gate4r_diff/gate4r_baseline_nodeids.txt
+A	gate4r_diff/gate4r_gate4_nodeids.txt
+A	gate4r_diff/hermeticity/error_to_error.txt
+A	gate4r_diff/hermeticity/fail_to_fail.txt
+A	gate4r_diff/hermeticity/fail_to_pass.txt
+A	gate4r_diff/hermeticity/pass_to_pass.count.txt
+A	gate4r_diff/hermeticity/skipped_to_skipped.count.txt
+A	gate4r_diff/hermeticity/transition_ledger.json
+A	gate4r_diff/hermeticity/transition_summary.json
+A	gate4r_diff/pass_to_fail.txt
+A	gate4r_diff/pass_to_pass.count.txt
+A	gate4r_diff/pass_to_skipped.txt
+A	gate4r_diff/skipped_to_skipped.count.txt
+A	gate4r_diff/transition_ledger.json
+A	gate4r_diff/transition_summary.json
+A	reports/phase-a1a/adversarial-audit/A1A_GATE4R_1_NODE_ID_DIFF_AND_TRANSITION_LEDGER.md
+A	reports/phase-a1a/adversarial-audit/A1A_GATE4R_2_TEST_HARNESS_HERMETICITY.md
+A	reports/phase-a1a/adversarial-audit/A1A_GATE4R_3_PER_REGRESSION_LIQUIDATION_LEDGER.md
+A	reports/phase-a1a/adversarial-audit/A1A_GATE4R_P0_5_CLOSURE_NOTICE.md
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/A1A_GATE4R_0_EVIDENCE_FREEZE_CORRECTION_NOTICE.md
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/GATE4R_GIT_STATE.txt
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/GATE4R_TEST_ENVIRONMENT_MANIFEST.json
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/SHA256SUMS
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_baseline_full.log
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_baseline_full.xml
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_gate4_full.log
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_gate4_summary.txt
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_gate4r2_run1.log
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_gate4r2_run1.xml
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_gate4r2_run2.log
+A	reports/phase-a1a/adversarial-audit/evidence-freeze/audit_gate4r2_run2.xml
+A	scripts/audit/gate4r_build_transition_ledger.py
+A	scripts/audit/gate4r_node_filter.py
+A	scripts/audit/gate4r_order_experiments.py
+
+--- git log --oneline b3ea064..24967da ---
+24967da audit/phase-a1a: Gate 4R P0-5 closure — 12/12 closure conditions MET, final 4R verdict issued
+efbe96b audit/phase-a1a: Gate 4R.3 — per-regression liquidation ledger (89 residual nodes triaged; 1 P2, 88 P3, 0 P0/P1)
+fa676b3 audit/phase-a1a: Gate 4R.2 — Rate Limiter hermeticity + asyncio_default_fixture_loop_scope (77/77 regressions healed; drift 4->1)
+e418020 audit/phase-a1a: Gate 4R.1 — precise node-ID diff + transition ledger (77 new pass->fail vs 31 heals, +46 net; 70/77 = Rate Limiter 429)
+a2613b7 audit/phase-a1a: Gate 4R.0 — evidence freeze + 7-point correction notice (GATE4_8_NO_NEW_REGRESSION_CLAIM=CONTRADICTED, GATE4_9_FINAL_PASS=SUPERSEDED)

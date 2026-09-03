@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.19'
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -28,8 +28,24 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
+      - name: Build and serve embedded component examples
+        working-directory: packages/icoder-embedded
+        run: |
+          npm ci
+          npm run build
+          python -m http.server 8765 > "$RUNNER_TEMP/icoder-embedded-http.log" 2>&1 &
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8765/examples/index.html >/dev/null && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/icoder-embedded-http.log"
+          exit 1
+
       - name: Start docker compose (local-dev only)
         run: |
+          # The bind mount is synthetic local/E2E state. Create it before
+          # Docker so the non-root backend user can populate fallback data.
+          install -d -m 0777 .data/icoder
           docker compose -f docker-compose.local-dev.yml up -d --build
           # Wait for backend healthcheck
           for i in $(seq 1 30); do
@@ -39,6 +55,7 @@ jobs:
             fi
             sleep 2
           done
+          curl -sf http://localhost:8000/api/health > /dev/null
           # Wait for frontend
           for i in $(seq 1 15); do
             if curl -sf http://localhost/ > /dev/null 2>&1; then
@@ -47,8 +64,9 @@ jobs:
             fi
             sleep 2
           done
+          curl -sf http://localhost/ > /dev/null
         env:
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY || 'ci-placeholder' }}
+          ICODER_CREDENTIAL_LLM: ${{ secrets.ICODER_CREDENTIAL_LLM || '' }}
 
       - name: Run Playwright tests
         working-directory: frontend
@@ -60,6 +78,18 @@ jobs:
         with:
           name: playwright-report
           path: frontend/playwright-report/
+          retention-days: 7
+
+      - name: Capture compose logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.local-dev.yml logs --no-color > compose-e2e.log
+
+      - name: Upload compose logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-e2e-logs
+          path: compose-e2e.log
           retention-days: 7
 
       - name: Docker compose down

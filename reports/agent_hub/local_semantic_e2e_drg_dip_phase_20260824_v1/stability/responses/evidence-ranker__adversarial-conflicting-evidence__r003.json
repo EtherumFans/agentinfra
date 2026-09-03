@@ -1,0 +1,152 @@
+{
+  "agent_id": "evidence-ranker",
+  "run_id": "run-f3461cb9-e56a-4b84-b923-29853d7a5bf1",
+  "trace_id": "trace-e379defa8eef474d",
+  "trace_url": "/ai-studio/runs/run-f3461cb9-e56a-4b84-b923-29853d7a5bf1/trace",
+  "runtime_mode": "governed_local_documentation_grounding",
+  "latency_ms": 67,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "按文档可追溯性排序 2 项证据；发现 2 个来源/span 缺口和 0 个结构冲突。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "# 编码证据文档可追溯性排序\n\n**状态：** RANKED_WITH_GAPS\n\n**候选编码：** I21.0\n\n> 分数仅反映显式来源、span、否定/不确定标记和词面信息，不代表临床支持度或编码置信度。\n\n## 排序结果\n\n1. **A** — `0.4500`\n   - 来源：未提供\n   - span：`missing_coordinates`；候选码词面出现：`false`\n   - 说明：content_present:+0.35；evidence_id_present:+0.10\n2. **B** — `0.4500`\n   - 来源：未提供\n   - span：`missing_coordinates`；候选码词面出现：`false`\n   - 说明：content_present:+0.35；evidence_id_present:+0.10\n\n## 人工复核\n\n本结果不验证诊断、操作或编码。任何编码、结算或临床用途都必须人工复核。",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-evidence-ranker.v1",
+    "backend_type": "rule_engine",
+    "candidate_code": "I21.0",
+    "confidence_calibration": {
+      "overall_confidence": "low",
+      "rationale": "置信度只描述输入来源和 span 的可审计完整性，不描述临床正确性。"
+    },
+    "conflicts": [],
+    "limitations": [
+      "documentation_grounding_score 不是临床证据强度、诊断概率或编码置信度。",
+      "来源文档类型不被当作临床真实性或编码适用性的证明。",
+      "本地基线不执行医学语义推理、代码验证、指南检索或结算规则判断。",
+      "候选编码未在任何证据文本中词面出现；这不等于临床不支持。",
+      "没有证据项通过 source document 字符区间精确校验。"
+    ],
+    "manual_review_required": true,
+    "ranked_evidence": [
+      {
+        "certainty": "unknown",
+        "content": "入院记录写急性前壁心肌梗死",
+        "documentation_grounding_score": 0.45,
+        "evidence_id": "A",
+        "explicit_negation": false,
+        "lexical_code_mention": false,
+        "rank": 1,
+        "rationale": "content_present:+0.35；evidence_id_present:+0.10",
+        "score_components": [
+          "content_present:+0.35",
+          "evidence_id_present:+0.10"
+        ],
+        "source": "",
+        "span_status": "missing_coordinates"
+      },
+      {
+        "certainty": "unknown",
+        "content": "出院记录写已排除急性心肌梗死；两份记录时间和作者均缺失",
+        "documentation_grounding_score": 0.45,
+        "evidence_id": "B",
+        "explicit_negation": false,
+        "lexical_code_mention": false,
+        "rank": 2,
+        "rationale": "content_present:+0.35；evidence_id_present:+0.10",
+        "score_components": [
+          "content_present:+0.35",
+          "evidence_id_present:+0.10"
+        ],
+        "source": "",
+        "span_status": "missing_coordinates"
+      }
+    ],
+    "ranking_basis": "DOCUMENTATION_GROUNDING_ONLY",
+    "ranking_status": "RANKED_WITH_GAPS",
+    "source_coverage": {
+      "coverage_assessment": "来源或 span 存在缺口",
+      "covered_sources": [],
+      "evidence_count": 2,
+      "invalid_span_count": 0,
+      "missing_sources": [
+        "A",
+        "B"
+      ],
+      "source_coverage_ratio": 0.0,
+      "sourced_count": 0,
+      "valid_span_count": 0
+    },
+    "summary": "按文档可追溯性排序 2 项证据；发现 2 个来源/span 缺口和 0 个结构冲突。",
+    "unsupported_claims": [
+      {
+        "claim": "入院记录写急性前壁心肌梗死",
+        "evidence_id": "A",
+        "reason": "证据项没有显式来源标签，不能视为可追溯证据。",
+        "reason_code": "missing_source_label"
+      },
+      {
+        "claim": "出院记录写已排除急性心肌梗死；两份记录时间和作者均缺失",
+        "evidence_id": "B",
+        "reason": "证据项没有显式来源标签，不能视为可追溯证据。",
+        "reason_code": "missing_source_label"
+      }
+    ],
+    "structured_extraction": {
+      "contract": "icoder/EvidenceRankerOutput/v4",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "ranking_status",
+        "candidate_code",
+        "ranking_basis",
+        "ranked_evidence",
+        "conflicts",
+        "unsupported_claims",
+        "confidence_calibration",
+        "source_coverage",
+        "limitations",
+        "manual_review_required",
+        "summary",
+        "markdown"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/EvidenceRankerOutput/v4",
+  "result_attestation": "eyJhIjoiZXZpZGVuY2UtcmFua2VyIiwiZCI6ImVmNjBhZDQ4NTNlNGZkMmUyM2UwOGVmOGEwMWFmZDFmZWYzZTNhZmE1MzA3M2U0Y2I4ZWViYzk4NGQ1ZWJkODQiLCJlIjoxNzg3NjcwNDUwLCJvIjoiMDRlMDMzZjA2YmUzIiwiciI6InJ1bi1mMzQ2MWNiOS1lNTZhLTRiODQtYjkyMy0yOTg1M2Q3YTViZjEiLCJzIjoiaWNvZGVyL0V2aWRlbmNlUmFua2VyT3V0cHV0L3Y0IiwidiI6MX0.wGTO87EGnnZH0wycBvTIiOgfEXpAqqXRUJKjbD-N1iM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 67,
+      "metadata": {
+        "agent_id": "evidence-ranker",
+        "runtime_mode": "governed_local_documentation_grounding",
+        "latency_ms": 67
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.165
+}

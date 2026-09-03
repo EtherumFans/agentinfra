@@ -1,0 +1,352 @@
+{
+  "case_id": "CASE-a6ea035845d4",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-a6ea035845d4/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "头晕的病因未明确，缺乏诊断特异性。",
+      "why_it_matters": "头晕可能由多种病因引起（如耳石症、脑血管病、贫血等），未明确病因会影响编码的准确性和临床治疗。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者女性, 45岁, 头晕。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a6ea035845d4/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "头晕的严重程度和持续时间未描述，缺乏严重度和时间特征。",
+      "why_it_matters": "严重度和时间特征有助于区分急性或慢性、轻症或重症，影响编码和临床决策。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "头晕。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a6ea035845d4/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "既往史不详，缺乏相关病史信息。",
+      "why_it_matters": "既往史可能提供病因线索（如高血压、糖尿病等），缺失会影响诊断和编码的完整性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往史不详。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-a6ea035845d4/GAP-002",
+      "topic": "头晕的严重程度和持续时间",
+      "reason": "病历中仅记录'头晕'，未描述其严重程度和持续时间，影响病情评估。",
+      "query_text": "请描述患者头晕的严重程度和持续时间。",
+      "response_options": [
+        "A. 轻度，持续数分钟",
+        "B. 中度，持续数小时",
+        "C. 重度，持续数天或更久",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "头晕。",
+          "char_start": 11,
+          "char_end": 14,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['course', 'severity']",
+        "SD-002: axes in 40-char window = ['course', 'severity']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "course",
+        "severity"
+      ],
+      "rewrite_attempt_status": "NO_SAFE_CANDIDATE_RETURNED",
+      "rewrite_attempt_reasons": [
+        "rewrite model returned no candidate for this compound draft"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-a6ea035845d4/GAP-001",
+      "topic": "头晕的病因",
+      "reason": "病历中仅记录'头晕'，未明确具体病因，需进一步明确诊断。",
+      "query_text": "根据患者目前临床表现，头晕的可能病因是什么？",
+      "response_options": [
+        "A. 中枢性眩晕（如脑血管疾病、肿瘤等）",
+        "B. 周围性眩晕（如耳石症、梅尼埃病等）",
+        "C. 全身性疾病（如贫血、低血糖、心律失常等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "患者女性, 45岁, 头晕。",
+          "char_start": 0,
+          "char_end": 14,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "INSUFFICIENT_CLINICAL_SUBSTRATE",
+        "NOT_ANSWERABLE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-a6ea035845d4/GAP-003",
+      "topic": "既往史",
+      "reason": "病历中记录'既往史不详'，缺乏相关病史信息，影响诊断和治疗决策。",
+      "query_text": "请补充患者的既往病史，特别是与头晕相关的疾病史。",
+      "response_options": [
+        "A. 有高血压、糖尿病等慢性病史",
+        "B. 有耳部疾病或外伤史",
+        "C. 无特殊既往史",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "既往史不详。",
+          "char_start": 14,
+          "char_end": 20,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "INSUFFICIENT_CLINICAL_SUBSTRATE",
+        "NOT_ANSWERABLE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 45岁, 头晕。既往史不详。建议完善相关检查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，45岁",
+      "主诉头晕",
+      "既往史不详",
+      "建议完善相关检查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "需明确头晕的病因学特征（如体位性、血管性、前庭性或心源性），并描述发作频率、持续时间及伴随症状（如恶心、耳鸣、视物模糊），以区分急性发作与慢性病程。同时补充既往病史（如高血压、糖尿病、耳部疾病或头部外伤史），并记录头晕对日常活动的影响程度，以支持诊断特异性和严重度分级。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2993,
+      "tokens": 198
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-015f54a22795",
+    "gap_identification": "run-dac715a8f8f5",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-f5818c1d73dc",
+    "query_generation": "run-79a5ed478fd4",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3;llm_complete=False;llm_reasoning=该图表仅记录了头晕症状，未提供病因、严重程度、持续时间或任何相关检查结果，无法支持具体诊断编码。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_dimension_rewrite": "run-3c74b0c00f5d",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=1;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-fc6dc7bb7f08",
+    "semantic_necessity_gate": "blocked=2;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-4be887b039a8",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-cf0870771c57"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-a51234546bb5",
+    "gap_identification": "trace-f6e50e68abb4",
+    "expert_consultation": "trace-725844b2c62c",
+    "query_generation": "trace-bf0bd593f2a0",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-156d96be37f1",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-1f1fdbfa866c",
+    "semantic_necessity_gate": "trace-1a8b9f098079",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-59b1877f0e99"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2731,
+      "prompt_tokens": 190,
+      "completion_tokens": 74,
+      "total_tokens": 264,
+      "run_id": "run-015f54a22795",
+      "trace_id": "trace-a51234546bb5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5269,
+      "prompt_tokens": 989,
+      "completion_tokens": 445,
+      "total_tokens": 1434,
+      "run_id": "run-dac715a8f8f5",
+      "trace_id": "trace-f6e50e68abb4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5813,
+      "prompt_tokens": 1059,
+      "completion_tokens": 635,
+      "total_tokens": 1694,
+      "run_id": "run-79a5ed478fd4",
+      "trace_id": "trace-bf0bd593f2a0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2158,
+      "prompt_tokens": 606,
+      "completion_tokens": 8,
+      "total_tokens": 614,
+      "run_id": "run-3c74b0c00f5d",
+      "trace_id": "trace-156d96be37f1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2993,
+      "prompt_tokens": 114,
+      "completion_tokens": 84,
+      "total_tokens": 198,
+      "run_id": "run-6fe530f90169",
+      "trace_id": "trace-3a62f4219e12",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-bd01d5337295",
+      "trace_id": "trace-d4eea6035d08",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-43f6de87ff36",
+      "trace_id": "trace-428aa86b7314",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ac406dbe9826",
+      "trace_id": "trace-37dddfb3527c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:06:05.739928Z"
+}

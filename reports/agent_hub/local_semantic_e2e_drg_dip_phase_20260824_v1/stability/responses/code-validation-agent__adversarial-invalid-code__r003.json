@@ -1,0 +1,96 @@
+{
+  "agent_id": "code-validation-agent",
+  "run_id": "run-fab385e8-7715-49c2-96cb-b48646d0178d",
+  "trace_id": "trace-96bb1e3071c24abb",
+  "trace_url": "/ai-studio/runs/run-fab385e8-7715-49c2-96cb-b48646d0178d/trace",
+  "runtime_mode": "governed_local_catalog_baseline",
+  "latency_ms": 81,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已按固定哈希开发目录校验 1 个编码：0 个目录可分配、1 个未通过。目录版本：cn.icd10cn.catalog@observed-local-2026-05-19；来源与许可未独立核验，必须人工复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "# 编码校验报告 — 本地治理目录基线\n\n## 结论\n\nFAIL\n\n## 逐码目录校验\n\n| 编码 | 体系 | 状态 | 目录名称 | 说明 |\n|---|---|---|---|---|\n| ZZ99.99 | ICD-10-CN | invalid | — | 未命中固定哈希的本地开发目录；不得据格式推断其有效。 |\n\n## 跨码与语义边界\n\n- 本次成员关系检查使用固定哈希开发目录；authority_status=source_unverified、license_status=external_review_required。结果仅限开发验证，不能用于结算、支付或生产自动决策。\n- 本地基线未判断 Excludes、排序、组合码、伴随编码、年龄/性别、时态或诊断与病历证据的一致性；这些语义项必须由编码员或受治理的语义增强复核。\n\n## 目录治理\n\n- `cn.icd10cn.catalog@observed-local-2026-05-19`：authority=`source_unverified`，license=`external_review_required`，billing_authoritative=`false`，restriction=`development_only_until_source_and_license_are_independently_verified`。\n\n## 人工复核\n\n始终需要。不得自动写回 EMR/HIS，不得用于医保结算或支付决定。",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-code-validation.v1",
+    "backend_type": "hybrid",
+    "cross_code_issues": [
+      {
+        "code": "cn.icd10cn.catalog@observed-local-2026-05-19",
+        "issue": "本次成员关系检查使用固定哈希开发目录；authority_status=source_unverified、license_status=external_review_required。结果仅限开发验证，不能用于结算、支付或生产自动决策。",
+        "manual_review_required": true,
+        "severity": "warning"
+      },
+      {
+        "code": "ZZ99.99",
+        "issue": "本地基线未判断 Excludes、排序、组合码、伴随编码、年龄/性别、时态或诊断与病历证据的一致性；这些语义项必须由编码员或受治理的语义增强复核。",
+        "manual_review_required": true,
+        "severity": "warning"
+      }
+    ],
+    "manual_review_required": true,
+    "review_conclusion": "FAIL",
+    "summary": "已按固定哈希开发目录校验 1 个编码：0 个目录可分配、1 个未通过。目录版本：cn.icd10cn.catalog@observed-local-2026-05-19；来源与许可未独立核验，必须人工复核。",
+    "validated_codes": [
+      {
+        "assignable": false,
+        "catalog_name": "",
+        "code": "ZZ99.99",
+        "in_catalog": false,
+        "issue": "未命中固定哈希的本地开发目录；不得据格式推断其有效。",
+        "status": "invalid",
+        "suggested_replacement": ""
+      }
+    ],
+    "structured_extraction": {
+      "contract": "icoder/CodeValidationOutput/v7",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "validated_codes",
+        "cross_code_issues",
+        "manual_review_required",
+        "summary",
+        "markdown"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/CodeValidationOutput/v7",
+  "result_attestation": "eyJhIjoiY29kZS12YWxpZGF0aW9uLWFnZW50IiwiZCI6IjY4MGM5ZDIwYzc3NWI2OTQzMWJjNDU0ZTEyZWQ0MjM0M2ZkMzc1OWExMGJhYWM5MTlmNzM1NzkxZDZlZWIyZmYiLCJlIjoxNzg3NjcwNDMwLCJvIjoiMDRlMDMzZjA2YmUzIiwiciI6InJ1bi1mYWIzODVlOC03NzE1LTQ5YzItOTZjYi1iNDg2NDZkMDE3OGQiLCJzIjoiaWNvZGVyL0NvZGVWYWxpZGF0aW9uT3V0cHV0L3Y3IiwidiI6MX0.gvvgkEHEQwThFhje_n8xdtJ0pvpvBqVMitiQcAkP8oM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 81,
+      "metadata": {
+        "agent_id": "code-validation-agent",
+        "runtime_mode": "governed_local_catalog_baseline",
+        "latency_ms": 81
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.262
+}

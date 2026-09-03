@@ -1,0 +1,401 @@
+{
+  "case_id": "CASE-944e248ae4e2",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-944e248ae4e2/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血的病因未明确，需进一步区分缺铁性贫血、慢性病性贫血或其他类型。",
+      "why_it_matters": "贫血的病因直接影响治疗和编码，缺铁性贫血需明确病因（如消化道出血），而慢性病性贫血需关联基础疾病。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:贫血",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-944e248ae4e2/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "便潜血阳性提示消化道出血可能，但未明确出血部位或病因。",
+      "why_it_matters": "消化道出血的部位和病因（如溃疡、肿瘤）对治疗和编码至关重要，需进一步检查明确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "便潜血阳性",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-944e248ae4e2/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血的严重程度未明确，血红蛋白65 g/L提示重度贫血，但未记录症状或是否需要输血。",
+      "why_it_matters": "严重程度影响治疗决策和编码，需明确是否急性或慢性，以及是否需紧急干预。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "Hb 65",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-944e248ae4e2/Q-001",
+      "gap_id": "CASE-944e248ae4e2/GAP-001",
+      "topic": "贫血的类型",
+      "reason": "根据患者小细胞低色素性贫血、血清铁及铁蛋白降低的表现，需明确贫血的类型。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。",
+        "char_start": 16,
+        "char_end": 45,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。",
+          "char_start": 16,
+          "char_end": 45,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据患者小细胞低色素性贫血、血清铁及铁蛋白降低的表现，贫血的类型最可能属于以下哪种？",
+      "response_options": [
+        "A. 缺铁性贫血",
+        "B. 慢性病性贫血",
+        "C. 其他类型贫血",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-944e248ae4e2/GAP-001",
+      "topic": "贫血病因分型",
+      "reason": "患者存在小细胞低色素性贫血，血清铁及铁蛋白降低，需明确贫血的具体病因类型以指导治疗。",
+      "query_text": "根据患者小细胞低色素性贫血、血清铁及铁蛋白降低的表现，贫血的病因最可能属于以下哪种类型？",
+      "response_options": [
+        "A. 缺铁性贫血",
+        "B. 慢性病性贫血",
+        "C. 其他类型贫血（如地中海贫血、铁粒幼细胞性贫血等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:贫血",
+          "char_start": 51,
+          "char_end": 58,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['etiology', 'type']",
+        "SD-002: axes in 40-char window = ['etiology', 'type']"
+      ],
+      "status": "REWRITE_CANDIDATE_GENERATED",
+      "detected_axes": [
+        "etiology",
+        "type"
+      ],
+      "replacement_query_id": "Q-001-type",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "rewrite_attempt_reasons": [],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-944e248ae4e2/GAP-002",
+      "topic": "消化道出血部位及病因",
+      "reason": "便潜血阳性提示存在消化道出血，但出血部位和病因尚未明确，需进一步定位。",
+      "query_text": "患者便潜血阳性，考虑消化道出血，可能的出血部位或病因是以下哪种？",
+      "response_options": [
+        "A. 上消化道出血（如消化性溃疡、胃炎等）",
+        "B. 下消化道出血（如结肠息肉、肿瘤等）",
+        "C. 其他原因（如药物、血管畸形等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "便潜血阳性",
+          "char_start": 45,
+          "char_end": 50,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['etiology', 'site']",
+        "SD-002: axes in 40-char window = ['etiology', 'site']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "etiology",
+        "site"
+      ],
+      "rewrite_attempt_status": "NO_SAFE_CANDIDATE_RETURNED",
+      "rewrite_attempt_reasons": [
+        "rewrite model returned no candidate for this compound draft"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-944e248ae4e2/GAP-003",
+      "topic": "贫血严重程度及输血需求",
+      "reason": "血红蛋白65 g/L提示重度贫血，但未记录相关症状或输血指征，需明确严重程度及是否需要输血。",
+      "query_text": "患者血红蛋白65 g/L，属于重度贫血，目前是否伴有需要输血的症状或指征？",
+      "response_options": [
+        "A. 有症状（如心悸、气短、头晕等），需要输血",
+        "B. 无症状或症状轻微，暂不需输血",
+        "C. 已安排输血",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "Hb 65",
+          "char_start": 16,
+          "char_end": 21,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 60岁, 乏力1月。Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。便潜血阳性。入院诊断:贫血。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，60岁",
+      "主诉：乏力1月",
+      "血红蛋白65 g/L",
+      "平均红细胞体积72 fL",
+      "血清铁4.5 μmol/L",
+      "铁蛋白8 μg/L",
+      "便潜血阳性",
+      "入院诊断：贫血"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "入院诊断'贫血'有实验室支持，但未明确贫血类型，可能被视为不完整诊断。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "Based on the chart, the anemia is clearly microcytic with low serum iron and ferritin, strongly suggesting iron deficiency, but the documentation must explicitly state the type (e.g., iron deficiency anemia) and link it to the likely gastrointestinal source, given the positive fecal occult blood. To ensure accurate coding, specify the severity (e.g., severe anemia with symptoms like fatigue or need for transfusion) and document the suspected or confirmed bleeding site (e.g., upper vs. lower GI) or the need for further endoscopic evaluation. Without these clinical details, the record lacks the specificity required to capture the underlying cause and acuity of the condition.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3226,
+      "tokens": 293
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-0d4a434acf80",
+    "gap_identification": "run-68e73585444c",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-98e825d727c7",
+    "query_generation": "run-9773314db483",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=贫血的病因未明确，且便潜血阳性提示消化道出血，需进一步检查以确定病因和出血部位，否则无法准确编码。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_dimension_rewrite": "run-d1de92eb2628",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=2;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=2;rewrite_accepted=1;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-02627d8b6843",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-134a8fbcc74b",
+    "query_compliance_gate": ";passed=1;blocked=1",
+    "specialist_trace_emit": "run-e9c8a1095e75"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-c8cb27cc72cd",
+    "gap_identification": "trace-98e0fb32dd7e",
+    "expert_consultation": "trace-8b966cd14497",
+    "query_generation": "trace-3086665eeb9d",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-958e9c51e788",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-f9ae2998593a",
+    "semantic_necessity_gate": "trace-3b3b71b13801",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-3d560087e05c"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2440,
+      "prompt_tokens": 215,
+      "completion_tokens": 113,
+      "total_tokens": 328,
+      "run_id": "run-0d4a434acf80",
+      "trace_id": "trace-c8cb27cc72cd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5672,
+      "prompt_tokens": 1053,
+      "completion_tokens": 539,
+      "total_tokens": 1592,
+      "run_id": "run-68e73585444c",
+      "trace_id": "trace-98e0fb32dd7e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6259,
+      "prompt_tokens": 1105,
+      "completion_tokens": 671,
+      "total_tokens": 1776,
+      "run_id": "run-9773314db483",
+      "trace_id": "trace-3086665eeb9d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3323,
+      "prompt_tokens": 833,
+      "completion_tokens": 239,
+      "total_tokens": 1072,
+      "run_id": "run-d1de92eb2628",
+      "trace_id": "trace-958e9c51e788",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3226,
+      "prompt_tokens": 164,
+      "completion_tokens": 129,
+      "total_tokens": 293,
+      "run_id": "run-90a3c5e643c1",
+      "trace_id": "trace-e44d131cd52a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-59d589c35f51",
+      "trace_id": "trace-c4eb4fa5234f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d0001aa82e0e",
+      "trace_id": "trace-7d72a39cb453",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-751b30c2c74d",
+      "trace_id": "trace-385db5c3c213",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:32:06.717146Z"
+}

@@ -1,0 +1,288 @@
+{
+  "case_id": "CASE-5f2f4cc964dd",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-5f2f4cc964dd/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis of acute suppurative otitis media is documented, but the causative organism is not specified. For coding and antimicrobial stewardship, the etiology (e.g., bacterial pathogen) is often required.",
+      "why_it_matters": "Without specifying the pathogen, the specificity of the diagnosis is limited, and it may affect coding for the infectious agent and appropriate antibiotic selection.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:急性化脓性中耳炎(右)",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-5f2f4cc964dd/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of the acute otitis media is not explicitly documented. Although the tympanic membrane is bulging and erythematous, there is no statement of severity (e.g., mild, moderate, severe) or complications.",
+      "why_it_matters": "Severity and complications affect coding and clinical management. Without this, the documentation may be insufficient for accurate coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "耳镜:右耳鼓膜充血膨隆, 无穿孔",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-5f2f4cc964dd/GAP-001",
+      "topic": "病原学",
+      "reason": "明确急性化脓性中耳炎的致病菌，以指导抗感染治疗。",
+      "query_text": "该患者急性化脓性中耳炎的病原体最可能是什么？",
+      "response_options": [
+        "A. 细菌感染（如肺炎链球菌、流感嗜血杆菌等）",
+        "B. 病毒感染",
+        "C. 混合感染",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "诊断:急性化脓性中耳炎(右)",
+          "char_start": 50,
+          "char_end": 64,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: diagnosis, treatment, and improvement are documented without microbiology"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-5f2f4cc964dd/GAP-002",
+      "topic": "严重程度",
+      "reason": "明确急性中耳炎的严重程度，以评估病情和并发症风险。",
+      "query_text": "该患者急性中耳炎的严重程度如何？",
+      "response_options": [
+        "A. 轻度",
+        "B. 中度",
+        "C. 重度",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "耳镜:右耳鼓膜充血膨隆, 无穿孔",
+          "char_start": 33,
+          "char_end": 49,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: acute suppurative diagnosis is already explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 5岁, 因急性中耳炎就诊。耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。诊断:急性化脓性中耳炎(右)。予阿莫西林克拉维酸钾口服7天。3天后复诊症状缓解。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，5岁",
+      "因急性中耳炎就诊",
+      "耳痛2天",
+      "体温38.0℃",
+      "耳镜检查：右耳鼓膜充血膨隆，无穿孔",
+      "诊断：急性化脓性中耳炎（右）",
+      "予阿莫西林克拉维酸钾口服7天",
+      "3天后复诊症状缓解"
+    ],
+    "encounter_metadata": {
+      "patient_age": "5岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding and antimicrobial stewardship, the clinician should specify the causative organism (e.g., *Streptococcus pneumoniae*, *Haemophilus influenzae*, or *Moraxella catarrhalis*) based on culture or clinical suspicion, as this directly impacts antibiotic selection and coding specificity. Additionally, document the severity (mild, moderate, severe) and explicitly rule out or note any complications (e.g., mastoiditis, perforation, or effusion) to capture the full clinical picture, since the bulging, erythematous tympanic membrane alone does not define severity. Without these details, the record lacks the granularity needed for precise coding and appropriate treatment monitoring.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3827,
+      "tokens": 350
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-7246baca1e2c",
+    "gap_identification": "run-b07cc1250985",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-ed3105746935",
+    "query_generation": "run-32891d68d5ff",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents the diagnosis and treatment but lacks specificity regarding ",
+    "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-150c648c5b50",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-d10883f3d360",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-7898c50dd6a6"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-cba2b880204e",
+    "gap_identification": "trace-cce4b962738b",
+    "expert_consultation": "trace-b15e1de94c35",
+    "query_generation": "trace-7c444983a1da",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-934613356bc1",
+    "semantic_necessity_gate": "trace-89842dbd516f",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-e227316dc57b"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2877,
+      "prompt_tokens": 243,
+      "completion_tokens": 132,
+      "total_tokens": 375,
+      "run_id": "run-7246baca1e2c",
+      "trace_id": "trace-cba2b880204e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5778,
+      "prompt_tokens": 1099,
+      "completion_tokens": 392,
+      "total_tokens": 1491,
+      "run_id": "run-b07cc1250985",
+      "trace_id": "trace-cce4b962738b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4497,
+      "prompt_tokens": 1137,
+      "completion_tokens": 407,
+      "total_tokens": 1544,
+      "run_id": "run-32891d68d5ff",
+      "trace_id": "trace-7c444983a1da",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3827,
+      "prompt_tokens": 213,
+      "completion_tokens": 137,
+      "total_tokens": 350,
+      "run_id": "run-1f9e940cf2de",
+      "trace_id": "trace-2abb974e42cc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1d7de45b41a4",
+      "trace_id": "trace-d309970ce8af",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-8df1ee954b7f",
+      "trace_id": "trace-636760f83f55",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-510399d41a66",
+      "trace_id": "trace-bb9d3d5fd7de",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:44:01.923413Z"
+}

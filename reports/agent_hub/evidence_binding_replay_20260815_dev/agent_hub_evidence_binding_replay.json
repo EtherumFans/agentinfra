@@ -1,0 +1,318 @@
+{
+  "schema_version": "icoder.agent-hub-evidence-binding-replay/v1",
+  "generated_at": "2026-08-15T01:14:50.889193+00:00",
+  "passed": true,
+  "binding_agents": 4,
+  "bindings": 9,
+  "adversarial_assertions": 18,
+  "detected_assertions": 18,
+  "definition_errors": [],
+  "cases": [
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v6",
+      "binding_id": "diagnosis_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "diagnosis_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v6",
+      "binding_id": "diagnosis_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "diagnosis_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v6",
+      "binding_id": "noncodable_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_codable_mentions[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "noncodable_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v6",
+      "binding_id": "noncodable_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_codable_mentions[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "noncodable_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "supported_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "supported_codes[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "supported_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "supported_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "supported_codes[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "supported_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "uncertain_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "uncertain_candidates[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "uncertain_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "uncertain_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "uncertain_candidates[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "uncertain_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "rejected_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "rejected_candidates[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "rejected_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "rejected_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "rejected_candidates[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "rejected_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "coded_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "coded_evidence[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "coded_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v7",
+      "binding_id": "coded_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "coded_evidence[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "coded_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v7",
+      "binding_id": "principal_candidate_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "candidates[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "principal_candidate_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v7",
+      "binding_id": "principal_candidate_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "candidates[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "principal_candidate_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "procedure_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "procedures[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "procedure_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "procedure_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "procedures[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "procedure_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "nonbillable_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_billable_mentions[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "nonbillable_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "nonbillable_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_billable_mentions[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "nonbillable_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,251 @@
+{
+  "case_id": "CASE-d043b4f46008",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-d043b4f46008/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性胰腺炎的病因未明确，虽然既往有胆石症，但未明确本次胰腺炎是否由胆石引起，需明确病因（如胆源性、酒精性、高脂血症等）。",
+      "why_it_matters": "病因影响治疗和预后，且编码时需区分胆源性胰腺炎与其他类型。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性胰腺炎。既往:胆石症。"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-d043b4f46008/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性胰腺炎的严重程度未明确（如轻症、重症、有无器官衰竭等）。",
+      "why_it_matters": "严重程度影响治疗决策和编码，重症胰腺炎需额外编码。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性胰腺炎"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-d043b4f46008/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "胆石症的具体情况未明确（如胆囊结石、胆总管结石、有无梗阻或炎症等）。",
+      "why_it_matters": "胆石症的细节影响编码和临床管理，如是否合并胆管炎。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:胆石症"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-d043b4f46008/Q-001",
+      "gap_id": "CASE-d043b4f46008/GAP-001",
+      "topic": "急性胰腺炎病因",
+      "reason": "急性胰腺炎病因未明确，需明确是否为胆源性、酒精性、高脂血症等。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "患者女性, 55岁, 上腹痛2天, 淀粉酶 580。CT:胰腺肿胀伴渗出。入院诊断:急性胰腺炎。既往:胆石症。"
+      },
+      "query_text": "根据患者临床表现及影像学检查，急性胰腺炎诊断明确。关于本次胰腺炎的病因，请选择最可能的病因：",
+      "response_options": [
+        "A. 胆源性（如胆石症相关）",
+        "B. 酒精性",
+        "C. 高脂血症性",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 55岁, 上腹痛2天, 淀粉酶 580。CT:胰腺肿胀伴渗出。入院诊断:急性胰腺炎。既往:胆石症。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "上腹痛2天",
+      "淀粉酶 580",
+      "CT:胰腺肿胀伴渗出",
+      "入院诊断:急性胰腺炎",
+      "既往:胆石症"
+    ],
+    "encounter_metadata": {
+      "patient_age": "55岁",
+      "patient_sex": "女性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，需明确本次急性胰腺炎是否与胆石症直接相关（如胆源性胰腺炎），并注明胰腺炎的严重程度（如是否伴有器官衰竭或局部并发症）。同时，应详细描述胆石症的具体部位（如胆囊结石或胆总管结石）及是否存在梗阻或感染。这些信息对准确反映病情和指导治疗至关重要。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2808,
+      "tokens": 258
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-f719762eb249",
+    "gap_identification": "run-5958aee5201d",
+    "expert_consultation": "run-42cdf547033c",
+    "query_generation": "run-d40d379b0130",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=1;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-1bad0471d1c1",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-1bce0a2cce0d",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-7284a619a1b1"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-1e7647b5e5ce",
+    "gap_identification": "trace-82b763665b23",
+    "expert_consultation": "trace-f505ddf81430",
+    "query_generation": "trace-584e499ef096",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-af2d28d52290",
+    "semantic_necessity_gate": "trace-d30eabbd027a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-91153f8d01ac"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1227,
+      "prompt_tokens": 210,
+      "completion_tokens": 87,
+      "total_tokens": 297,
+      "run_id": "run-f719762eb249",
+      "trace_id": "trace-1e7647b5e5ce",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6174,
+      "prompt_tokens": 306,
+      "completion_tokens": 403,
+      "total_tokens": 709,
+      "run_id": "run-5958aee5201d",
+      "trace_id": "trace-82b763665b23",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6707,
+      "prompt_tokens": 457,
+      "completion_tokens": 623,
+      "total_tokens": 1080,
+      "run_id": "run-d40d379b0130",
+      "trace_id": "trace-584e499ef096",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2808,
+      "prompt_tokens": 183,
+      "completion_tokens": 75,
+      "total_tokens": 258,
+      "run_id": "run-9e07cc52a83e",
+      "trace_id": "trace-074a81885120",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ccc6dceaa596",
+      "trace_id": "trace-8fc994003e29",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a62105bcec40",
+      "trace_id": "trace-52611b8b5028",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6043bffe6655",
+      "trace_id": "trace-d8b85f5e25bd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T12:06:24.487251Z"
+}

@@ -1,0 +1,234 @@
+{
+  "agent_id": "claim-check",
+  "run_id": "run-effb38f6-a46b-49f3-aa37-2a2a8875ec37",
+  "trace_id": "trace-018a072dc1654c5c",
+  "trace_url": "/ai-studio/runs/run-effb38f6-a46b-49f3-aa37-2a2a8875ec37/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 105,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "缺少结算核查所需的明确字段；未生成核查包。",
+  "result": {
+    "status": "incomplete",
+    "markdown": "{\"benefit_eligibility_determined\": false, \"billed_diagnoses\": [], \"billed_items\": [], \"billed_procedures\": [], \"claim_information\": {\"claim_id\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"claim_type\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"currency\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"encounter_id\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"service_date\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"total_billed_amount\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"claim_review_packet\": \"\", \"clinical_documentation\": [], \"clinical_support_assessed\": false, \"code_assignment_performed\": false, \"comparison_basis\": \"DOCUMENTED_CLAIM_AND_POLICY_ONLY\", \"documented_denial_reason\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"drg_dip_grouping_performed\": false, \"evidence_consistency_status\": \"NOT_ASSESSED_LITERAL_PACKET_ONLY\", \"evidence_items\": [], \"external_knowledge_used\": false, \"limitations\": [\"仅解析明确的中英文结算、病历和政策字段标题；未标注自由叙事不会被自动总结。\", \"仅逐字装配已报账内容、病历摘录和用户提供的政策条款；未判断病历是否支持编码或费用。\", \"未调用医保/商保网站、药品耗材目录、编码目录、HCC映射、DRG/DIP分组器或其他外部知识。\", \"未判断医疗必要性、待遇资格、支付范围、拒付概率、高套/低套或收入机会。\", \"未新增或修改诊断、手术、项目、金额、编码、政策条款或拒付理由。\", \"未连接真实HIS/EMR、医保/商保结算平台、清单上传或申诉接口。\", \"核查包禁止自动提交或写回，必须由编码员、临床人员和医保/商保专员逐项复核。\", \"输入或证据超过本地安全上限，或检测到不可信指令边界；超出部分未处理。\"], \"manual_review_required\": true, \"medical_necessity_assessed\": false, \"missing_policy_items\": [\"支付方要求/医保规则条款\", \"支付政策编号\", \"支付政策版本\", \"政策生效日期\", \"政策来源\"], \"missing_required_fields\": [\"结算单号/理赔单号\", \"结算类型/理赔类型\", \"服务日期/就诊日期\", \"参保人编号/医保编号\", \"医疗机构/结算机构\", \"申请医师/经治医师\", \"医师执业编号\", \"支付方/医保经办机构\", \"统筹区/参保地\", \"临床文书摘录/病历证据\", \"拟报诊断/手术/项目至少一项\"], \"patient_information\": {\"member_id\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"name\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"payer_information\": {\"payer_name\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"plan_name\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"region\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"policy_evaluation_status\": \"POLICY_NOT_PROVIDED\", \"production_submission_blocked\": true, \"production_writeback_blocked\": true, \"provided_policy\": {\"effective_date\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"policy_identifier\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"requirements\": [], \"source\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"version\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"provider_information\": {\"facility\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"name\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"provider_identifier\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"review_status\": \"INPUT_REQUIRED\", \"trace_refs\": {\"provider_trace_refs\": [\"run-effb38f6-a46b-49f3-aa37-2a2a8875ec37:governed-claim-check\"], \"run_id\": \"run-effb38f6-a46b-49f3-aa37-2a2a8875ec37\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "input-required",
+    "finish_reason": "required_labelled_claim_fields_missing",
+    "backend_provider": "icoder.governed-claim-check.v1",
+    "backend_type": "rule_engine",
+    "benefit_eligibility_determined": false,
+    "billed_diagnoses": [],
+    "billed_items": [],
+    "billed_procedures": [],
+    "claim_information": {
+      "claim_id": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "claim_type": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "currency": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "encounter_id": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "service_date": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "total_billed_amount": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "claim_review_packet": "",
+    "clinical_documentation": [],
+    "clinical_support_assessed": false,
+    "code_assignment_performed": false,
+    "comparison_basis": "DOCUMENTED_CLAIM_AND_POLICY_ONLY",
+    "documented_denial_reason": {
+      "documented_text": "",
+      "evidence_ref": ""
+    },
+    "drg_dip_grouping_performed": false,
+    "evidence_consistency_status": "NOT_ASSESSED_LITERAL_PACKET_ONLY",
+    "evidence_items": [],
+    "external_knowledge_used": false,
+    "limitations": [
+      "仅解析明确的中英文结算、病历和政策字段标题；未标注自由叙事不会被自动总结。",
+      "仅逐字装配已报账内容、病历摘录和用户提供的政策条款；未判断病历是否支持编码或费用。",
+      "未调用医保/商保网站、药品耗材目录、编码目录、HCC映射、DRG/DIP分组器或其他外部知识。",
+      "未判断医疗必要性、待遇资格、支付范围、拒付概率、高套/低套或收入机会。",
+      "未新增或修改诊断、手术、项目、金额、编码、政策条款或拒付理由。",
+      "未连接真实HIS/EMR、医保/商保结算平台、清单上传或申诉接口。",
+      "核查包禁止自动提交或写回，必须由编码员、临床人员和医保/商保专员逐项复核。",
+      "输入或证据超过本地安全上限，或检测到不可信指令边界；超出部分未处理。"
+    ],
+    "manual_review_required": true,
+    "medical_necessity_assessed": false,
+    "missing_policy_items": [
+      "支付方要求/医保规则条款",
+      "支付政策编号",
+      "支付政策版本",
+      "政策生效日期",
+      "政策来源"
+    ],
+    "missing_required_fields": [
+      "结算单号/理赔单号",
+      "结算类型/理赔类型",
+      "服务日期/就诊日期",
+      "参保人编号/医保编号",
+      "医疗机构/结算机构",
+      "申请医师/经治医师",
+      "医师执业编号",
+      "支付方/医保经办机构",
+      "统筹区/参保地",
+      "临床文书摘录/病历证据",
+      "拟报诊断/手术/项目至少一项"
+    ],
+    "patient_information": {
+      "member_id": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "name": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "payer_information": {
+      "payer_name": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "plan_name": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "region": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "policy_evaluation_status": "POLICY_NOT_PROVIDED",
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "provided_policy": {
+      "effective_date": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "policy_identifier": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "requirements": [],
+      "source": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "version": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "provider_information": {
+      "facility": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "name": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "provider_identifier": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "review_status": "INPUT_REQUIRED",
+    "trace_refs": {
+      "run_id": "run-effb38f6-a46b-49f3-aa37-2a2a8875ec37",
+      "trace_id": "trace-018a072dc1654c5c",
+      "provider_trace_refs": [
+        "run-effb38f6-a46b-49f3-aa37-2a2a8875ec37:governed-claim-check"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/ClaimCheckOutput/v4",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_status",
+        "claim_information",
+        "patient_information",
+        "provider_information",
+        "payer_information",
+        "billed_diagnoses",
+        "billed_procedures",
+        "billed_items",
+        "clinical_documentation",
+        "provided_policy",
+        "documented_denial_reason",
+        "missing_required_fields",
+        "missing_policy_items",
+        "claim_review_packet",
+        "policy_evaluation_status",
+        "evidence_consistency_status",
+        "comparison_basis",
+        "evidence_items",
+        "limitations",
+        "clinical_support_assessed",
+        "medical_necessity_assessed",
+        "benefit_eligibility_determined",
+        "code_assignment_performed",
+        "drg_dip_grouping_performed",
+        "external_knowledge_used",
+        "production_submission_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ClaimCheckOutput/v4",
+  "result_attestation": "eyJhIjoiY2xhaW0tY2hlY2siLCJkIjoiOTFhZjUwMjU0MTM1MjZiMDVjN2M5N2I1Y2Q5YzkxOWM3ODFmZmUwYmJiNTZkMDNjYjI1NGQxYjM1NzI5ZTc2NyIsImUiOjE3ODc2NTI0NDUsIm8iOiI0ZWRiNWJjNTk5NGIiLCJyIjoicnVuLWVmZmIzOGY2LWE0NmItNDlmMy1hYTM3LTJhMmE4ODc1ZWMzNyIsInMiOiJpY29kZXIvQ2xhaW1DaGVja091dHB1dC92NCIsInYiOjF9.KYaoo39B-i7jxpYhYkjgpM-NktRgfqv5zE5j3E6o9jE",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 105,
+      "metadata": {
+        "agent_id": "claim-check",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 105
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.178
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Phase 5 B-2 CP7 Embedded Smoke — principal-diagnosis-review</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #fafaf8; color: #1d1d1f; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 14px; margin: 20px 0 6px; }
+    .notes { font-size: 12px; color: #6e6e73; margin-bottom: 12px; }
+    pre#log { background: #1c1c1e; color: #f5f5f7; padding: 10px; border-radius: 6px; font-size: 11px; max-height: 320px; overflow: auto; }
+    #icoder-assistant { height: 480px; width: 100%; max-width: 480px; }
+  </style>
+</head>
+<body>
+  <h1>Phase 5 B-2 CP7 — Embedded Smoke (principal-diagnosis-review)</h1>
+  <p class="notes">Drives the full chain. AUDIT_BLOCKER_FIX #3 for templateKey=icoder/principal-diagnosis-review@1.0.0.</p>
+
+  <icoder-embedded id="icoder-assistant" baseURL="http://127.0.0.1:8000"></icoder-embedded>
+
+  <h2>Event Log</h2>
+  <pre id="log"></pre>
+
+  <script type="module">
+    import '../dist/icoder-assistant.js';
+
+    const logEl = document.getElementById('log');
+    function log(name, payload) {
+      const line = `[${new Date().toISOString()}] ${name}: ${JSON.stringify(payload).slice(0, 300)}`;
+      logEl.textContent = line + '\n' + logEl.textContent;
+      window.__events.push({ name, payload });
+    }
+
+    window.__events = [];
+    const el = document.getElementById('icoder-assistant');
+    el.addEventListener('embedded-event', (e) => log(e.detail.name, e.detail.payload));
+    el.addEventListener('ready', () => log('ready', {}));
+
+    window.runSmoke = async function(token, inputText) {
+      await el.auth({ access_token: token, token_type: 'bearer', mode: 'stateless' });
+      log('auth.ok', {});
+      await el.configureSession({
+        defaultTemplateKey: 'icoder/principal-diagnosis-review@1.0.0',
+        defaultLanguage: 'zh-CN',
+        defaultOutputLanguage: 'zh-CN',
+      });
+      log('configureSession.ok', {});
+      await el.setPatientContext({ patientId: 'P-2026-001', name: '徐某', encounterId: 'E-001' });
+      log('setPatientContext.ok', {});
+      await el.configure({
+        features: { aiChat: true, documentFeedback: false, virtualMode: false },
+        locale: { dictationLanguage: 'zh-CN', interfaceLanguage: 'zh-CN' },
+      });
+      log('configure.ok', {});
+      await el.show();
+      log('show.ok', {});
+      log('ask.start', { input_len: inputText.length });
+      try {
+        const out = await el.ask(inputText);
+        log('ask.done', { run_id: out?.run_id, latency_ms: out?.latency_ms, error: out?.error });
+        return out;
+      } catch (e) {
+        log('ask.error', { message: e.message });
+        throw e;
+      }
+    };
+
+    log('page.ready', { widgetDefined: !!customElements.get('icoder-embedded') });
+  </script>
+</body>
+</html>

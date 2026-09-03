@@ -1,0 +1,195 @@
+{
+  "case_id": "G8-CDI-COMPLETE-016",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "1ce87804-29c7-4c16-98e0-45e63bb2b4bd",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 23.15,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "T2DM well-controlled with full complication screening — nothing missing"
+  },
+  "text_length": 3893,
+  "first_token_at_s": 4.06,
+  "last_token_at_s": 23.15,
+  "event_count": 11,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Type 2 diabetes mellitus without complications\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",",
+    "message|{\"id\":\"3cf702bd-f956-44ac-a4a6-ac68d5b0b8a6\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Follow-up for a 50-year-old male with documented \\\"type 2 diabetes for 5 years, on metformin.\\\"\\n- Recent values documented: \\\"HbA1c 6.8, FPG 6.5,\\\" with \\\"BP 125/78, B",
+    "message|{\"id\":\"3cf702bd-f956-44ac-a4a6-ac68d5b0b8a6\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55d1-43fc-7390-8b21-b61ced56327a\",\"taskId\":\"019f55d1-43fc-72f7-be45-8e2b55cb6cbd\",\"credits\":0.05710799999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.05710799999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "type 2 diabetes no complications",
+      "results": [
+        {
+          "code": "E11.A",
+          "description": "Type 2 diabetes mellitus without complications in remission",
+          "match_path": "Diabetes, diabetic, type 2, without complications in remission",
+          "related_codes": {
+            "category": "E11",
+            "category_description": "Type 2 diabetes mellitus",
+            "count": 10
+          }
+        },
+        {
+          "code": "E11.9",
+          "description": "Type 2 diabetes mellitus without complications",
+          "match_path": "Diabetes, diabetic, type 2",
+          "related_codes": {
+            "category": "E11",
+            "category_description": "Type 2 diabetes mellitus",
+            "count": 10
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "E11.9",
+      "code_system": "icd-10-cm",
+      "description": "Type 2 diabetes mellitus without complications",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "E11",
+        "description": "Type 2 diabetes mellitus"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "E11.0",
+          "description": "Type 2 diabetes mellitus with hyperosmolarity"
+        },
+        {
+          "assignable": false,
+          "code": "E11.1",
+          "description": "Type 2 diabetes mellitus with ketoacidosis"
+        },
+        {
+          "assignable": false,
+          "code": "E11.2",
+          "description": "Type 2 diabetes mellitus with kidney complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.3",
+          "description": "Type 2 diabetes mellitus with ophthalmic complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.4",
+          "description": "Type 2 diabetes mellitus with neurological complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.5",
+          "description": "Type 2 diabetes mellitus with circulatory complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.6",
+          "description": "Type 2 diabetes mellitus with other specified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.8",
+          "description": "Type 2 diabetes mellitus with unspecified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.A",
+          "description": "Type 2 diabetes mellitus without complications in remission"
+        }
+      ],
+      "total_related": 9
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55d1-43fc-7390-8b21-b61ced56327a",
+    "taskId": "019f55d1-43fc-72f7-be45-8e2b55cb6cbd",
+    "credits": 0.05710799999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Follow-up for a 50-year-old male with documented \"type 2 diabetes for 5 years, on metformin.\"\n- Recent values documented: \"HbA1c 6.8, FPG 6.5,\" with \"BP 125/78, BMI 24.\"\n- Complication screening is documented as negative: \"No diabetic complications. Normal retinal exam, negative microalbuminuria, normal nerve conduction.\"\n- Current assessment states: \"Diagnosis: type 2 diabetes, well controlled, no complications.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Diabetes control terminology is documented as \"well controlled,\" which is clinically understandable but not a coding-specific diagnosis element.\n- Why it matters: ICD-10-CM coding is driven by diabetes type and presence/absence of complications; \"well controlled\" does not change the diabetes code by itself.\n- Evidence quote: \"Diagnosis: type 2 diabetes, well controlled, no complications.\"\n- Minimal clarification needed: None required for the diabetes diagnosis itself if the intent is uncomp"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Long-term medication use is mentioned, but medication status is not explicitly linked as a reportable long-term current drug therapy diagnosis element.\n- Why it matters: If organizational coding practice captures long-term current use of oral hypoglycemic drugs, explicit documentation supports that additional specificity.\n- Evidence quote: \"on metformin.\"\n- Minimal clarification needed: If clinically intended, document long-term/current use of oral hypoglycemic medication."
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Long-term/current oral hypoglycemic therapy status"
+      }
+    ],
+    "query_count": 1,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity review. Accepted: uncomplicated type 2 diabetes aligns with ICD-10-CM E11.9 and related code set context. Rejected/omitted: any unsupported complication inference.\n- AMBOSS Expert: Not consulted; no clinical criteria clarification was needed for the documented uncomplicated diabetes follow-up.\n- CDI Web Search Expert: Not consulted; no current external guideline lookup was required for this limited coding-specificity review.\n\nSupported coding context from expert output:\n- ICD-10-CM search results included \"E11.9 Type 2 diabetes mellitus without complications.\"\n- Related code family review confirmed E11.9 as the uncomplicated type 2 diabetes code option when no complications are documented.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Follow-up for a 50-year-old male with documented \"type 2 diabetes for 5 years, on metformin.\"\n- Recent values documented: \"HbA1c 6.8, FPG 6.5,\" with \"BP 125/78, BMI 24.\"\n- Complication screening is documented as negative: \"No diabetic complications. Normal retinal exam, negative microalbuminuria, normal nerve conduction.\"\n- Current assessment states: \"Diagnosis: type 2 diabetes, well controlled, no complications.\"\n\nDocumentation Gaps:\n1. Gap: Diabetes control terminology is documented as \"well controlled,\" which is clinically understandable but not a coding-specific diagnosis element.\n- Why it matters: ICD-10-CM coding is driven by diabetes type and presence/absence of complications; \"well controlled\" does not change the diabetes code by itself.\n- Evidence quote: \"Diagnosis: type 2 diabetes, well controlled, no complications.\"\n- Minimal clarification needed: None required for the diabetes diagnosis itself if the intent is uncomplicated type 2 diabetes.\n\n2. Gap: Long-term medication use is mentioned, but medication status is not explicitly linked as a reportable long-term current drug therapy diagnosis element.\n- Why it matters: If organizational coding practice captures long-term current use of oral hypoglycemic drugs, explicit documentation supports that additional specificity.\n- Evidence quote: \"on metformin.\"\n- Minimal clarification needed: If clinically intended, document long-term/current use of oral hypoglycemic medication.\n\nProposed Provider Queries:\n1. Topic: Long-term/current oral hypoglycemic therapy status\n- Reason query is needed: The note states metformin use, but does not explicitly indicate whether this is ongoing long-term current therapy for the diabetes diagnosis if that distinction is desired for coding completeness.\n- Evidence quote: \"type 2 diabetes for 5 years, on metformin.\"\n- Non-leading query text: \"For documentation specificity, can you clarify the patient’s medication status for diabetes management?\"\n- Suggested response options:\n  - Type 2 diabetes mellitus managed with long-term/current oral hypoglycemic drug therapy\n  - Type 2 diabetes mellitus not currently managed with long-term oral hypoglycemic drug therapy\n  - Other medication status\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Diabetes type: documented as type 2\n- Presence or absence of complications: documented as no complications\n- Any linked manifestations/complications (renal, ophthalmic, neurologic, circulatory, other): not documented; screening findings are negative\n- Diabetes treatment status: metformin documented; consider explicit long-term/current oral hypoglycemic use if captured by local practice\n- Avoid vague control terms as sole specificity element: \"well controlled\" does not replace complication-specific documentation\n\nRisk Flags:\n- No internal contradiction identified in the excerpt.\n- No supported evidence for diabetic nephropathy, retinopathy, neuropathy, or other complication query beyond the documented negative findings.\n- \"Well controlled\" is not a complication-specific coding term but is not inherently contradictory.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity review. Accepted: uncomplicated type 2 diabetes aligns with ICD-10-CM E11.9 and related code set context. Rejected/omitted: any unsupported complication inference.\n- AMBOSS Expert: Not consulted; no clinical criteria clarification was needed for the documented uncomplicated diabetes follow-up.\n- CDI Web Search Expert: Not consulted; no current external guideline lookup was required for this limited coding-specificity review.\n\nSupported coding context from expert output:\n- ICD-10-CM search results included \"E11.9 Type 2 diabetes mellitus without complications.\"\n- Related code family review confirmed E11.9 as the uncomplicated type 2 diabetes code option when no complications are documented."
+}

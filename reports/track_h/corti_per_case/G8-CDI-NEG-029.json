@@ -1,0 +1,239 @@
+{
+  "case_id": "G8-CDI-NEG-029",
+  "group": "negation_history",
+  "variant": "",
+  "session_id": "5d310cdc-debf-49d2-b046-fadb4809171e",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 26.16,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "All chronic complications explicitly denied — agent should not generate complication queries without evidence"
+  },
+  "text_length": 5046,
+  "first_token_at_s": 3.78,
+  "last_token_at_s": 26.16,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Type 2 diabetes mellitus without complications\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.9\",\"description\":\"Type 2 diabetes mellitus without complications\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore",
+    "message|{\"id\":\"7b7bd823-eb14-4bc6-8bc1-a955e943d595\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 75-year-old female with documented “type 2 diabetes for 20 years.”\\n- Recently “lost to follow-up.”\\n- Review of symptoms is negative for “increased polyuria/polydipsia",
+    "message|{\"id\":\"7b7bd823-eb14-4bc6-8bc1-a955e943d595\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55df-b49f-7eb1-a322-e0224be77cf2\",\"taskId\":\"019f55df-b49f-7e0a-8ca6-c71841c1434a\",\"credits\":0.064332,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.064332},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "type 2 diabetes mellitus",
+      "results": [
+        {
+          "code": "E11.9",
+          "description": "Type 2 diabetes mellitus without complications",
+          "match_path": "Diabetes, diabetic, type 2",
+          "related_codes": {
+            "category": "E11",
+            "category_description": "Type 2 diabetes mellitus",
+            "count": 10
+          }
+        },
+        {
+          "code": "E11.65",
+          "description": "Type 2 diabetes mellitus with hyperglycemia",
+          "match_path": "Diabetes, diabetic, type 2, with, hyperglycemia",
+          "related_codes": {
+            "category": "E11.6",
+            "category_description": "Type 2 diabetes mellitus with other specified complications",
+            "count": 6
+          }
+        },
+        {
+          "code": "E10.9",
+          "description": "Type 1 diabetes mellitus without complications",
+          "match_path": "Diabetes, diabetic, type 1",
+          "related_codes": {
+            "category": "E10",
+            "category_description": "Type 1 diabetes mellitus",
+            "count": 9
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "E11.9",
+      "code_system": "icd-10-cm",
+      "description": "Type 2 diabetes mellitus without complications",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "E11",
+        "description": "Type 2 diabetes mellitus"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "E11.0",
+          "description": "Type 2 diabetes mellitus with hyperosmolarity"
+        },
+        {
+          "assignable": false,
+          "code": "E11.1",
+          "description": "Type 2 diabetes mellitus with ketoacidosis"
+        },
+        {
+          "assignable": false,
+          "code": "E11.2",
+          "description": "Type 2 diabetes mellitus with kidney complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.3",
+          "description": "Type 2 diabetes mellitus with ophthalmic complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.4",
+          "description": "Type 2 diabetes mellitus with neurological complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.5",
+          "description": "Type 2 diabetes mellitus with circulatory complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.6",
+          "description": "Type 2 diabetes mellitus with other specified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.8",
+          "description": "Type 2 diabetes mellitus with unspecified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.A",
+          "description": "Type 2 diabetes mellitus without complications in remission"
+        }
+      ],
+      "total_related": 9
+    },
+    {
+      "assignable": true,
+      "code": "E11.9",
+      "description": "Type 2 diabetes mellitus without complications",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "E11",
+          "description": "Type 2 diabetes mellitus"
+        },
+        {
+          "code": "E08-E13",
+          "description": "Diabetes mellitus (E08-E13)"
+        },
+        {
+          "code": "4",
+          "description": "Endocrine, nutritional and metabolic diseases (E00-E89)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55df-b49f-7eb1-a322-e0224be77cf2",
+    "taskId": "019f55df-b49f-7e0a-8ca6-c71841c1434a",
+    "credits": 0.064332,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 75-year-old female with documented “type 2 diabetes for 20 years.”\n- Recently “lost to follow-up.”\n- Review of symptoms is negative for “increased polyuria/polydipsia, blurred vision, limb numbness, edema, intermittent claudication.”\n- Exam documents “no diabetic foot, normal touch sensation.”\n- HbA1c is 7.2.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Diabetes complication status not explicitly stated\n- Why it matters: ICD-10-CM diabetes coding depends on whether complications are present and linked to diabetes. The excerpt supports diabetes, but the note does not explicitly document whether the patient currently has type 2 diabetes with or without complications.\n- Evidence quote: “type 2 diabetes for 20 years”; “Denies… blurred vision, limb numbness, edema, intermittent claudication. Exam: no diabetic foot, normal touch sensation. HbA1c 7.2."
+      },
+      {
+        "idx": 2,
+        "text": "Glycemic status/control terminology is not explicitly documented\n- Why it matters: An HbA1c value alone does not establish a coded condition such as hyperglycemia, hypoglycemia, or poor control. If the provider intends to describe glycemic status, it should be stated explicitly.\n- Evidence quote: “HbA1c 7.2.”\n- Minimal clarification needed: Whether there is any clinically relevant glycemic abnormality or whether diabetes is simply being followed without documented complication."
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Diabetes complication specificity"
+      },
+      {
+        "idx": 2,
+        "text": "Glycemic status terminology"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity opportunities and compliant query targets. Accepted: support for type 2 diabetes coding framework and that E11.9 (type 2 diabetes mellitus without complications) is the most directly supported code family when no complication is documented. Rejected/limited: no patient-specific complication coding beyond what is explicitly documented.\n- AMBOSS Expert: Not consulted. The excerpt does not require diagnostic criteria interpretation to identify a supported CDI clarification.\n- CDI Web Search Expert: Not consulted. No current external guideline lookup was necessary for this conservative, chart-grounded CDI review.\n\nMost supported coding impression from the excerpt alone:\n- Type 2 diabetes mellitus is documented.\n- If the provider confirms no complications, the excerpt most closely aligns with ICD-10-CM E11.9, type 2 diabetes mellitus without complications.\n- More specific complication coding is not supported by the provided documentation.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 75-year-old female with documented “type 2 diabetes for 20 years.”\n- Recently “lost to follow-up.”\n- Review of symptoms is negative for “increased polyuria/polydipsia, blurred vision, limb numbness, edema, intermittent claudication.”\n- Exam documents “no diabetic foot, normal touch sensation.”\n- HbA1c is 7.2.\n\nDocumentation Gaps:\n1. Diabetes complication status not explicitly stated\n- Why it matters: ICD-10-CM diabetes coding depends on whether complications are present and linked to diabetes. The excerpt supports diabetes, but the note does not explicitly document whether the patient currently has type 2 diabetes with or without complications.\n- Evidence quote: “type 2 diabetes for 20 years”; “Denies… blurred vision, limb numbness, edema, intermittent claudication. Exam: no diabetic foot, normal touch sensation. HbA1c 7.2.”\n- Minimal clarification needed: Whether the patient’s type 2 diabetes is currently documented as without complications, or whether any diabetic complication exists and should be specified and linked.\n\n2. Glycemic status/control terminology is not explicitly documented\n- Why it matters: An HbA1c value alone does not establish a coded condition such as hyperglycemia, hypoglycemia, or poor control. If the provider intends to describe glycemic status, it should be stated explicitly.\n- Evidence quote: “HbA1c 7.2.”\n- Minimal clarification needed: Whether there is any clinically relevant glycemic abnormality or whether diabetes is simply being followed without documented complication.\n\nProposed Provider Queries:\n1. Topic: Diabetes complication specificity\n- Reason query is needed: The note documents long-standing type 2 diabetes and several negative findings, but does not explicitly state complication status.\n- Evidence quote: “type 2 diabetes for 20 years”; “Denies increased polyuria/polydipsia, blurred vision, limb numbness, edema, intermittent claudication. Exam: no diabetic foot, normal touch sensation.”\n- Non-leading query text: “For this encounter, please clarify the current status of the patient’s type 2 diabetes mellitus based on your clinical assessment and documented findings.”\n- Suggested response options:\n  - Type 2 diabetes mellitus without complications\n  - Type 2 diabetes mellitus with complication(s) — please specify type and relationship to diabetes\n  - History of diabetes only / not addressed at this encounter\n  - Other\n  - Clinically undetermined\n\n2. Topic: Glycemic status terminology\n- Reason query is needed: The chart includes “HbA1c 7.2” but no explicit assessment terminology regarding glycemic status.\n- Evidence quote: “HbA1c 7.2.”\n- Non-leading query text: “Please clarify whether there is any additional assessment regarding the patient’s glycemic status that should be documented for this encounter, if clinically applicable.”\n- Suggested response options:\n  - No additional glycemic abnormality documented/assessed this encounter\n  - Hyperglycemia — please specify if clinically diagnosed\n  - Hypoglycemia — please specify if clinically diagnosed\n  - Diabetes monitored/treated without further glycemic diagnosis specified\n  - Other\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Diabetes type\n- Presence or absence of diabetic complications\n- If complications are present, the specific complication category and causal link to diabetes\n- Any documented glycemic abnormality if clinically diagnosed, rather than inferred from labs alone\n- Whether diabetes was actively assessed/managed during this encounter\n\nRisk Flags:\n- No explicit diabetic complication is documented; complications should not be inferred from disease duration alone.\n- “HbA1c 7.2” by itself is insufficient to code hyperglycemia or uncontrolled diabetes without provider documentation.\n- Negative symptom/exam findings reduce support for neuropathic, circulatory, foot, or ophthalmic complication queries beyond general clarification.\n- “Recently lost to follow-up” is not itself a diagnosis codeable as a diabetic complication.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity opportunities and compliant query targets. Accepted: support for type 2 diabetes coding framework and that E11.9 (type 2 diabetes mellitus without complications) is the most directly supported code family when no complication is documented. Rejected/limited: no patient-specific complication coding beyond what is explicitly documented.\n- AMBOSS Expert: Not consulted. The excerpt does not require diagnostic criteria interpretation to identify a supported CDI clarification.\n- CDI Web Search Expert: Not consulted. No current external guideline lookup was necessary for this conservative, chart-grounded CDI review.\n\nMost supported coding impression from the excerpt alone:\n- Type 2 diabetes mellitus is documented.\n- If the provider confirms no complications, the excerpt most closely aligns with ICD-10-CM E11.9, type 2 diabetes mellitus without complications.\n- More specific complication coding is not supported by the provided documentation."
+}

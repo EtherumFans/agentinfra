@@ -1,0 +1,172 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-60a8f62a-1ee1-419e-ae5c-4a6430954f02",
+  "trace_id": "trace-1271b74404fc41f0",
+  "trace_url": "/ai-studio/runs/run-60a8f62a-1ee1-419e-ae5c-4a6430954f02/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 6406,
+  "cost": {
+    "amount": 0.00026,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1274,
+      "output_tokens": 291
+    }
+  },
+  "billing": {},
+  "summary": "病历未提供任何确诊诊断，无法进行编码。必须人工复核并补充诊断信息。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "",
+        "description": "",
+        "confidence": 0.0,
+        "category": "",
+        "evidence": []
+      },
+      "secondary_diagnoses": [],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "critical",
+          "code": "NO_DIAGNOSIS",
+          "message": "病历明确说明入院时考虑的肺炎已排除，且未形成其他确诊诊断，无法确定主要诊断。",
+          "suggestion": "请补充最终确诊诊断，或明确本次住院的实际诊疗目的和结果。"
+        },
+        {
+          "severity": "high",
+          "code": "EVIDENCE_CONFLICT",
+          "message": "病历中出现的'<REDACTED:NAME>查已排除'表述不完整，无法判断具体排除的疾病和依据。",
+          "suggestion": "请提供完整的排除诊断依据和最终诊断结论。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "NO_DIAGNOSIS",
+        "EVIDENCE_CONFLICT"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "FAIL",
+      "review_required": true,
+      "review_focus": [
+        "病历明确说明入院时考虑的肺炎已排除，且未形成其他确诊诊断，无法确定主要诊断。",
+        "病历中出现的'<REDACTED:NAME>查已排除'表述不完整，无法判断具体排除的疾病和依据。"
+      ],
+      "notes": "病历未提供任何确诊诊断，无法进行编码。必须人工复核并补充诊断信息。"
+    },
+    "trace_refs": {
+      "run_id": "run-60a8f62a-1ee1-419e-ae5c-4a6430954f02",
+      "stage_trace": [],
+      "rule_fired": [
+        "NO_DIAGNOSIS",
+        "EVIDENCE_CONFLICT"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-1271b74404fc41f0"
+    },
+    "codes": [],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiNWQzZmI3OTJjNDVhZDMzOTVhMTFjY2RkZGRmMTJmNzIxMDkxMWFjYzFlNWFiZGU5ZWRlYzE1Zjc3NGMyYTc4NSIsImUiOjE3ODc3NTA3MzYsIm8iOiIxOTRlNWMwM2FiNjQiLCJyIjoicnVuLTYwYThmNjJhLTFlZTEtNDE5ZS1hZTVjLTRhNjQzMDk1NGYwMiIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.77fy6U5_JkydJ2UUqBbU4DvXGbycpOOy3AmbJNI5Xuo",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787664330.3054466,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 113,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787664330.3054466,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787664330.3054466,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787664336.7119257,
+      "duration_ms": 6406,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787664336.7119257,
+      "duration_ms": 6406,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787664336.7119257,
+      "duration_ms": 6406,
+      "metadata": {
+        "code_count": 0
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787664336.7119257,
+      "duration_ms": 6406,
+      "metadata": {
+        "latency_ms": 6406,
+        "code_count": 0
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 6.806
+}

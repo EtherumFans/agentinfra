@@ -147,6 +147,74 @@ async def test_search_icd_degraded_returns_32002(mock_request: MagicMock):
     mock_request.app.state.medcoder_strategy.stage2_retrieve.assert_not_awaited()
 
 
+async def test_search_icd_uses_catalog_when_windows_native_stack_is_safely_disabled(
+    mock_request: MagicMock,
+):
+    """Known-unsafe Windows native stacks use the exact catalog only."""
+    from app.icoder.mcp.handlers.search_icd import handle
+
+    entry = MagicMock()
+    entry.code = "I50.1"
+    entry.name_cn = "left ventricular failure"
+    loader = MagicMock()
+    loader.get.side_effect = lambda value: entry if value == "I50.1" else None
+    loader.codes_for_term.return_value = []
+    loader.chapter_for.return_value = "circulatory"
+    mock_request.app.state.medcoder_index_health = {
+        "status": "degraded",
+        "reason": (
+            "known_unsafe_windows_native_stack: torch access violations; "
+            "use an isolated retrieval service"
+        ),
+        "ntotal": None,
+        "dim": None,
+    }
+
+    with patch("app.services.icd10cn_loader.get_loader", return_value=loader):
+        out = await handle({"emr_text": "I50.1", "top_k": 5}, mock_request)
+
+    assert out["degraded"] is False
+    assert out["source"] == "lexical_catalog_fallback"
+    assert out["error_code"] == "MEDCODER_RETRIEVE_LEXICAL_FALLBACK"
+    assert out["candidates"][0]["code"] == "I50.1"
+    mock_request.app.state.medcoder_strategy.stage2_retrieve.assert_not_awaited()
+
+
+async def test_search_icd_uses_exact_lexical_fallback_when_bge_unavailable(
+    mock_request: MagicMock,
+):
+    from app.icoder.mcp.handlers.search_icd import handle
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        STAGE2_RETRIEVER_UNAVAILABLE,
+        Stage2Result,
+    )
+
+    entry = MagicMock()
+    entry.code = "I21.000"
+    entry.name_cn = "前壁急性透壁性心肌梗死"
+    loader = MagicMock()
+    loader.get.side_effect = lambda value: entry if value in {"I21.000"} else None
+    loader.codes_for_term.side_effect = lambda value: ["I21.000"] if value == "急性前壁心肌梗死" else []
+    loader.chapter_for.return_value = "第9章 循环系统疾病"
+    mock_request.app.state.medcoder_strategy.stage2_retrieve = AsyncMock(
+        return_value=Stage2Result(
+            candidates=[],
+            degraded=True,
+            error_code=STAGE2_RETRIEVER_UNAVAILABLE,
+            error_detail="BGE disabled",
+        )
+    )
+
+    with patch("app.services.icd10cn_loader.get_loader", return_value=loader):
+        out = await handle({"emr_text": "急性前壁心肌梗死", "top_k": 5}, mock_request)
+
+    assert out["degraded"] is False
+    assert out["source"] == "lexical_catalog_fallback"
+    assert out["error_code"] == "MEDCODER_RETRIEVE_LEXICAL_FALLBACK"
+    assert out["candidates"][0]["code"] == "I21.000"
+    assert out["candidates"][0]["matched_term"] == "急性前壁心肌梗死"
+
+
 # ── verify_code ──
 
 

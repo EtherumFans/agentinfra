@@ -1,0 +1,122 @@
+{
+  "schema_version": "icoder.artifact-download-grant-privacy-phase-evidence/v1",
+  "generated_at": "2026-08-22T15:01:06+08:00",
+  "result": "passed_with_real_edge_postgres_dotnet_and_external_gates_open",
+  "superseded_by": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/phase_evidence.json",
+  "implementation": {
+    "download_path": "/api/v2/agentic/artifact-objects/download/{grant_id}",
+    "query_secret_present": false,
+    "authenticated_principal_required": true,
+    "organization_bound": true,
+    "actor_type_bound": true,
+    "actor_id_hmac_fingerprint_bound": true,
+    "oauth_runtime_actor_uses_exact_client_id": true,
+    "same_owner_different_client_rejected": true,
+    "grant_id_canonical_uuid_v4": true,
+    "single_use_atomic_consume": true,
+    "maximum_grant_seconds": 300,
+    "audit_committed_before_bytes": true,
+    "download_auto_retry": false,
+    "uvicorn_query_and_fragment_redaction": true,
+    "uvicorn_download_grant_path_redaction": true,
+    "nginx_safe_uri_only_access_log": true,
+    "nginx_referer_omitted_from_access_log": true,
+    "nginx_download_access_log_disabled": true,
+    "nginx_download_cache_and_buffering_disabled": true,
+    "a2a_task_cursor_canonical_base64url_required": true
+  },
+  "tests": {
+    "focused_cursor_and_task_list": {
+      "passed": 12,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 2.15
+    },
+    "a2a_artifact_runtime_openapi_preflight_migration_schema": {
+      "passed": 384,
+      "failed": 0,
+      "warnings": 24,
+      "duration_seconds": 250.52
+    },
+    "javascript_sdk": {
+      "version": "1.0.0-beta.24",
+      "tests_passed": 43,
+      "tests_failed": 0,
+      "build_passed": true
+    },
+    "python_sdk": {
+      "version": "1.0.0b24",
+      "tests_passed": 50,
+      "tests_failed": 0
+    },
+    "dotnet_sdk": {
+      "version": "1.0.0-beta.24",
+      "source_and_test_contract_updated": true,
+      "locally_compiled": false,
+      "reason": "dotnet CLI is unavailable on this development host"
+    },
+    "openapi": {
+      "paths": 269,
+      "schemas": 288,
+      "bytes": 842015,
+      "drift": false,
+      "legacy_query_download_path_present": false,
+      "actor_bound_grant_path_present": true
+    },
+    "deployment_preflight": {
+      "passed": 64,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "credential_scan": {
+      "credential_shaped_sk_token_files": 0,
+      "hardcoded_llm_credential_assignment_files": 0
+    },
+    "real_llm_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "development_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change_in_this_phase": false,
+    "migration_evidence_reused": "041_to_053_shadow_candidate",
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged_from_managed_object_phase": true,
+    "cutover_performed": false
+  },
+  "artifacts": {
+    "deployment_preflight": {
+      "path": "reports/agent_hub/artifact_download_grant_privacy_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "869ab56097eadb96db10f7874dbe1cfcb7c8ffcee3ede1a90f9d3b68bffe7700"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "migration_report": {
+      "path": "reports/agent_hub/managed_artifact_object_phase_20260822/shadow-migration/sqlite_migration_stage_report.json",
+      "sha256": "d417f46f0586ab902b754ee3e47899717fb2d844f2fd98332b0675ae3956e346"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_ARTIFACT_DOWNLOAD_GRANT_PRIVACY_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "d5205f4078ae14c40a99e23d56924c74c5fc750b431f9e199e6b24dcb433894d"
+    },
+    "managed_object_contract": {
+      "path": "docs/cloud/MANAGED_ARTIFACT_OBJECTS.md",
+      "sha256": "40991adc49bec1ff29fcfc40ed5b38d0d7db6826d9cc6035781b28e11e39e298"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604"
+    }
+  },
+  "limitations": [
+    "No Nginx or Docker binary is available locally; edge configuration was statically validated but not parsed or run.",
+    "No dotnet CLI is available locally; .NET dual-target compilation and tests remain a CI gate.",
+    "PostgreSQL multi-replica atomic consumption, failure recovery, capacity, and latency were not exercised.",
+    "Production ingress, CDN, APM, WAF, SIEM, error aggregation, and support tooling must independently verify URL and header privacy.",
+    "Production object storage, KMS/HSM, independent AV/OCR/DLP, backup, disaster recovery, and SLA evidence remain open.",
+    "Corti tenant interoperability, hospital consent and integration, cloud infrastructure, legal, certification, penetration testing, and independent clinical/security review remain external gates."
+  ]
+}

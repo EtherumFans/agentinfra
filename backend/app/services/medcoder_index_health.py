@@ -69,6 +69,8 @@ def index_health_check(
     faiss_filename: str = "faiss.index",
     metadata_filename: str = "metadata.pkl",
     expected_dim: int = EXPECTED_DIM,
+    allow_native: bool = True,
+    native_disabled_reason: str = "native health check disabled",
 ) -> dict[str, Any]:
     """Run all checks against ``index_dir/faiss_filename`` and metadata.
 
@@ -108,6 +110,17 @@ def index_health_check(
             index_dir, faiss_path, metadata_path, checks,
             ntotal=ntotal, dim=dim, metadata_len=metadata_len,
             reason=f"Metadata pickle not found at {metadata_path}",
+        )
+
+    # Importing FAISS can terminate the interpreter with a native access
+    # violation before Python can raise an exception. The API startup path
+    # passes allow_native=False for a host/build combination already observed
+    # crashing; existence remains observable without loading the DLL.
+    if not allow_native:
+        return _degraded(
+            index_dir, faiss_path, metadata_path, checks,
+            ntotal=ntotal, dim=dim, metadata_len=metadata_len,
+            reason=f"native FAISS health check disabled: {native_disabled_reason}",
         )
 
     # 2. Load FAISS index.
@@ -242,12 +255,18 @@ def is_icd9cm3_retriever_available(
     *,
     faiss_filename: str = "faiss_icd9cm3.index",
     metadata_filename: str = "metadata_icd9cm3.pkl",
+    allow_native: bool = True,
+    native_disabled_reason: str = "native health check disabled",
 ) -> bool:
     """Convenience: check the ICD-9-CM-3 index. Separate file names from the
     ICD-10-CN index, so this just re-runs ``index_health_check`` with the
     right filenames."""
     h = index_health_check(
-        index_dir, faiss_filename=faiss_filename, metadata_filename=metadata_filename,
+        index_dir,
+        faiss_filename=faiss_filename,
+        metadata_filename=metadata_filename,
+        allow_native=allow_native,
+        native_disabled_reason=native_disabled_reason,
     )
     return h["status"] == "ok"
 

@@ -67,6 +67,14 @@ class Context(BaseModel):
     updated_at: datetime
     expires_at: datetime
     agent_id: str
+    organization_id: str = Field(
+        description=(
+            "A1B-AE-RV.2 — tenant scope. Cross-tenant reads return "
+            "404 (no leak). No default: callers MUST pass the JWT's "
+            "current_org.id explicitly. Test-bypass paths inject "
+            "'org_default1' via the mock user."
+        ),
+    )
     status: ContextStatus
     messages: list[ContextMessage] = Field(default_factory=list)
     tasks: list[ContextTaskRef] = Field(default_factory=list)

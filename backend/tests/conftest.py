@@ -1,27 +1,20 @@
 # Pytest configuration for iCoDer
+# FastAPI/Starlette compatibility is pinned in requirements-api.txt;
+# test-time router monkey-patching is intentionally not used.
 
 # FastAPI/starlette env patch — fastapi 0.115.0 still passes ``on_startup``
 # to starlette 1.3.1's Router, which removed the kwarg. Must run before
 # ANY ``FastAPI()`` or ``APIRouter()`` instantiation in the import chain.
-import starlette.routing as _sr  # noqa: E402
-
-_orig_router_init = _sr.Router.__init__
-
-
-def _patched_router_init(self, *args, **kwargs):
-    for k in ("on_startup", "on_shutdown"):
-        kwargs.pop(k, None)
-    return _orig_router_init(self, *args, **kwargs)
-
-
-_sr.Router.__init__ = _patched_router_init
-
-import fastapi.routing as _fr  # noqa: E402
-
-_fr.APIRouter.on_startup = []
-_fr.APIRouter.on_shutdown = []
-
 import os
+from pathlib import Path
+
+# Never let a developer or CI host secret leak into hermetic JWT tests. This
+# value is process-local, explicitly non-production, and long enough for
+# HS256's RFC 7518 minimum so security warnings remain actionable.
+os.environ["ICODER_SECRET_KEY"] = (
+    "icoder-pytest-only-not-a-production-secret-2026-08-22-64chars"
+)
+
 import pytest_asyncio
 import pytest
 from httpx import AsyncClient, ASGITransport
@@ -35,6 +28,26 @@ if not _test_db_url:
     _test_db_url = "sqlite+aiosqlite:///./data/test.db"
 settings.DATABASE_URL = _test_db_url
 settings.DEBUG = False
+
+# Keep legacy migration assertions pointed at the same isolated SQLite file as
+# the SQLAlchemy test engine.  Without this bridge, an explicit
+# ICODER_DATABASE_URL (for example a C: drive database used to avoid a full E:
+# disk) still makes those assertions inspect backend/data/test.db instead.
+from sqlalchemy.engine import make_url
+
+_parsed_test_db_url = make_url(_test_db_url)
+if (
+    _parsed_test_db_url.get_backend_name() == "sqlite"
+    and _parsed_test_db_url.database
+    and _parsed_test_db_url.database != ":memory:"
+):
+    _sqlite_test_path = Path(_parsed_test_db_url.database)
+    if not _sqlite_test_path.is_absolute():
+        _sqlite_test_path = (Path.cwd() / _sqlite_test_path).resolve()
+    os.environ["ICODER_TEST_DB_PATH"] = str(_sqlite_test_path)
+else:
+    # SQLite-specific schema checks skip cleanly for PostgreSQL/in-memory runs.
+    os.environ["ICODER_TEST_DB_PATH"] = ""
 
 # M3-0 hospital pilot gate: the API hard-503s when ICODER_CREDENTIAL_LLM is
 # unset, unless ICODER_ALLOW_DEGRADED_NO_KEY=1. Tests run without a real
@@ -113,9 +126,24 @@ def _make_mock_org():
 
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
-    """Reset login rate limiter between tests to avoid state leakage."""
+    """Reset login rate limiter AND HTTP rate-limit middleware between tests.
+
+    Phase A1A Gate 4R.2: the HTTP middleware at app/middleware/rate_limit.py
+    moved its per-IP counter dict off the module global and onto
+    app.state.rate_limiter_counts. Without a per-test reset, the sliding
+    window accumulates across tests and trips the 30/min limit partway
+    through the suite — which was the dominant cause of the 77 pass->fail
+    regressions catalogued in Gate 4R.1.
+    """
     from app.api.auth import login_limiter
     login_limiter._attempts.clear()
+    # Wipe the HTTP rate-limiter counters bound to the session-scoped app.
+    if hasattr(app.state, "rate_limiter_counts"):
+        app.state.rate_limiter_counts.clear()
+    # Force lazy re-init of Redis client on next request (tests don't use
+    # Redis, but resetting keeps the fixture hermetic if REDIS_URL is set).
+    if hasattr(app.state, "rate_limiter_redis"):
+        app.state.rate_limiter_redis = False
     yield
 
 
@@ -135,8 +163,19 @@ async def setup_db():
     both target ``data/test.db``. Tests that hit the FastAPI app via the
     ``client`` fixture also pick up the rebound engine (get_db dependency
     resolves at request time).
+
+    A1B-AE-RV.2 dev DB guard: snapshot mtime+size of ``data/icoder.db``
+    before tests start and assert unchanged on teardown. Any test that
+    mutates the dev DB during the session fails the session loudly.
     """
     import app.database as _db_module
+    from pathlib import Path
+
+    _dev_db = Path("data/icoder.db")
+    _dev_db_before = (
+        (_dev_db.stat().st_mtime_ns, _dev_db.stat().st_size)
+        if _dev_db.exists() else None
+    )
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
     # Dispose the dev engine and rebuild against the test URL
@@ -159,12 +198,43 @@ async def setup_db():
     # while the API reads test DB — the rows are invisible.
     _db_module.async_session_factory = _db_module.AsyncSessionLocal
 
-    await init_db()
+    use_premigrated_schema = (
+        os.environ.get("ICODER_TEST_USE_PREMIGRATED_SCHEMA") == "1"
+        and _parsed_test_db_url.get_backend_name() == "postgresql"
+    )
+
+    # A prior interrupted pytest session cannot run the teardown below and
+    # may leave fixed-id fixtures in data/test.db.  Start from a known-empty
+    # schema so repeated and interrupted local runs remain deterministic.
+    # This engine is already rebound to the dedicated test URL; the dev DB
+    # guard below continues to prove data/icoder.db is untouched.
+    if not use_premigrated_schema:
+        async with _test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await init_db()
     yield
-    # Drop tables from the test engine only — dev DB (data/icoder.db) is never touched.
-    async with _test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    # A pre-migrated PostgreSQL service is disposable and the app role must
+    # never acquire schema-owner DDL privileges merely for test cleanup.
+    if not use_premigrated_schema:
+        # Drop tables from the test engine only — dev DB is never touched.
+        async with _test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
     await _test_engine.dispose()
+
+    # A1B-AE-RV.2 dev DB guard: assert dev DB untouched.
+    if _dev_db_before is not None:
+        if not _dev_db.exists():
+            raise RuntimeError(
+                "A1B-AE-RV.2 dev DB guard: data/icoder.db was DELETED during "
+                "the test session. Tests must not mutate the dev DB."
+            )
+        _dev_db_after = (_dev_db.stat().st_mtime_ns, _dev_db.stat().st_size)
+        if _dev_db_after != _dev_db_before:
+            raise RuntimeError(
+                "A1B-AE-RV.2 dev DB guard: data/icoder.db was MODIFIED during "
+                f"the test session. Before={_dev_db_before} After={_dev_db_after}. "
+                "Tests must use data/test.db (settings.DATABASE_URL override)."
+            )
 
 
 @pytest_asyncio.fixture
@@ -190,7 +260,7 @@ async def auth_client():
                 "email": "test@example.com",
                 "password": "testpass123",
                 "full_name": "Test User",
-                "role": "admin",
+                "role": "coder",
                 "department": "测试科",
             })
         if response.status_code in (200, 201):
@@ -218,14 +288,23 @@ async def _install_auth_bypass():
     breaking any fixture that seeded rows with organization_id =
     "org_default1".
     """
-    from app.middleware.auth import get_current_user, get_current_organization
+    from app.middleware.auth import (
+        get_current_user,
+        get_current_organization,
+        get_current_user_or_oauth_client,
+    )
 
     if os.environ.get("ICODER_DISABLE_AUTH_FOR_TESTS") == "1":
         # Default to admin so /human-review RBAC gate passes for non-RBAC tests.
-        app.dependency_overrides[get_current_user] = lambda: _make_mock_user("admin")
+        mock_user = _make_mock_user("admin")
+        app.dependency_overrides[get_current_user] = lambda: mock_user
         # TD-001: unify org context — return a mock org whose id matches
         # the mock user's organization_id.
         app.dependency_overrides[get_current_organization] = lambda: _make_mock_org()
+        # Phase 7 Gate 12 — hybrid auth bypass. Routes using
+        # get_current_user_or_oauth_client see the same mock user as
+        # get_current_user, with no OAuth client (user path).
+        app.dependency_overrides[get_current_user_or_oauth_client] = lambda: (mock_user, None)
     try:
         yield
     finally:
@@ -233,6 +312,8 @@ async def _install_auth_bypass():
             del app.dependency_overrides[get_current_user]
         if "get_current_organization" in app.dependency_overrides:
             del app.dependency_overrides[get_current_organization]
+        if "get_current_user_or_oauth_client" in app.dependency_overrides:
+            del app.dependency_overrides[get_current_user_or_oauth_client]
 
 
 @pytest_asyncio.fixture
@@ -247,13 +328,20 @@ async def needs_auth():
     Removes the get_current_user + get_current_organization overrides for
     the duration of the test, then restores them after.
     """
-    from app.middleware.auth import get_current_user, get_current_organization
+    from app.middleware.auth import (
+        get_current_user,
+        get_current_organization,
+        get_current_user_or_oauth_client,
+    )
     saved_user = app.dependency_overrides.get(get_current_user)
     saved_org = app.dependency_overrides.get(get_current_organization)
+    saved_hybrid = app.dependency_overrides.get(get_current_user_or_oauth_client)
     if get_current_user in app.dependency_overrides:
         del app.dependency_overrides[get_current_user]
     if get_current_organization in app.dependency_overrides:
         del app.dependency_overrides[get_current_organization]
+    if get_current_user_or_oauth_client in app.dependency_overrides:
+        del app.dependency_overrides[get_current_user_or_oauth_client]
     try:
         yield
     finally:
@@ -261,3 +349,5 @@ async def needs_auth():
             app.dependency_overrides[get_current_user] = saved_user
         if saved_org is not None:
             app.dependency_overrides[get_current_organization] = saved_org
+        if saved_hybrid is not None:
+            app.dependency_overrides[get_current_user_or_oauth_client] = saved_hybrid

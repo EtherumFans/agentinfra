@@ -1,0 +1,525 @@
+{
+  "case_id": "H-EVS-B-007_R1",
+  "group": "EVIDENCE_STRENGTH",
+  "variant": "B",
+  "session_id": "eaf0f3fb-a509-4c4e-a933-18232648a501",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 38.73,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "AKI etiology",
+      "AKI stage"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 7692,
+  "first_token_at_s": 3.96,
+  "last_token_at_s": 38.73,
+  "event_count": 17,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"N17.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Acute kidney failure, unspecified\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guide",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E87.5\",\"code_system\":\"icd-10-cm\",\"description\":\"Hyperkalemia\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelines\"},{\"reason\":\"Ch",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"R34\",\"code_system\":\"icd-10-cm\",\"description\":\"Anuria and oliguria\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelines\"},{\"reason",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"N18.4\",\"code_system\":\"icd-10-cm\",\"description\":\"Chronic kidney disease, stage 4 (severe)\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\"",
+    "message|{\"data\":{\"chapter_guidelines\":[{\"codes\":[\"CKD\",\"ICD\",\"N18.2\",\"N18.30\",\"N18.32\",\"N18.4\",\"N18.6\"],\"content\":\"(CKD) \\nThe ICD-10-CM classifies CKD based on severity. The severity of CKD \\nis designated b",
+    "message|{\"id\":\"bde04966-4324-45ca-a0f1-b7df8b640386\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Chart excerpt documents acute worsening of renal function: “creatinine 2.8 mg/dL (baseline 0.9)” with “BUN 65.”\\n- Additional renal-related findings are present: “urine",
+    "message|{\"id\":\"bde04966-4324-45ca-a0f1-b7df8b640386\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bd5-98ad-7056-8b36-8fd8ad7a5c11\",\"taskId\":\"019f5bd5-98ac-7f19-ac0d-77057a7becdf\",\"credits\":0.109744,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.109744},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "acute kidney injury",
+      "results": [
+        {
+          "code": "N17.9",
+          "description": "Acute kidney failure, unspecified",
+          "match_path": "Injury, kidney, acute",
+          "related_codes": {
+            "category": "N17",
+            "category_description": "Acute kidney failure",
+            "count": 5
+          }
+        },
+        {
+          "code": "N17.0",
+          "description": "Acute kidney failure with tubular necrosis",
+          "match_path": "Shock, kidney",
+          "related_codes": {
+            "category": "N17",
+            "category_description": "Acute kidney failure",
+            "count": 5
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "hyperkalemia",
+      "results": [
+        {
+          "code": "E87.5",
+          "description": "Hyperkalemia",
+          "match_path": "Hyperkalemia",
+          "related_codes": {
+            "category": "E87",
+            "category_description": "Other disorders of fluid, electrolyte and acid-base balance",
+            "count": 9
+          }
+        },
+        {
+          "code": "E87.3",
+          "description": "Alkalosis",
+          "match_path": "Alkalemia",
+          "related_codes": {
+            "category": "E87",
+            "category_description": "Other disorders of fluid, electrolyte and acid-base balance",
+            "count": 9
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "oliguria",
+      "results": [
+        {
+          "code": "R34",
+          "description": "Anuria and oliguria",
+          "match_path": "Oliguria",
+          "related_codes": {
+            "category": "R30-R39",
+            "category_description": "Symptoms and signs involving the genitourinary system (R30-R39)",
+            "count": 9
+          }
+        },
+        {
+          "code": "R39.12",
+          "description": "Poor urinary stream",
+          "match_path": "Urine, stream, weak",
+          "related_codes": {
+            "category": "R39.1",
+            "category_description": "Other difficulties with micturition",
+            "count": 7
+          }
+        },
+        {
+          "code": "N28.89",
+          "description": "Other specified disorders of kidney and ureter",
+          "match_path": "Hyposthenuria",
+          "related_codes": {
+            "category": "N28.8",
+            "category_description": "Other specified disorders of kidney and ureter",
+            "count": 7
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "N17.9",
+      "code_system": "icd-10-cm",
+      "description": "Acute kidney failure, unspecified",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "N17",
+        "description": "Acute kidney failure"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "N17.0",
+          "description": "Acute kidney failure with tubular necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "N17.1",
+          "description": "Acute kidney failure with acute cortical necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "N17.2",
+          "description": "Acute kidney failure with medullary necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "N17.8",
+          "description": "Other acute kidney failure"
+        }
+      ],
+      "total_related": 4
+    },
+    {
+      "assignable": true,
+      "code": "E87.5",
+      "code_system": "icd-10-cm",
+      "description": "Hyperkalemia",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "E87",
+        "description": "Other disorders of fluid, electrolyte and acid-base balance"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "E87.0",
+          "description": "Hyperosmolality and hypernatremia"
+        },
+        {
+          "assignable": true,
+          "code": "E87.1",
+          "description": "Hypo-osmolality and hyponatremia"
+        },
+        {
+          "assignable": false,
+          "code": "E87.2",
+          "description": "Acidosis"
+        },
+        {
+          "assignable": true,
+          "code": "E87.3",
+          "description": "Alkalosis"
+        },
+        {
+          "assignable": true,
+          "code": "E87.4",
+          "description": "Mixed disorder of acid-base balance"
+        },
+        {
+          "assignable": true,
+          "code": "E87.6",
+          "description": "Hypokalemia"
+        },
+        {
+          "assignable": false,
+          "code": "E87.7",
+          "description": "Fluid overload"
+        },
+        {
+          "assignable": true,
+          "code": "E87.8",
+          "description": "Other disorders of electrolyte and fluid balance, not elsewhere classified"
+        }
+      ],
+      "total_related": 8
+    },
+    {
+      "assignable": true,
+      "code": "R34",
+      "code_system": "icd-10-cm",
+      "description": "Anuria and oliguria",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "R30-R39",
+        "description": "Symptoms and signs involving the genitourinary system (R30-R39)"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "R30",
+          "description": "Pain associated with micturition"
+        },
+        {
+          "assignable": false,
+          "code": "R31",
+          "description": "Hematuria"
+        },
+        {
+          "assignable": true,
+          "code": "R32",
+          "description": "Unspecified urinary incontinence"
+        },
+        {
+          "assignable": false,
+          "code": "R33",
+          "description": "Retention of urine"
+        },
+        {
+          "assignable": false,
+          "code": "R35",
+          "description": "Polyuria"
+        },
+        {
+          "assignable": false,
+          "code": "R36",
+          "description": "Urethral discharge"
+        },
+        {
+          "assignable": true,
+          "code": "R37",
+          "description": "Sexual dysfunction, unspecified"
+        },
+        {
+          "assignable": false,
+          "code": "R39",
+          "description": "Other and unspecified symptoms and signs involving the genitourinary system"
+        }
+      ],
+      "total_related": 8
+    },
+    {
+      "assignable": true,
+      "code": "N18.4",
+      "code_system": "icd-10-cm",
+      "description": "Chronic kidney disease, stage 4 (severe)",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "N18",
+        "description": "Chronic kidney disease (CKD)"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "N18.1",
+          "description": "Chronic kidney disease, stage 1"
+        },
+        {
+          "assignable": true,
+          "code": "N18.2",
+          "description": "Chronic kidney disease, stage 2 (mild)"
+        },
+        {
+          "assignable": false,
+          "code": "N18.3",
+          "description": "Chronic kidney disease, stage 3 (moderate)"
+        },
+        {
+          "assignable": true,
+          "code": "N18.5",
+          "description": "Chronic kidney disease, stage 5"
+        },
+        {
+          "assignable": true,
+          "code": "N18.6",
+          "description": "End stage renal disease"
+        },
+        {
+          "assignable": true,
+          "code": "N18.9",
+          "description": "Chronic kidney disease, unspecified"
+        }
+      ],
+      "total_related": 6
+    },
+    {
+      "chapter_guidelines": [
+        {
+          "codes": [
+            "CKD",
+            "ICD",
+            "N18.2",
+            "N18.30",
+            "N18.32",
+            "N18.4",
+            "N18.6"
+          ],
+          "content": "(CKD) \nThe ICD-10-CM classifies CKD based on severity. The severity of CKD \nis designated by stages 1-5. Stage 2, code N18.2, equates to mild CKD; \nstage 3, codes N18.30-N18.32, equate to moderate CKD; and stage 4, \ncode N18.4, equates to severe CKD. Code N18.6, End stage renal \ndisease (ESRD), is assigned when the provider has documented end-\nstage renal disease (ESRD). \n \nIf both a stage of CKD and ESRD are documented, assign code N18.6 \nonly.",
+          "id": "icd-10-cm_section_I_C_14_a_1",
+          "kind": "guideline",
+          "number": "IC14a1",
+          "path": [
+            "I",
+            "C",
+            "14",
+            "a",
+            "1"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Stages of chronic kidney disease (CKD)"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bd5-98ad-7056-8b36-8fd8ad7a5c11",
+    "taskId": "019f5bd5-98ac-7f19-ac0d-77057a7becdf",
+    "credits": 0.109744,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Chart excerpt documents acute worsening of renal function: “creatinine 2.8 mg/dL (baseline 0.9)” with “BUN 65.”\n- Additional renal-related findings are present: “urine output 0.3 mL/kg/h × 8 hours” and “CKD-EPI eGFR 22.”\n- Electrolyte abnormality is documented: “K+ 5.6.”\n- Current status note: “no dialysis yet. Renal consult placed.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Renal dysfunction is supported by labs and urine output, but no provider diagnosis is stated.\n   - Why it matters: Coding specificity requires provider-documented diagnosis rather than isolated lab abnormalities. If clinically present, acute kidney failure/acute kidney injury needs explicit documentation, and greater specificity may be needed beyond unspecified acute kidney failure. Relevant coding references returned include acute kidney failure codes under N17, including unspecified N17.9"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Possible chronic kidney disease stage is not explicitly documented by the provider.\n   - Why it matters: CKD should be coded by documented stage. The coding guidance returned notes CKD is classified by stages 1–5, and stage 4 corresponds to N18.4; however, stage should come from provider documentation, not eGFR alone.\n   - Evidence quote: “CKD-EPI eGFR 22.”\n   - Minimal clarification needed: Whether CKD is present and, if so, the stage."
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Hyperkalemia is supported by a potassium value, but no diagnosis is documented.\n   - Why it matters: Abnormal potassium alone does not substitute for a documented diagnosis. If clinically significant, explicit documentation of hyperkalemia supports coding specificity.\n   - Evidence quote: “K+ 5.6.”\n   - Minimal clarification needed: Whether the elevated potassium represents a clinically significant electrolyte disorder requiring documentation."
+      },
+      {
+        "idx": 4,
+        "text": "Gap: Oliguria is supported numerically, but not named in the documentation.\n   - Why it matters: If clinically relevant and not inherent to another documented diagnosis for coding/reporting purposes, provider documentation of oliguria may improve specificity.\n   - Evidence quote: “urine output 0.3 mL/kg/h × 8 hours.”\n   - Minimal clarification needed: Whether oliguria is a clinically significant finding that should be documented."
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of renal diagnosis"
+      },
+      {
+        "idx": 2,
+        "text": "CKD presence/stage clarification"
+      },
+      {
+        "idx": 3,
+        "text": "Elevated potassium clarification"
+      },
+      {
+        "idx": 4,
+        "text": "Oliguria clarification"
+      }
+    ],
+    "query_count": 4,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and query targets. Accepted: the need to clarify provider-documented renal diagnosis, hyperkalemia, oliguria, and CKD staging specificity, as well as the returned ICD-10-CM references for acute kidney failure (N17.9 and related N17 options), hyperkalemia (E87.5), oliguria (R34), and CKD stage 4 (N18.4), plus guideline note that CKD is coded by documented stage. Rejected/limited: any implication that a code or diagnosis can be assigned solely from the excerpted labs/eGFR without provider documentation.\n- AMBOSS Expert: Not consulted. Reason: no external clinical criteria were necessary to identify the documentation gaps conservatively from the excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no up-to-date external compliance reference was required beyond the coding tool output used here.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Chart excerpt documents acute worsening of renal function: “creatinine 2.8 mg/dL (baseline 0.9)” with “BUN 65.”\n- Additional renal-related findings are present: “urine output 0.3 mL/kg/h × 8 hours” and “CKD-EPI eGFR 22.”\n- Electrolyte abnormality is documented: “K+ 5.6.”\n- Current status note: “no dialysis yet. Renal consult placed.”\n\nDocumentation Gaps:\n1. Gap: Renal dysfunction is supported by labs and urine output, but no provider diagnosis is stated.\n   - Why it matters: Coding specificity requires provider-documented diagnosis rather than isolated lab abnormalities. If clinically present, acute kidney failure/acute kidney injury needs explicit documentation, and greater specificity may be needed beyond unspecified acute kidney failure. Relevant coding references returned include acute kidney failure codes under N17, including unspecified N17.9 and more specific related options.\n   - Evidence quote: “creatinine 2.8 mg/dL (baseline 0.9), BUN 65 … urine output 0.3 mL/kg/h × 8 hours … no dialysis yet.”\n   - Minimal clarification needed: Whether a renal diagnosis is present, and if so the documented condition/etiology/type.\n\n2. Gap: Possible chronic kidney disease stage is not explicitly documented by the provider.\n   - Why it matters: CKD should be coded by documented stage. The coding guidance returned notes CKD is classified by stages 1–5, and stage 4 corresponds to N18.4; however, stage should come from provider documentation, not eGFR alone.\n   - Evidence quote: “CKD-EPI eGFR 22.”\n   - Minimal clarification needed: Whether CKD is present and, if so, the stage.\n\n3. Gap: Hyperkalemia is supported by a potassium value, but no diagnosis is documented.\n   - Why it matters: Abnormal potassium alone does not substitute for a documented diagnosis. If clinically significant, explicit documentation of hyperkalemia supports coding specificity.\n   - Evidence quote: “K+ 5.6.”\n   - Minimal clarification needed: Whether the elevated potassium represents a clinically significant electrolyte disorder requiring documentation.\n\n4. Gap: Oliguria is supported numerically, but not named in the documentation.\n   - Why it matters: If clinically relevant and not inherent to another documented diagnosis for coding/reporting purposes, provider documentation of oliguria may improve specificity.\n   - Evidence quote: “urine output 0.3 mL/kg/h × 8 hours.”\n   - Minimal clarification needed: Whether oliguria is a clinically significant finding that should be documented.\n\nProposed Provider Queries:\n1. Topic: Clarification of renal diagnosis\n   - Reason query is needed: Objective renal findings are present, but no diagnosis is documented.\n   - Evidence quote: “creatinine 2.8 mg/dL (baseline 0.9), BUN 65 … urine output 0.3 mL/kg/h × 8 hours … no dialysis yet.”\n   - Non-leading query text: “Based on the documented creatinine 2.8 mg/dL with baseline 0.9, BUN 65, and urine output 0.3 mL/kg/h for 8 hours, please clarify the patient’s renal condition for this encounter, if clinically applicable.”\n   - Suggested response options:\n     * Acute kidney injury / acute kidney failure\n     * Acute kidney injury on chronic kidney disease\n     * Chronic kidney disease only\n     * Oliguria without acute kidney injury\n     * Other renal condition (please specify)\n     * Clinically undetermined\n     * Unable to determine\n   - Note: If the provider documents acute kidney injury/failure, a follow-up clarification may be needed for etiology/type if supported elsewhere in the record, because the coding results show more and less specific acute kidney failure options.\n\n2. Topic: CKD presence/stage clarification\n   - Reason query is needed: Reduced eGFR is documented, but CKD and stage are not explicitly documented.\n   - Evidence quote: “CKD-EPI eGFR 22.”\n   - Non-leading query text: “The record notes CKD-EPI eGFR 22. Please clarify whether the patient has chronic kidney disease and, if so, document the stage, if known.”\n   - Suggested response options:\n     * CKD stage 1\n     * CKD stage 2\n     * CKD stage 3a\n     * CKD stage 3b\n     * CKD stage 4\n     * CKD stage 5\n     * ESRD\n     * CKD present, stage unspecified\n     * No CKD\n     * Clinically undetermined\n     * Unable to determine\n   - Risk note: This query should be used cautiously because the excerpt alone does not establish chronicity; if broader chart review is unavailable, consider whether there is sufficient clinical basis before issuing.\n\n3. Topic: Elevated potassium clarification\n   - Reason query is needed: Potassium is elevated, but no diagnosis is documented.\n   - Evidence quote: “K+ 5.6.”\n   - Non-leading query text: “The record documents potassium 5.6. Please clarify whether this represents a clinically significant electrolyte abnormality for this encounter.”\n   - Suggested response options:\n     * Hyperkalemia\n     * Elevated potassium not clinically significant\n     * Other electrolyte abnormality (please specify)\n     * Clinically undetermined\n     * Unable to determine\n\n4. Topic: Oliguria clarification\n   - Reason query is needed: Low urine output is documented numerically, but not named.\n   - Evidence quote: “urine output 0.3 mL/kg/h × 8 hours.”\n   - Non-leading query text: “The record documents urine output of 0.3 mL/kg/h for 8 hours. Please clarify whether this finding is clinically significant for this encounter and whether it should be documented as a reportable condition or symptom.”\n   - Suggested response options:\n     * Oliguria\n     * Low urine output, not clinically significant\n     * Finding attributable to another condition (please specify)\n     * Other (please specify)\n     * Clinically undetermined\n     * Unable to determine\n\nCoding Specificity Checklist:\n- Renal diagnosis present or absent.\n- If acute kidney injury/failure is present, document the specific renal condition and any known type/etiology if clinically established.\n- Whether there is acute kidney injury on CKD versus CKD alone.\n- Whether CKD is present, and if so the stage.\n- Whether elevated potassium is clinically significant and should be documented as hyperkalemia.\n- Whether oliguria is clinically significant and should be documented.\n- Dialysis status if it becomes clinically relevant later in the encounter; current excerpt only states “no dialysis yet.”\n\nRisk Flags:\n- No explicit provider diagnosis is present in the excerpt for AKI, CKD, hyperkalemia, or oliguria; current support is laboratory/clinical data only.\n- “CKD-EPI eGFR 22” may suggest reduced kidney function, but CKD and CKD stage should not be assigned from eGFR alone without provider documentation.\n- “no dialysis yet” indicates current non-dialysis status, but does not establish ESRD.\n- Limited excerpt: etiology, chronicity, and whether findings are clinically significant are not documented here.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and query targets. Accepted: the need to clarify provider-documented renal diagnosis, hyperkalemia, oliguria, and CKD staging specificity, as well as the returned ICD-10-CM references for acute kidney failure (N17.9 and related N17 options), hyperkalemia (E87.5), oliguria (R34), and CKD stage 4 (N18.4), plus guideline note that CKD is coded by documented stage. Rejected/limited: any implication that a code or diagnosis can be assigned solely from the excerpted labs/eGFR without provider documentation.\n- AMBOSS Expert: Not consulted. Reason: no external clinical criteria were necessary to identify the documentation gaps conservatively from the excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no up-to-date external compliance reference was required beyond the coding tool output used here."
+}

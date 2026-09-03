@@ -1,0 +1,219 @@
+{
+  "schema_version": "icoder.governed-clinical-guidelines-phase-evidence/v1",
+  "generated_at": "2026-08-24T20:56:40+08:00",
+  "status": "development_candidate_slice_passed_external_gates_open",
+  "agent": {
+    "agent_id": "clinical-guidelines",
+    "agent_ref": "icoder/clinical-guidelines@1.1.0",
+    "provider": "icoder.governed-clinical-guidelines.v1",
+    "backend_type": "rule_engine",
+    "runtime_mode": "governed_local_documented_guideline_comparison",
+    "output_contract": "icoder/ClinicalGuidelinesOutput/v6",
+    "required_output_fields": 37,
+    "field_relations": 9,
+    "evidence_bindings": 1,
+    "network_required": false,
+    "llm_required": false,
+    "external_knowledge_used": false,
+    "supported_rule_operations": [
+      "PRESENT",
+      "EQUALS",
+      "TIME_WINDOW_HOURS"
+    ],
+    "guideline_retrieval_performed": false,
+    "source_authenticity_independently_verified": false,
+    "source_currency_verified": false,
+    "clinical_inference_performed": false,
+    "clinical_significance_assessed": false,
+    "treatment_recommendations_generated": false,
+    "manual_review_required": true,
+    "production_writeback_blocked": true
+  },
+  "verification": {
+    "focused_provider_projector_contract": {
+      "passed": 75,
+      "failed": 0
+    },
+    "a2a_streaming_and_fail_closed": {
+      "passed": 9,
+      "failed": 0
+    },
+    "matrix_bundle_offline_and_api": {
+      "passed": 145,
+      "failed": 0
+    },
+    "quantity_grounding_audit": {
+      "passed": 23,
+      "failed": 0
+    },
+    "corti_parity_unit_domain": {
+      "passed": 90,
+      "failed": 0
+    },
+    "broad_regression": {
+      "passed": 1193,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 0,
+      "duration_seconds": 693.12,
+      "junit": "reports/agent_hub/clinical_guidelines_phase_20260824_v1/broad_regression_final_junit.xml"
+    },
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 21, "failed": 0},
+      "adversarial": {"passed": 21, "failed": 0},
+      "reference": {
+        "passed": 21,
+        "failed": 0,
+        "quality_scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold"
+      },
+      "stability": {
+        "passed": 126,
+        "failed": 0,
+        "repetitions": 3,
+        "p50_seconds": 0.223,
+        "p95_seconds": 0.455
+      },
+      "signed_bundle_verified": 21,
+      "external_model_agents_not_evaluated": 5
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "agents": 20,
+      "relations": 101,
+      "detected_adversarial_assertions": 287,
+      "expected_adversarial_assertions": 287
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "agents": 17,
+      "bindings": 26,
+      "detected_adversarial_assertions": 52,
+      "expected_adversarial_assertions": 52
+    },
+    "schema_generator_dry_run": {
+      "changed_agents": []
+    },
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 130,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_gate": {
+      "passed": true,
+      "expected_corti_agents": 20,
+      "catalog_mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {
+      "passed": true,
+      "checks": 90,
+      "failed": 0
+    },
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "provider_resolvable": 26,
+      "launch_candidate_ready": 26,
+      "external_llm_required": 5,
+      "external_llm_optional": 1,
+      "pure_local": 20,
+      "local_baseline": 21,
+      "offline_fail_closed": 5,
+      "local_semantic_verified": 21,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0,
+      "field_relations": 101,
+      "evidence_bindings": 26,
+      "registered_visible_contracts": 26
+    }
+  },
+  "regressions_found_and_closed": [
+    {
+      "id": "immutable_relation_identifier_correction",
+      "finding": "The first Clinical Guidelines contract snapshot used a field-relation identifier longer than the platform schema permits.",
+      "resolution": "The historical v5 snapshot was retained and the corrected immutable current contract was appended as v6."
+    },
+    {
+      "id": "streaming_tests_bound_to_migrated_agent",
+      "finding": "Generic pure-LLM streaming tests still used an Agent after it moved to governed local execution.",
+      "resolution": "Generic model-path coverage now uses Triage; the Clinical Guidelines relation test derives a valid result from the route-redacted input before introducing one controlled violation."
+    },
+    {
+      "id": "iso_duration_grounding_false_positive",
+      "finding": "The E2E clinical-quantity auditor could reproduce Chinese month/day timestamps but not ISO timestamps, so the deterministic 30-hour interval was falsely marked ungrounded.",
+      "resolution": "ISO date-time arithmetic is now reproduced by the same strict auditor, with an explicit invention-rejection boundary and unit regression coverage."
+    },
+    {
+      "id": "stale_relation_and_binding_counts",
+      "finding": "Replay tests retained pre-migration totals for field relations and evidence bindings.",
+      "resolution": "The assertions now require 101 relations with 287/287 detections and 26 bindings with 52/52 detections."
+    }
+  ],
+  "artifact_hashes": {
+    "agent_pack.json": "621e3a9a06803cc0d1c4a0505e697433d7c10c81f67c611e2cc0c420156ca96a",
+    "agent.py": "d93dd70206e695a7de34c74bc534806051bcc3803fc3612e297250fd1884ed5c",
+    "governed_clinical_guidelines_provider.py": "32610536928a345034c6b5018526aefa5bb6e64d2949e50fa4671df81b4cee26",
+    "output_contract_registry.json": "6bd03d239d8037a6f07ed1d725b36a1559a33670c232c1c8b7007394090c0250",
+    "run_agent_hub_examples_e2e.py": "c9cc6df56801895966d9dbf1cc2d4072377290a0da2f0873c398da8c521bc551",
+    "agent_hub_examples_e2e.json": "364dc2fb96782bf808905ac888e1eb870547f459fb2e88e7b6b9bfbbc3b5ffab",
+    "agent_hub_adversarial_e2e.json": "faef631dc1fe54d4315e44e7517ab8cdc834a7668e14fc71788bdfb8840d32d0",
+    "agent_hub_reference_quality_replay.json": "324414a2cdee6323f1358bf63bdb8e8dd032524b08e0c3ecc5afdc6fb425ac84",
+    "agent_hub_stability_benchmark.json": "963696f71834f763b2427e290a0bfd5535afb623eaa73131ad74c1e20adfc657",
+    "agent_hub_local_semantic_evidence_bundle.json": "124686a62d13647ffa5232f77e772c2ff9415359a85a3a76fea9e4756b67228b",
+    "agent_hub_runtime_matrix.json": "097c3d665dcc787ceaf3372d934de715f0e7a9dfe98eacb97cd584238ddd1fde",
+    "agent_hub_field_relation_replay.json": "e497c86c30a18c1a4b44d72b10688e6aeb82c28d373cb32f1514aab3d1968659",
+    "agent_hub_evidence_binding_replay.json": "24900f529cdae98bb030373633815ada177c1ceec181359d0cfc7ac4989b0486",
+    "broad_regression_final_junit.xml": "3de6c8a8b33e95dcb707bc7706bd2c1d018ae136c5a10d4e5e4f5c453b425e47",
+    "deployment_preflight.json": "61dd0c39b166fd7fc2717909a9e02417b7d058fcecfe21e0079cd581d2ac308d",
+    "corti_prebuilt_agent_parity.json": "5de14527c5bdbcbacf46f09d7ca35d9b0d434eb1874dce49a11fd5f638f4b88d"
+  },
+  "operational_findings": {
+    "protected_database_bytes": 8536064,
+    "protected_database_sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "protected_database_last_write_time": "2026-08-22 17:16:22",
+    "python_or_uvicorn_processes_remaining": false,
+    "python_listeners_remaining": false,
+    "memory_access_violation_observed_during_phase": false,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "real_llm_used": false,
+    "external_network_used_by_e2e": false,
+    "llm_environment_key_lengths_process_user_machine": {
+      "ICODER_CREDENTIAL_LLM": [0, 0, 0],
+      "DEEPSEEK_API_KEY": [0, 0, 0],
+      "OPENAI_API_KEY": [0, 0, 0]
+    }
+  },
+  "corti_public_comparators": [
+    "https://corti.ai/agents/clinical-guidelines-agent",
+    "https://docs.corti.ai/agentic/overview",
+    "https://corti.ai/agentic-framework"
+  ],
+  "claims_not_proven": [
+    "configured_domain_web_search_or_web_fetch",
+    "professional_source_authenticity_or_license_validation",
+    "latest_guideline_version_currency_verification",
+    "free_text_multi_document_clinical_synthesis",
+    "clinical_guideline_applicability_reasoning",
+    "guideline_strength_or_clinical_significance_assessment",
+    "full_section_level_external_citations",
+    "authoritative_no_guideline_or_partial_coverage_determination",
+    "strict_26_agent_live_provider_semantic_quality",
+    "corti_product_or_model_equivalence",
+    "independent_clinical_guideline_quality",
+    "hospital_acceptance_or_production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false,
+  "production_ready": false
+}

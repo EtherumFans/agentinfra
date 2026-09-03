@@ -1,0 +1,194 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-633ec0b9-3efd-44b2-8621-7207ad8cb493",
+  "trace_id": "trace-9c7ddc24634e41f2",
+  "trace_url": "/ai-studio/runs/run-633ec0b9-3efd-44b2-8621-7207ad8cb493/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 9876,
+  "cost": {
+    "amount": 0.00072086,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "转移性右下腹痛1天",
+        "McBurney点压痛反跳痛阳性",
+        "WBC 13.2, 中性粒细胞85%",
+        "CT示阑尾肿胀",
+        "术前诊断：急性阑尾炎（单纯性，无穿孔）",
+        "行腹腔镜阑尾切除术",
+        "术后病理：急性单纯性阑尾炎",
+        "无并发症，术后恢复良好，第3天出院"
+      ],
+      "encounter_metadata": {
+        "patient_age": "45岁",
+        "patient_sex": "男性",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "The chart does not specify the anatomical site of the appendicitis beyond '阑尾肿胀' on CT, but the diagnosis of acute appendicitis is clear. However, the location of the appendix (e.g., retrocecal, pelvic) is not documented, which may affect surgical approach or complications.",
+        "why_it_matters": "Anatomical site specificity can impact coding for procedures and potential complications, and may be relevant for clinical accuracy.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "CT:阑尾肿胀",
+          "char_start": 56,
+          "char_end": 63,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "The severity of the acute appendicitis is documented as '单纯性, 无穿孔' in the preoperative diagnosis and confirmed by pathology, but the clinical severity (e.g., mild, moderate) is not explicitly stated. However, this is likely sufficient for coding.",
+        "why_it_matters": "Severity specification may be needed for accurate coding, but in this case, the pathology confirms simple appendicitis, so this gap is minor.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "术前诊断:急性阑尾炎(单纯性, 无穿孔)",
+          "char_start": 82,
+          "char_end": 102,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The clinical documentation is sufficient for coding acute appendicitis, as the diagnosis, pathology confirmation, and absence of perforation are clearly stated. However, to ensure accurate coding for potential anatomical variations or surgical complexity, please document the appendix location (e.g., retrocecal, pelvic) if known, and explicitly state the clinical severity (e.g., mild, moderate) if it differs from the pathological finding. These details are not mandatory for the primary code but may be relevant for secondary codes or quality measures.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1898,
+        "tokens": 372,
+        "run_id": "run-39595642619c",
+        "trace_id": "trace-bbecd0c1c6b2"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-df74d2e052c3",
+        "trace_id": "trace-7d2009eaf605"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-6b0731343751",
+        "trace_id": "trace-e30b71a388bb"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-7364a43d09e9",
+        "trace_id": "trace-1b50c2d17be0"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-633ec0b9-3efd-44b2-8621-7207ad8cb493",
+      "stage_trace": {
+        "encounter_synthesis": "trace-3c6fc36ea57c",
+        "gap_identification": "trace-5f6810b3dec3",
+        "expert_consultation": "trace-2dd61493b444",
+        "query_generation": "trace-e7a4e72b8476",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-62eb9432955a",
+        "semantic_necessity_gate": "trace-5b34bb19703a",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-23e67768418d"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-2bdad92772d3",
+        "gap_identification": "run-1dbf09f69a51",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-7c27f232309b",
+        "query_generation": "run-d776b8b7f96f",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.75;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=Y,D7_complications=Y,D8_course=Y;dropped=2;final_count=0;llm_complete=True;llm_reasoning=The chart documents a clear diagnosis of acute simple appendicitis with supporti",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-5e622b5cf18f",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-e6a7628880b1",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-5d8db897eb15"
+      },
+      "trace_id": "trace-9c7ddc24634e41f2"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI5NTA2ZjRmN2Q4MWI2MGNlMTVmYTQ2MGU4MGIzMGY4NjUxNjA2ODllNzI2NzZiZjY2MDExNTQwMWNjMDlkNDM2IiwiZSI6MTc4Nzg4NzMzNywibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tNjMzZWMwYjktM2VmZC00NGIyLTg2MjEtNzIwN2FkOGNiNDkzIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.1gMwHKlS3K9KENXzKnz6rpUblQ9yv0Ynfh5xjWL9-wM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 10.01
+}

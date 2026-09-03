@@ -1,0 +1,77 @@
+{
+  "case_id": "H-SUS-A-004",
+  "group": "SUSPECTED",
+  "variant": "A",
+  "session_id": "03009322-8e7e-4d4a-9335-ea520d634e33",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 26.88,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_query_topics": [
+      "reconcile 'possible pneumonia' with objective findings"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 3575,
+  "first_token_at_s": 4.61,
+  "last_token_at_s": 26.88,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"62a2c5cd-d227-4042-91e2-9b9ac858f7e9\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- ED documentation lists \\\"possible pneumonia.\\\"\\n- Current excerpt documents no supportive clinical findings: \\\"clear lung fields on auscultation,\\\" \\\"no cough,\\\" \\\"no f",
+    "message|{\"id\":\"62a2c5cd-d227-4042-91e2-9b9ac858f7e9\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc5-66e2-760b-8e66-2c3a71bafcd8\",\"taskId\":\"019f5bc5-66e2-7572-b6db-d56a98a2b965\",\"credits\":0.055292,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.055292},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc5-66e2-760b-8e66-2c3a71bafcd8",
+    "taskId": "019f5bc5-66e2-7572-b6db-d56a98a2b965",
+    "credits": 0.055292,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- ED documentation lists \"possible pneumonia.\"\n- Current excerpt documents no supportive clinical findings: \"clear lung fields on auscultation,\" \"no cough,\" \"no fever,\" \"normal WBC,\" and \"chest X-ray clear.\"\n- \"No antibiotic therapy started.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Uncertain/unsupported diagnosis status for pneumonia\n- Why it matters: \"Possible pneumonia\" is not a confirmed diagnosis, and the excerpt contains multiple findings that do not support active pneumonia. If carried forward without clarification, this creates risk of unsupported diagnosis capture.\n- Evidence quote(s): \"possible pneumonia\"; \"clear lung fields on auscultation\"; \"no cough\"; \"no fever\"; \"normal WBC\"; \"chest X-ray clear\"; \"No antibiotic therapy started.\"\n- Minimal clarification needed:"
+      }
+    ],
+    "gap_count": 1,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of ED-documented possible pneumonia"
+      }
+    ],
+    "query_count": 1,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and query appropriateness. Accepted guidance that pneumonia appears clinically unsupported/uncertain in this excerpt and that a non-leading clarification query is appropriate. Accepted because the guidance was grounded in the exact excerpted evidence and did not recommend a leading diagnosis.\n- AMBOSS Expert: Not consulted; no additional clinical criteria review was necessary to identify that the documented diagnosis is uncertain and unsupported within the provided excerpt.\n- CDI Web Search Expert: Not consulted; no current external guidance was required to answer based on the excerpt.\n\nSource-grounded note: Based on the provided chart excerpt alone, there is support to query for clarification of the diagnosis status, but not to presume or promote a pneumonia diagnosis.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- ED documentation lists \"possible pneumonia.\"\n- Current excerpt documents no supportive clinical findings: \"clear lung fields on auscultation,\" \"no cough,\" \"no fever,\" \"normal WBC,\" and \"chest X-ray clear.\"\n- \"No antibiotic therapy started.\"\n\nDocumentation Gaps:\n1. Uncertain/unsupported diagnosis status for pneumonia\n- Why it matters: \"Possible pneumonia\" is not a confirmed diagnosis, and the excerpt contains multiple findings that do not support active pneumonia. If carried forward without clarification, this creates risk of unsupported diagnosis capture.\n- Evidence quote(s): \"possible pneumonia\"; \"clear lung fields on auscultation\"; \"no cough\"; \"no fever\"; \"normal WBC\"; \"chest X-ray clear\"; \"No antibiotic therapy started.\"\n- Minimal clarification needed: Whether, after evaluation, pneumonia was confirmed, ruled out/not present, attributable to another condition, or remained clinically undetermined.\n\nProposed Provider Queries:\n1. Topic: Clarification of ED-documented possible pneumonia\n- Reason query is needed: The diagnosis is documented as possible/uncertain and the remainder of the excerpt shows no clear supporting indicators.\n- Evidence quote(s): \"possible pneumonia\"; \"clear lung fields on auscultation\"; \"no cough\"; \"no fever\"; \"normal WBC\"; \"chest X-ray clear\"; \"No antibiotic therapy started.\"\n- Non-leading query text: \"The ED note documents 'possible pneumonia.' The current record also notes clear lung fields on auscultation, no cough, no fever, normal WBC, a clear chest X-ray, and no antibiotic therapy started. Based on your clinical assessment after evaluation, please clarify the status of pneumonia for this encounter.\"\n- Suggested response options:\n  - Pneumonia confirmed\n  - Another condition explained the presentation (please specify)\n  - Pneumonia ruled out / not present\n  - Clinically undetermined\n  - Other (please specify)\n\nCoding Specificity Checklist:\n- Final status of pneumonia for the encounter: confirmed, ruled out, alternative diagnosis, or clinically undetermined\n- If confirmed, clear final diagnostic statement rather than uncertain terminology such as \"possible\"\n- If not confirmed, document that it was ruled out/not present or superseded by another explanation\n\nRisk Flags:\n- Unsupported diagnosis risk: \"possible pneumonia\" appears contradicted by the excerpted findings.\n- Ambiguous term requiring clarification: \"possible\"\n- Copy-forward risk: If pneumonia remains on the problem list or discharge documentation without clarification, it may be unsupported by the available excerpt.\n- Limitation: This assessment is based only on the provided excerpt; if other chart sections contain supportive findings, the conclusion could change.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and query appropriateness. Accepted guidance that pneumonia appears clinically unsupported/uncertain in this excerpt and that a non-leading clarification query is appropriate. Accepted because the guidance was grounded in the exact excerpted evidence and did not recommend a leading diagnosis.\n- AMBOSS Expert: Not consulted; no additional clinical criteria review was necessary to identify that the documented diagnosis is uncertain and unsupported within the provided excerpt.\n- CDI Web Search Expert: Not consulted; no current external guidance was required to answer based on the excerpt.\n\nSource-grounded note: Based on the provided chart excerpt alone, there is support to query for clarification of the diagnosis status, but not to presume or promote a pneumonia diagnosis."
+}

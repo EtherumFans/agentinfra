@@ -1,0 +1,88 @@
+{
+  "schema_version": "icoder.agentic-v2-context-resources-phase-evidence/v1",
+  "generated_at": "2026-08-22T11:29:33.2508240+08:00",
+  "result": "passed_with_file_artifact_and_external_runtime_gates_open",
+  "corti_public_baseline": {
+    "observed_on": "2026-08-22",
+    "contexts_are_first_class_resources": true,
+    "context_detail_includes_oldest_first_tasks_and_history": true,
+    "history_length_supported": true,
+    "context_delete_is_irreversible": true,
+    "task_artifact_is_context_and_task_scoped": true,
+    "context_list_currently_private_preview_empty": true,
+    "sources": [
+      "https://docs.corti.ai/llms.txt",
+      "https://docs.corti.ai/llms-full.txt",
+      "https://a2a-protocol.org/dev/specification/"
+    ]
+  },
+  "implemented_endpoints": [
+    "GET /api/v2/agentic/contexts",
+    "GET /api/v2/agentic/contexts/{context_id}",
+    "DELETE /api/v2/agentic/contexts/{context_id}",
+    "GET /api/v2/agentic/contexts/{context_id}/tasks",
+    "GET /api/v2/agentic/contexts/{context_id}/tasks/{task_id}",
+    "GET /api/v2/agentic/contexts/{context_id}/tasks/{task_id}/artifacts/{artifact_id}"
+  ],
+  "security_and_integrity": {
+    "tenant_scoped_context_lookup": true,
+    "cross_tenant_not_found_semantics": true,
+    "oauth_read_write_scope_separation": true,
+    "signed_query_bound_pagination": true,
+    "route_redacted_encrypted_history_only": true,
+    "internal_message_metadata_suppressed": true,
+    "context_delete_audited_after_scrub": true,
+    "legacy_context_artifact_fallback_refused_without_task_ownership": true
+  },
+  "sdk_contracts": {
+    "javascript": {
+      "typed_v2_methods": 6,
+      "build_passed": true,
+      "tests_passed": 42,
+      "tests_failed": 0
+    },
+    "python": {
+      "v2_methods": 6,
+      "tests_passed": 49,
+      "tests_failed": 0
+    },
+    "dotnet": {
+      "typed_v2_methods": 6,
+      "source_contract_test_added": true,
+      "locally_compiled": false,
+      "reason": "dotnet CLI is unavailable on this development host"
+    }
+  },
+  "tests": {
+    "focused_backend": {"passed": 3, "failed": 0},
+    "full_a2a_integration_openapi_and_preflight": {
+      "passed": 103,
+      "failed": 0,
+      "warnings": 9
+    },
+    "deployment_preflight": {"passed": 59, "failed": 0},
+    "agent_hub_runtime_matrix": {
+      "hub_visible_agents": 26,
+      "launch_candidate_ready": 26,
+      "visible_not_ready": 0
+    },
+    "openapi": {"paths": 265, "bytes": 826049}
+  },
+  "artifacts": {
+    "runtime_matrix": "reports/agent_hub/agentic_v2_context_resources_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.json",
+    "runtime_matrix_sha256": "eb291eb3366471c0a5a573d52e919f609d903370090dc76e877d5248fd7b4390",
+    "deployment_preflight": "reports/agent_hub/agentic_v2_context_resources_phase_20260822/deployment_preflight/deployment_preflight.json",
+    "deployment_preflight_sha256": "6dfbfef1cd5c7205a6a34014674a6ae52b491ab326b984942e5d328d0506a5c6",
+    "openapi": "docs/openapi/openapi.json",
+    "openapi_sha256": "083c83f3933e09424a39f086a14d23709971113e81a765cdb8b989737f8ae0d3",
+    "summary": "docs/corti_parity/ICODER_AGENTIC_V2_CONTEXT_RESOURCES_PHASE_SUMMARY_2026-08-22.md"
+  },
+  "limitations": [
+    "The durable runtime currently produces a synthesized task result artifact; file/URI artifact persistence and retrieval are not yet implemented.",
+    "Legacy context-level artifact references have no task ownership column and are intentionally not exposed through a task-specific endpoint.",
+    "Public Corti and A2A v1 documentation defines resource IDs as server-generated opaque strings and does not establish a type-prefixed UUIDv7 requirement.",
+    "Corti context listing currently returns an empty private-preview page; iCoDer implements a real tenant-scoped list and records this as a deliberate functional extension.",
+    "The .NET source contract requires Linux CI compilation and test execution.",
+    "Multi-replica queues, real provider interruption, hospital integration, cloud infrastructure, legal, certification, and independent clinical review remain external gates."
+  ]
+}

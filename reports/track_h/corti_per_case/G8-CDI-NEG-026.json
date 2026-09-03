@@ -1,0 +1,134 @@
+{
+  "case_id": "G8-CDI-NEG-026",
+  "group": "negation_history",
+  "variant": "",
+  "session_id": "e662ff89-1b5c-45f6-80b9-111f18a78f7c",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 19.74,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "diabetes type confirmation"
+    ],
+    "notes": "Diagnosis marked uncertain (?); must not assume T2DM without workup"
+  },
+  "text_length": 4318,
+  "first_token_at_s": 3.93,
+  "last_token_at_s": 19.74,
+  "event_count": 10,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"systems\":[{\"id\":\"icd-10-cm\",\"label\":\"US diagnosis codes\"},{\"id\":\"icd-10-pcs\",\"label\":\"US procedure codes\"},{\"id\":\"icd-10-int\",\"label\":\"WHO international diagnosis codes\"},{\"id\":\"icd-10-uk\",\"",
+    "message|{\"id\":\"d815cfa0-7dba-4857-9850-2da85c911bc8\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 55-year-old male with \\\"polyuria and polydipsia for 1 week.\\\"\\n- Past history includes \\\"hypertension for 5 years.\\\"\\n- Patient \\\"Denies diabetes, coronary artery disea",
+    "message|{\"id\":\"d815cfa0-7dba-4857-9850-2da85c911bc8\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55de-731a-76f5-b7cf-9150f0c5bc39\",\"taskId\":\"019f55de-731a-7683-af81-7da8f407b433\",\"credits\":0.054468,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.054468},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "systems": [
+        {
+          "id": "icd-10-cm",
+          "label": "US diagnosis codes"
+        },
+        {
+          "id": "icd-10-pcs",
+          "label": "US procedure codes"
+        },
+        {
+          "id": "icd-10-int",
+          "label": "WHO international diagnosis codes"
+        },
+        {
+          "id": "icd-10-uk",
+          "label": "UK diagnosis codes"
+        },
+        {
+          "id": "icd-10-gm",
+          "label": "German diagnosis codes"
+        },
+        {
+          "id": "cim-10-fr",
+          "label": "French diagnosis codes"
+        },
+        {
+          "id": "opcs-4",
+          "label": "UK procedure codes"
+        },
+        {
+          "id": "ops",
+          "label": "German procedure codes"
+        },
+        {
+          "id": "ccam",
+          "label": "French procedure codes"
+        },
+        {
+          "id": "snomed-ct-int",
+          "label": "SNOMED CT International clinical terms"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55de-731a-76f5-b7cf-9150f0c5bc39",
+    "taskId": "019f55de-731a-7683-af81-7da8f407b433",
+    "credits": 0.054468,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 55-year-old male with \"polyuria and polydipsia for 1 week.\"\n- Past history includes \"hypertension for 5 years.\"\n- Patient \"Denies diabetes, coronary artery disease, chronic kidney disease.\"\n- Family history notes \"father with diabetes.\"\n- Admission diagnosis is documented as \"type 2 diabetes?\" which is uncertain/questioned.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Uncertain principal diagnosis of diabetes\n- Why it matters: A questioned diagnosis cannot be coded as an established diagnosis in the inpatient record without provider clarification.\n- Evidence quote: \"Admission diagnosis: type 2 diabetes?\"\n- Minimal clarification needed: Whether diabetes is confirmed, ruled out, or remains clinically undetermined."
+      },
+      {
+        "idx": 2,
+        "text": "Diabetes type/status lacks confirmation and specificity\n- Why it matters: If diabetes is present, the record must specify the diagnosis clearly rather than as a possibility; if not present, symptoms may remain the documented reason for evaluation.\n- Evidence quotes: \"Denies diabetes\" and \"Admission diagnosis: type 2 diabetes?\"\n- Minimal clarification needed: Clarify current diagnostic status and, if confirmed, the diabetes type."
+      },
+      {
+        "idx": 3,
+        "text": "Symptom-only presentation without linked final diagnosis\n- Why it matters: The symptoms are documented, but no confirmed etiology is documented in the excerpt.\n- Evidence quote: \"polyuria and polydipsia for 1 week\"\n- Minimal clarification needed: Whether these symptoms are attributable to a confirmed condition or remain presenting symptoms only."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of current diabetic diagnosis status"
+      },
+      {
+        "idx": 2,
+        "text": "Clarification of the etiology/status of presenting symptoms"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Coding Expert: Consulted for coding/CDI specificity review. Accepted only the general need for clarification of the questioned diagnosis; no code assignment was used because the expert output did not provide chart-specific gaps or compliant queries.\n- AMBOSS Expert: Not consulted; no clinical criteria can be reliably applied without additional objective data.\n- CDI/Web Search Expert: Not consulted; current external guidance was not necessary to identify the basic documentation ambiguity in this excerpt.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 55-year-old male with \"polyuria and polydipsia for 1 week.\"\n- Past history includes \"hypertension for 5 years.\"\n- Patient \"Denies diabetes, coronary artery disease, chronic kidney disease.\"\n- Family history notes \"father with diabetes.\"\n- Admission diagnosis is documented as \"type 2 diabetes?\" which is uncertain/questioned.\n\nDocumentation Gaps:\n1. Uncertain principal diagnosis of diabetes\n- Why it matters: A questioned diagnosis cannot be coded as an established diagnosis in the inpatient record without provider clarification.\n- Evidence quote: \"Admission diagnosis: type 2 diabetes?\"\n- Minimal clarification needed: Whether diabetes is confirmed, ruled out, or remains clinically undetermined.\n\n2. Diabetes type/status lacks confirmation and specificity\n- Why it matters: If diabetes is present, the record must specify the diagnosis clearly rather than as a possibility; if not present, symptoms may remain the documented reason for evaluation.\n- Evidence quotes: \"Denies diabetes\" and \"Admission diagnosis: type 2 diabetes?\"\n- Minimal clarification needed: Clarify current diagnostic status and, if confirmed, the diabetes type.\n\n3. Symptom-only presentation without linked final diagnosis\n- Why it matters: The symptoms are documented, but no confirmed etiology is documented in the excerpt.\n- Evidence quote: \"polyuria and polydipsia for 1 week\"\n- Minimal clarification needed: Whether these symptoms are attributable to a confirmed condition or remain presenting symptoms only.\n\nProposed Provider Queries:\n1. Topic: Clarification of current diabetic diagnosis status\n- Reason query is needed: The record contains a questioned admission diagnosis and a conflicting history statement.\n- Evidence quote: \"Denies diabetes\"; \"Admission diagnosis: type 2 diabetes?\"\n- Non-leading query text: \"The record notes 'Denies diabetes' and the admission diagnosis is documented as 'type 2 diabetes?'. Based on your clinical assessment, please clarify the patient’s diagnostic status for diabetes during this encounter.\"\n- Suggested response options:\n  - Diabetes mellitus confirmed (please specify type)\n  - Diabetes mellitus ruled out\n  - Abnormal glucose evaluation in progress; diagnosis not yet established\n  - Clinically undetermined\n  - Other (please specify)\n\n2. Topic: Clarification of the etiology/status of presenting symptoms\n- Reason query is needed: The chart documents symptoms but no confirmed cause in the excerpt.\n- Evidence quote: \"polyuria and polydipsia for 1 week\"\n- Non-leading query text: \"The record documents 'polyuria and polydipsia for 1 week.' Please clarify whether these symptoms are due to a confirmed condition during this encounter or should remain documented as presenting symptoms without a determined etiology.\"\n- Suggested response options:\n  - Symptoms due to a confirmed condition (please specify)\n  - Symptoms remain presenting symptoms; etiology not determined\n  - Symptoms ruled out/not clinically significant\n  - Clinically undetermined\n  - Other (please specify)\n\nCoding Specificity Checklist:\n- Whether diabetes is confirmed, ruled out, or undetermined\n- If confirmed, diabetes type\n- Whether the presenting symptoms are attributable to a confirmed diagnosis\n- Whether hypertension is a current active comorbidity relevant to this encounter\n\nRisk Flags:\n- Contradictory/ambiguous documentation: \"Denies diabetes\" versus \"Admission diagnosis: type 2 diabetes?\"\n- Unsupported definitive diagnosis risk: The excerpt does not provide objective findings such as glucose or HbA1c to support a confirmed diabetes diagnosis.\n- Query limitation: There is insufficient evidence in the excerpt to query diabetic complications, hyperglycemia severity, ketoacidosis, hyperosmolar state, kidney involvement, or other organ manifestations.\n\nSpecialist Trace:\n- Coding Expert: Consulted for coding/CDI specificity review. Accepted only the general need for clarification of the questioned diagnosis; no code assignment was used because the expert output did not provide chart-specific gaps or compliant queries.\n- AMBOSS Expert: Not consulted; no clinical criteria can be reliably applied without additional objective data.\n- CDI/Web Search Expert: Not consulted; current external guidance was not necessary to identify the basic documentation ambiguity in this excerpt."
+}

@@ -1,0 +1,373 @@
+{
+  "case_id": "CASE-b32c3f42fdbd",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-b32c3f42fdbd/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "入院诊断'2型糖尿病?'使用问号，未明确诊断，且缺乏诊断依据（如血糖值、糖化血红蛋白等）的明确记录。",
+      "why_it_matters": "诊断不明确会影响编码准确性，且缺乏客观证据支持诊断，可能导致编码不准确或需要查询。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病?",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-b32c3f42fdbd/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "主诉'多饮多尿1周'未明确是否伴有其他症状（如体重下降、视力模糊等），也未记录血糖检测结果，无法确认糖尿病诊断的临床依据。",
+      "why_it_matters": "缺乏血糖等实验室证据，无法支持糖尿病诊断，影响编码和临床准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "多饮多尿1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-b32c3f42fdbd/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "既往史中'<REDACTED:NAME>5年'被遮蔽，无法确定具体疾病，可能影响合并症编码。",
+      "why_it_matters": "既往史不明确，无法编码相关合并症，影响DRG分组和风险调整。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:<REDACTED:NAME>5年",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-b32c3f42fdbd/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "家族史中'<REDACTED:NAME>:父亲糖尿病'，遮蔽部分可能为'家族史'，但未明确具体关系，且未记录其他家族史。",
+      "why_it_matters": "家族史不完整，可能影响遗传风险评估和诊断考虑。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "<REDACTED:NAME>:父亲糖尿病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-b32c3f42fdbd/GAP-003",
+      "topic": "既往史具体疾病",
+      "reason": "既往史中疾病名称被遮蔽，无法确定具体疾病，影响合并症评估。",
+      "query_text": "既往史中记录'<REDACTED:NAME>5年'，请明确该遮蔽部分所指的具体疾病名称。",
+      "response_options": [
+        "A. 高血压",
+        "B. 高脂血症",
+        "C. 其他慢性疾病（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "既往:<REDACTED:NAME>5年",
+          "char_start": 18,
+          "char_end": 38,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-b32c3f42fdbd/GAP-004",
+      "topic": "家族史具体关系",
+      "reason": "家族史中遮蔽部分可能为'家族史'，但未明确具体关系，需澄清。",
+      "query_text": "家族史记录'<REDACTED:NAME>:父亲糖尿病'，请明确遮蔽部分所指的具体家族成员关系。",
+      "response_options": [
+        "A. 父亲",
+        "B. 母亲",
+        "C. 兄弟姐妹",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "<REDACTED:NAME>:父亲糖尿病",
+          "char_start": 54,
+          "char_end": 75,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-b32c3f42fdbd/GAP-001",
+      "topic": "2型糖尿病诊断明确性",
+      "reason": "入院诊断使用问号，且缺乏血糖等诊断依据记录，需明确诊断状态。",
+      "query_text": "根据现有记录，入院诊断'2型糖尿病?'尚不明确。请明确该诊断是否已确诊，或仍为待排除诊断？",
+      "response_options": [
+        "A. 已确诊为2型糖尿病",
+        "B. 仍为疑似诊断，待进一步检查",
+        "C. 已排除2型糖尿病",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:2型糖尿病?",
+          "char_start": 76,
+          "char_end": 87,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-b32c3f42fdbd/GAP-002",
+      "topic": "糖尿病相关症状及血糖检测",
+      "reason": "主诉仅提及多饮多尿，未记录其他症状及血糖检测结果，影响诊断依据。",
+      "query_text": "患者主诉为多饮多尿1周，请补充是否伴有体重下降、视力模糊等其他症状，以及血糖或糖化血红蛋白检测结果。",
+      "response_options": [
+        "A. 伴有其他症状，且血糖检测异常",
+        "B. 无其他症状，但血糖检测异常",
+        "C. 无其他症状，血糖检测正常",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "多饮多尿1周",
+          "char_start": 11,
+          "char_end": 17,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 55岁, 多饮多尿1周。既往:<REDACTED:NAME>5年。否认糖尿病、冠心病、慢性肾病。<REDACTED:NAME>:父亲糖尿病。入院诊断:2型糖尿病?",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，55岁",
+      "主诉：多饮多尿1周",
+      "既往史：高血压5年（根据上下文推断，原文为<REDACTED:NAME>5年，但结合常见病史，可能为高血压，但原文未明确，故不写入）",
+      "否认糖尿病、冠心病、慢性肾病",
+      "家族史：父亲有糖尿病",
+      "入院诊断：2型糖尿病待查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "55岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "入院诊断使用'?'，表示疑似或待查，未明确最终诊断。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinical record must explicitly confirm the diabetes diagnosis by documenting specific glucose or HbA1c values and ruling out other causes of polyuria/polydipsia, while also clarifying whether the presenting symptoms are isolated or accompanied by weight loss or visual changes. The redacted past medical history and family history details must be fully disclosed, including the exact condition of 5 years’ duration and the precise relationship of the diabetic family member, as these directly impact comorbidity and risk-factor coding. Without this specificity, the diagnosis remains provisional and cannot be coded as definitive.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3577,
+      "tokens": 367
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-475a9232e57a",
+    "gap_identification": "run-b7cdb7d40708",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-1ed1b1f13e2d",
+    "query_generation": "run-8fb0ba5563de",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=图表缺乏明确的糖尿病诊断依据（如血糖值），且诊断本身带有不确定性，既往史和家族史信息不完整，因此不完整。",
+    "query_necessity_gate": "necessary=2;unnecessary=2;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-6f94c382ad72",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-e0cd6ab20e79",
+    "query_compliance_gate": ";passed=0;blocked=2",
+    "specialist_trace_emit": "run-61c79444ae20"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-c3cc06496cd6",
+    "gap_identification": "trace-f4af14b124cc",
+    "expert_consultation": "trace-022f31817471",
+    "query_generation": "trace-9ea23b9b1610",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-7c0937aa4b89",
+    "semantic_necessity_gate": "trace-2e6be79fbfa7",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-403c35492f40"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2900,
+      "prompt_tokens": 221,
+      "completion_tokens": 141,
+      "total_tokens": 362,
+      "run_id": "run-475a9232e57a",
+      "trace_id": "trace-c3cc06496cd6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6791,
+      "prompt_tokens": 1086,
+      "completion_tokens": 715,
+      "total_tokens": 1801,
+      "run_id": "run-b7cdb7d40708",
+      "trace_id": "trace-f4af14b124cc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7259,
+      "prompt_tokens": 1353,
+      "completion_tokens": 897,
+      "total_tokens": 2250,
+      "run_id": "run-8fb0ba5563de",
+      "trace_id": "trace-9ea23b9b1610",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3577,
+      "prompt_tokens": 250,
+      "completion_tokens": 117,
+      "total_tokens": 367,
+      "run_id": "run-9bddb7440815",
+      "trace_id": "trace-77ba07e66043",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-80ab8f1964f2",
+      "trace_id": "trace-f61030e0ea32",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-29706b7e9c84",
+      "trace_id": "trace-6b621406b968",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-c55324e70f69",
+      "trace_id": "trace-412f23aa1836",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:59:04.958815Z"
+}

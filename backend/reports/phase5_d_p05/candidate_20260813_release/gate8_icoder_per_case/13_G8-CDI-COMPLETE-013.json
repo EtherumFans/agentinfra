@@ -1,0 +1,190 @@
+{
+  "case_id": "CASE-59b3ae0f4cd9",
+  "completion_state": "AUTO_PASS",
+  "documentation_gaps": [],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [],
+  "chart_excerpt_preview": "患者男性, 28岁, 健康体检。BMI 23, BP 118/76。无吸烟饮酒史。既往无特殊。<REDACTED:NAME>常。血脂、血糖、肝肾功能均正常。诊断:健康体检, 无异常发现。建议:定期随访。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "健康体检",
+      "无异常发现",
+      "BMI 23",
+      "血压118/76 mmHg",
+      "无吸烟饮酒史",
+      "既往无特殊",
+      "血脂、血糖、肝肾功能均正常",
+      "建议定期随访"
+    ],
+    "encounter_metadata": {
+      "patient_age": "28岁",
+      "patient_sex": "男性",
+      "encounter_type": "健康体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "no coding-relevant gaps survived earlier gates",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'BMI' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-2e6f3e8c0e7a",
+    "gap_identification": "run-ce64e912a9c7",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-8433bcba0451",
+    "query_generation": "",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a routine health check with no abnormal findings, normal lab",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-1d92b24ed684",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-f0f8b42fedb6",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-b34fc1e8bc93"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-ce630bb9279f",
+    "gap_identification": "trace-bdc6b7daa38b",
+    "expert_consultation": "trace-ec57c26a103c",
+    "query_generation": "",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-36a4e00970fe",
+    "semantic_necessity_gate": "trace-78055345841a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-6df0dfd3f393"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3149,
+      "prompt_tokens": 233,
+      "completion_tokens": 103,
+      "total_tokens": 336,
+      "run_id": "run-2e6f3e8c0e7a",
+      "trace_id": "trace-ce630bb9279f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 9946,
+      "prompt_tokens": 1059,
+      "completion_tokens": 83,
+      "total_tokens": 1142,
+      "run_id": "run-ce64e912a9c7",
+      "trace_id": "trace-bdc6b7daa38b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2610a53c7ab2",
+      "trace_id": "trace-aa6cf4517ab1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1f9821952d2b",
+      "trace_id": "trace-3295539aceb2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-61e402415c1a",
+      "trace_id": "trace-ebc62fbd5260",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-596e1172f2ef",
+      "trace_id": "trace-78dcf6386e9c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:54:54.341981Z"
+}

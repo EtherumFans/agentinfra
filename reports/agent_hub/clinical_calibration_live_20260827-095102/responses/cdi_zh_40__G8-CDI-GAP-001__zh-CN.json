@@ -1,0 +1,248 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-0b8da65d-dff8-47d0-9898-92f28b612860",
+  "trace_id": "trace-6d0d2a6c8b6043fb",
+  "trace_url": "/ai-studio/runs/run-0b8da65d-dff8-47d0-9898-92f28b612860/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 21271,
+  "cost": {
+    "amount": 0.0013167,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "64岁男性",
+        "咳嗽咳痰伴发热3天",
+        "胸片示右下肺浸润影",
+        "WBC 14.5",
+        "体温38.3℃",
+        "入院诊断：肺炎",
+        "治疗：头孢曲松+阿奇霉素",
+        "既往史：2型糖尿病、高血压"
+      ],
+      "encounter_metadata": {
+        "patient_age": "64岁",
+        "patient_sex": "男",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Pneumonia diagnosis lacks specification of causative organism or pathogen (e.g., bacterial, viral, or specific pathogen).",
+        "why_it_matters": "Specificity of pneumonia etiology is required for accurate coding and appropriate treatment; unspecified pneumonia may lead to coding as unspecified pneumonia, affecting DRG assignment and quality metrics.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "Pneumonia severity is not documented (e.g., severity of illness, CURB-65 score, or whether it is severe pneumonia).",
+        "why_it_matters": "Severity of pneumonia impacts coding (e.g., severe sepsis vs. simple pneumonia) and clinical management; lack of severity documentation may lead to under-coding or inaccurate severity of illness.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "The clinical significance of the chest X-ray finding (right lower lung infiltrate) is not explicitly correlated with the pneumonia diagnosis.",
+        "why_it_matters": "The infiltrate supports the pneumonia diagnosis, but the documentation does not explicitly state the correlation, which may be needed for clinical clarity and coding accuracy.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "胸片示右下肺浸润影",
+          "char_start": 24,
+          "char_end": 33,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "肺炎严重程度",
+        "reason": "肺炎严重程度未记录，影响病情评估和治疗强度。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "入院诊断:肺炎",
+            "char_start": 52,
+            "char_end": 59,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者肺炎的严重程度如何？",
+        "response_options": [
+          "A. 轻度",
+          "B. 中度",
+          "C. 重度",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "The diagnosis of pneumonia is asserted but lacks explicit clinical correlation with the chest X-ray finding and lab results; however, the infiltrate and elevated WBC support it, so this may be a false positive."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the pneumonia diagnosis must be linked to a specific causative organism (e.g., bacterial vs. viral, or a named pathogen like *Streptococcus pneumoniae*) and documented severity (e.g., CURB-65 score, ICU admission, or “severe pneumonia”), as these directly affect code assignment and risk adjustment. Additionally, the clinical note should explicitly state that the right lower lobe infiltrate on chest X-ray is consistent with and supports the pneumonia diagnosis, rather than leaving the imaging finding as an isolated abnormality. Without this specificity, the record lacks the clinical clarity needed to distinguish pneumonia from other respiratory conditions and to capture the full acuity of the patient’s presentation.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2730,
+        "tokens": 334,
+        "run_id": "run-e07dff41318c",
+        "trace_id": "trace-e199464f2b09"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f7731f286d0f",
+        "trace_id": "trace-061c1424e24d"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-9972a978bb00",
+        "trace_id": "trace-8fc1169ae674"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'score' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-3a694cf923d0",
+        "trace_id": "trace-4d6f233e59f2"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-0b8da65d-dff8-47d0-9898-92f28b612860",
+      "stage_trace": {
+        "encounter_synthesis": "trace-f7061f6e8808",
+        "gap_identification": "trace-f461b24428c2",
+        "expert_consultation": "trace-16b2fbbeec15",
+        "query_generation": "trace-2a441486b3bf",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "trace-ba2dc571b069",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-4b0ac1478446",
+        "semantic_necessity_gate": "trace-5ee7413b5f9d",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-bade9c8cb1b4"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-0d3da2349e10",
+        "gap_identification": "run-749cc1543601",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-fb4f85f338d4",
+        "query_generation": "run-24deeb25e63e",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents pneumonia with supporting evidence (infiltrate, elevated WBC",
+        "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "run-a69b43b45189",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-919cec53cfc1",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-a1990c005590",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-2370111cf45d"
+      },
+      "trace_id": "trace-6d0d2a6c8b6043fb"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIwYjhkNzBhYjRhMzk0YjdhNzg4NWU5OGFkMzhlODE3M2QzMTNhNzEzNDQ3MWE0Y2JkZDBmNDRlNjE1ZWYwZTRkIiwiZSI6MTc4Nzg4MTkzNiwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tMGI4ZGE2NWQtZGZmOC00N2QwLTk4OTgtOTJmMjhiNjEyODYwIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.t8MB-j8tppfo5Jt639a3tJ6VA0GAMLIgSuJJNkCiJa4",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 22.028
+}

@@ -1,0 +1,146 @@
+{
+  "schema_version": "icoder.governed-code-validation-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_local_runtime_gate_passed_with_external_release_gates_open",
+  "agent": {
+    "agent_id": "code-validation-agent",
+    "agent_ref": "icoder/code-validation-agent@2.0.0",
+    "execution_path": "dedicated.governed_code_validation",
+    "execution_target": "icoder.governed-code-validation.v1",
+    "backend_type": "hybrid",
+    "default_runtime_mode": "governed_local_catalog_baseline",
+    "optional_runtime_mode": "governed_catalog_plus_llm_semantic_review",
+    "external_llm_required_for_baseline": false,
+    "network_required_for_baseline": false,
+    "baseline_cost_usd": 0.0,
+    "output_contract": "icoder/CodeValidationOutput/v7",
+    "pack_sha256": "04126e1bb38b23cad8b93bce5b991872727c9a41ac0daf707d40da5f49bfbb8f",
+    "human_review_required": true,
+    "production_ready": false
+  },
+  "clinical_assets": [
+    {
+      "asset_id": "cn.icd10cn.catalog",
+      "version": "observed-local-2026-05-19",
+      "catalog": "ICD-10-CN",
+      "record_count": 37897,
+      "size_bytes": 25996500,
+      "sha256": "c83d35e65c4d17a3167221964a65df67659745d630f9f0b9d41f7d4a22bf0984",
+      "authority_status": "source_unverified",
+      "license_status": "external_review_required",
+      "billing_authoritative": false,
+      "use_restriction": "development_only_until_source_and_license_are_independently_verified"
+    },
+    {
+      "asset_id": "cn.icd9cm3.catalog",
+      "version": "observed-local-2026-05-19",
+      "catalog": "ICD-9-CM-3",
+      "record_count": 13617,
+      "size_bytes": 6641225,
+      "sha256": "4e00e89f3ab5df55596762c7f725a3ce806ae8292d03b4d655f92a0dc1e91015",
+      "authority_status": "source_unverified",
+      "license_status": "external_review_required",
+      "billing_authoritative": false,
+      "use_restriction": "development_only_until_source_and_license_are_independently_verified"
+    }
+  ],
+  "capability_boundary": {
+    "verified": [
+      "hash_and_size_verified_catalog_loading",
+      "icd_10_cn_and_icd_9_cm_3_exact_membership",
+      "catalog_assignability_for_exact_leaf_and_generated_category_entries",
+      "duplicate_input_detection",
+      "compound_dagger_star_code_parsing",
+      "unknown_code_fail_closed",
+      "cloud_unverified_asset_rejection",
+      "optional_llm_cannot_override_catalog_facts",
+      "strict_output_contract_projection",
+      "unified_run_a2a_hub_and_trace_provider_attribution"
+    ],
+    "not_claimed": [
+      "official_or_redistribution_authorized_catalog_provenance",
+      "icd_10_cm_icd_10_pcs_cpt_or_hcpcs_validation",
+      "official_instructional_note_or_guideline_citations",
+      "seventh_character_laterality_or_demographic_semantics",
+      "excludes1_sequencing_companion_combination_or_symptom_suppression_semantics",
+      "replacement_code_assignment",
+      "billing_or_claim_submission_authority",
+      "independent_clinical_quality",
+      "production_approval"
+    ]
+  },
+  "runtime_matrix": {
+    "hub_visible_agents": 26,
+    "visible_external_llm_required": 23,
+    "visible_external_llm_optional": 1,
+    "visible_local_only_execution": 2,
+    "visible_local_baseline_available": 3,
+    "visible_offline_safe_fail_closed_expected": 23,
+    "visible_semantic_live_e2e_verified": 0,
+    "visible_production_ready_verified": 0,
+    "artifact": "runtime_matrix/agent_hub_runtime_matrix.json"
+  },
+  "tests": {
+    "targeted_provider_pack_run_a2a_and_offline_closure": {
+      "passed": 125,
+      "failed": 0,
+      "seconds": 78.82
+    },
+    "contract_reference_preflight_and_asset_governance": {
+      "passed": 9,
+      "failed": 0,
+      "seconds": 4.79
+    },
+    "expanded_agent_hub_provider_a2a_run_regression": {
+      "passed": 957,
+      "skipped": 5,
+      "failed": 0,
+      "seconds": 291.35
+    },
+    "offline_visible_agent_e2e": {
+      "passed": 52,
+      "failed": 0,
+      "seconds": 14.85,
+      "local_baseline_success_per_matrix": 3,
+      "external_model_safe_fail_closed_per_matrix": 23,
+      "unsafe_or_invalid_per_matrix": 0
+    },
+    "deployment_candidate_preflight": {
+      "passed": 81,
+      "failed": 0,
+      "artifact": "preflight/deployment_preflight.json"
+    }
+  },
+  "corti_public_comparison": {
+    "source": "https://corti.ai/agents/code-validation-agent",
+    "checked_at": "2026-08-23",
+    "corti_publicly_claimed_code_systems": [
+      "ICD-10-CM",
+      "ICD-10-PCS",
+      "CPT",
+      "ICD-10-WHO"
+    ],
+    "material_open_gaps": [
+      "official rule and instructional-note grounding with exact citations",
+      "per-code completeness seventh-character laterality age and sex checks",
+      "cross-code Excludes1 sequencing companion combination duplicate contradiction and symptom suppression checks",
+      "verified alternatives or replacement suggestions",
+      "current Corti same-case and repeated live-provider comparison"
+    ]
+  },
+  "final_safety_state": {
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_hash_matches_expected": true,
+    "current_process_icoder_credential_length": 0,
+    "current_process_deepseek_key_length": 0,
+    "protected_port_listener_count": 0,
+    "python_or_uvicorn_process_count": 0
+  },
+  "limitations": [
+    "No current signed-in Corti console operation was executed because the host has a documented browser memory-crash risk.",
+    "No real external LLM call was executed and no exposed credential was read or used.",
+    "The two local catalogs remain source-unverified, redistribution-unapproved and development-only.",
+    "No independent clinical gold set or reviewer validation was executed.",
+    "No hospital, cloud, legal, regulatory, security certification or production-operations gate is satisfied."
+  ]
+}

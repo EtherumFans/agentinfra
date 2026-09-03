@@ -29,6 +29,11 @@ async def create_encounter(
     """Create a new encounter with documents and existing codes."""
     from datetime import datetime
     import uuid
+    # Phase A1A Gate 4.4 — encrypt high-PHI fields at write time.
+    # encrypt_phi returns plaintext when no key is configured (local-dev
+    # fallback); cloud mode refuses to boot without a key so the cloud
+    # path is always encrypted.
+    from app.services.phi_encryption import encrypt_phi
 
     encounter_id = f"ENC-{uuid.uuid4().hex[:12].upper()}"
 
@@ -39,7 +44,7 @@ async def create_encounter(
         department=data.department,
         admission_time=datetime.fromisoformat(data.admission_time) if data.admission_time else None,
         discharge_time=datetime.fromisoformat(data.discharge_time) if data.discharge_time else None,
-        admission_reason=data.admission_reason,
+        admission_reason=encrypt_phi(data.admission_reason) if data.admission_reason else None,
         existing_diagnosis_codes=[c.model_dump() for c in data.existing_diagnosis_codes],
         existing_procedure_codes=[c.model_dump() for c in data.existing_procedure_codes],
         submitted_by=current_user.id,
@@ -53,7 +58,7 @@ async def create_encounter(
             encounter_id=encounter.id,
             doc_type=doc.doc_type,
             title=doc.title,
-            content=doc.content,
+            content=encrypt_phi(doc.content),
             doc_order=i,
         )
         db.add(document)
@@ -76,6 +81,7 @@ async def create_encounter_from_text(
 ):
     """Create encounter from raw text paste (simplified input)."""
     import uuid
+    from app.services.phi_encryption import encrypt_phi
 
     encounter_id = f"ENC-{uuid.uuid4().hex[:12].upper()}"
     encounter = Encounter(
@@ -99,7 +105,7 @@ async def create_encounter_from_text(
             encounter_id=encounter.id,
             doc_type="住院病历",
             title="完整病历",
-            content=text,
+            content=encrypt_phi(text),
             doc_order=0,
         )
         db.add(doc)
@@ -109,7 +115,7 @@ async def create_encounter_from_text(
             encounter_id=encounter.id,
             doc_type="出院小结",
             title="病历文本",
-            content=text,
+            content=encrypt_phi(text),
             doc_order=0,
         )
         db.add(doc)

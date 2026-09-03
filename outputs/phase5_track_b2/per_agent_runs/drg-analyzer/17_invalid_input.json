@@ -1,0 +1,57 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-3be14101-d991-4fa3-8281-b34087aefe20",
+  "trace_id": "trace-a2331161c0414d39",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 2593,
+  "cost": {
+    "amount": 8.5e-05,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"输入内容不包含医疗编码或病历文本，无法进行 DRG/DIP 风险评估。请提供编码集和病历文本。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": false\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"输入内容不包含医疗编码或病历文本，无法进行 DRG/DIP 风险评估。请提供编码集和病历文本。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": false\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 405,
+        "output_tokens": 100
+      },
+      "cost_usd": 8.5e-05,
+      "latency_ms": 2593
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 2593,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 2593
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "invalid_text (7 chars) no codes",
+  "_gold_codes": [],
+  "_client_wall_ms": 2760,
+  "_fixture": "inline (今天天气不错)",
+  "_tag": "17_invalid_input",
+  "_ts": "2026-07-11T14:37:34"
+}

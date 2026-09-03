@@ -1,0 +1,61 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-27da944e-10fd-4742-9853-cdba6b85f397",
+  "trace_id": "trace-a3acc8fd35e34cfa",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 12513,
+  "cost": {
+    "amount": 0.000426,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"upcoding\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历明确记录 T12 椎体压缩性骨折，骨密度 T 值 -3.2 提示骨质疏松，但 M80.900 为骨质疏松伴病理性骨折，而 S22.000 为胸椎骨折（创伤性）。患者摔伤后骨折，属于创伤性骨折，应优先编码 S22.000 作为主诊断，M80.900 作为附加诊断描述骨质疏松状态。将 M80.900 作为主诊断可能触发高补偿 DRG 分组，存在 upcoding 嫌疑。\",\n      \"char_span\": \"MRI 显示 T12 椎体压缩性骨折,椎体高度丢失约 1/3;CT 未见椎管狭窄。骨密度 T 值 -3.2(骨质疏松)。\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议将主诊断调整为 S22.000（胸椎骨折），M80.900 作为附加诊断编码，以准确反映创伤性骨折合并骨质疏松的临床情况。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"病历记载高血压病史 10 年，入院诊断高血压病 3 级（很高危），但编码 I10.x00 仅为未特指的高血压，未体现分级和危险分层。遗漏高血压 3 级（很高危）的详细编码可能导致并发症/合并症（CC/MCC）未被识别，影响 DRG 分组权重和 CMI。\",\n      \"char_span\": \"既往有高血压病史 10 年,长期口服氨氯地平 5mg qd,血压控制可。入院诊断:高血压病 3 级(很高危)。\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议将 I10.x00 替换为更具体的编码，如 I10.x02（高血压病 3 级）或 I10.x03（高血压病 3 级 很高危），以准确反映病情严重程度。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N/A\",\n      \"evidence_text\": \"患者为 78 岁男性，骨质疏松性骨折，治疗计划包括抗骨质疏松治疗（唑来膦酸）和可能的 PKP/PVP。但编码集中未包含任何骨质疏松症相关编码（如 M81.900 或 M80.900 作为附加诊断），也未包含长期用药（如抗骨质疏松药物）或并发症（如跌倒风险、活动受限）的编码。遗漏骨质疏松症编码可能低估 CMI 和资源消耗。\",\n      \"char_span\": \"骨密度 T 值 -3.2(骨质疏松)。治疗计划:卧床休息;镇痛;抗骨质疏松治疗(唑来膦酸);必要时行 PKP/PVP。\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议添加骨质疏松症附加编码（如 M81.900 或 M80.900 作为附加诊断），并考虑编码 Z79.899（长期用药）以反映抗骨质疏松治疗。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"S22.000\",\n      \"evidence_text\": \"编码 S22.000 为胸椎骨折，但病历中骨折部位明确为 T12 椎体（胸椎第 12 节），S22.000 编码范围包括 T1-T12，因此编码本身正确。但需注意，若骨折为病理性（骨质疏松性），则 S22.000 可能不适用，应使用 M80.900。然而，病历明确为摔伤后骨折，属于创伤性，故 S22.000 合理。但当前编码集同时包含 S22.000 和 M80.900，存在主诊断选择不一致风险。\",\n      \"char_span\": \"MRI 显示 T12 椎体压缩性骨折,椎体高度丢失约 1/3;入院诊断:T12 椎体压缩性骨折;骨质疏松性骨折。\",\n      \"severity\": \"high\",\n      \"suggestion\": \"明确主诊断：若骨折为创伤性，主诊断应为 S22.000，M80.900 为附加诊断；若为病理性骨折，主诊断应为 M80.900。根据病历，建议采用前者。\"\n    }\n  ],\n  \"high_risk_codes\": [\n    \"M80.900\"\n  ],\n  \"review_suggestions\": \"编码集存在 1 处 upcoding 风险（M80.900 作为主诊断可能不当，应优先使用 S22.000），1 处 downcoding 风险（I10.x00 未体现高血压分级），1 处遗漏并发症（骨质疏松症未编码），以及主诊断选择不一致。建议：1) 将主诊断调整为 S22.000（胸椎骨折），M80.900 作为附加诊断；2) 细化高血压编码为 I10.x02 或 I10.x03；3) 添加骨质疏松症附加编码（如 M81.900）。请复核病历并修正编码方案。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"upcoding\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历明确记录 T12 椎体压缩性骨折，骨密度 T 值 -3.2 提示骨质疏松，但 M80.900 为骨质疏松伴病理性骨折，而 S22.000 为胸椎骨折（创伤性）。患者摔伤后骨折，属于创伤性骨折，应优先编码 S22.000 作为主诊断，M80.900 作为附加诊断描述骨质疏松状态。将 M80.900 作为主诊断可能触发高补偿 DRG 分组，存在 upcoding 嫌疑。\",\n      \"char_span\": \"MRI 显示 T12 椎体压缩性骨折,椎体高度丢失约 1/3;CT 未见椎管狭窄。骨密度 T 值 -3.2(骨质疏松)。\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议将主诊断调整为 S22.000（胸椎骨折），M80.900 作为附加诊断编码，以准确反映创伤性骨折合并骨质疏松的临床情况。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"病历记载高血压病史 10 年，入院诊断高血压病 3 级（很高危），但编码 I10.x00 仅为未特指的高血压，未体现分级和危险分层。遗漏高血压 3 级（很高危）的详细编码可能导致并发症/合并症（CC/MCC）未被识别，影响 DRG 分组权重和 CMI。\",\n      \"char_span\": \"既往有高血压病史 10 年,长期口服氨氯地平 5mg qd,血压控制可。入院诊断:高血压病 3 级(很高危)。\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议将 I10.x00 替换为更具体的编码，如 I10.x02（高血压病 3 级）或 I10.x03（高血压病 3 级 很高危），以准确反映病情严重程度。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N/A\",\n      \"evidence_text\": \"患者为 78 岁男性，骨质疏松性骨折，治疗计划包括抗骨质疏松治疗（唑来膦酸）和可能的 PKP/PVP。但编码集中未包含任何骨质疏松症相关编码（如 M81.900 或 M80.900 作为附加诊断），也未包含长期用药（如抗骨质疏松药物）或并发症（如跌倒风险、活动受限）的编码。遗漏骨质疏松症编码可能低估 CMI 和资源消耗。\",\n      \"char_span\": \"骨密度 T 值 -3.2(骨质疏松)。治疗计划:卧床休息;镇痛;抗骨质疏松治疗(唑来膦酸);必要时行 PKP/PVP。\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议添加骨质疏松症附加编码（如 M81.900 或 M80.900 作为附加诊断），并考虑编码 Z79.899（长期用药）以反映抗骨质疏松治疗。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"S22.000\",\n      \"evidence_text\": \"编码 S22.000 为胸椎骨折，但病历中骨折部位明确为 T12 椎体（胸椎第 12 节），S22.000 编码范围包括 T1-T12，因此编码本身正确。但需注意，若骨折为病理性（骨质疏松性），则 S22.000 可能不适用，应使用 M80.900。然而，病历明确为摔伤后骨折，属于创伤性，故 S22.000 合理。但当前编码集同时包含 S22.000 和 M80.900，存在主诊断选择不一致风险。\",\n      \"char_span\": \"MRI 显示 T12 椎体压缩性骨折,椎体高度丢失约 1/3;入院诊断:T12 椎体压缩性骨折;骨质疏松性骨折。\",\n      \"severity\": \"high\",\n      \"suggestion\": \"明确主诊断：若骨折为创伤性，主诊断应为 S22.000，M80.900 为附加诊断；若为病理性骨折，主诊断应为 M80.900。根据病历，建议采用前者。\"\n    }\n  ],\n  \"high_risk_codes\": [\n    \"M80.900\"\n  ],\n  \"review_suggestions\": \"编码集存在 1 处 upcoding 风险（M80.900 作为主诊断可能不当，应优先使用 S22.000），1 处 downcoding 风险（I10.x00 未体现高血压分级），1 处遗漏并发症（骨质疏松症未编码），以及主诊断选择不一致。建议：1) 将主诊断调整为 S22.000（胸椎骨折），M80.900 作为附加诊断；2) 细化高血压编码为 I10.x02 或 I10.x03；3) 添加骨质疏松症附加编码（如 M81.900）。请复核病历并修正编码方案。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 714,
+        "output_tokens": 1165
+      },
+      "cost_usd": 0.000426,
+      "latency_ms": 12513
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 12513,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 12513
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (470 chars) + codes (3)",
+  "_gold_codes": [
+    "S22.000",
+    "M80.900",
+    "I10.x00"
+  ],
+  "_client_wall_ms": 12673,
+  "_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "_tag": "01_orthopedics",
+  "_ts": "2026-07-11T14:35:37"
+}

@@ -1,0 +1,136 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-23T14:55:00+08:00",
+  "phase": "governed_surgical_registry",
+  "scope": "development_environment_only",
+  "verdict": "development_gates_passed_with_live_semantic_production_and_disk_capacity_gaps",
+  "historical_gap": {
+    "source_live_http_e2e_date": "2026-08-15",
+    "source_contract_safety_result": "26/26",
+    "source_reference_quality_result": "22/26",
+    "failed_agents": [
+      "diagnosis-extractor",
+      "drg-analyzer",
+      "evidence-extractor",
+      "surgical-registry"
+    ],
+    "current_regression_result": "4/4",
+    "classification": "known_historical_gap_regression_not_fresh_live_llm_e2e",
+    "closures": {
+      "diagnosis-extractor": "current projector normalizes completed to PASS while preserving contract validation",
+      "drg-analyzer": "runtime authoritatively injects declared non-billing governance constants",
+      "evidence-extractor": "current governed local exact-mention provider satisfies the reference case",
+      "surgical-registry": "current governed local provider preserves and extracts explicit anesthesia and negative complication facts"
+    }
+  },
+  "root_cause": {
+    "historical_surgical_anesthesia_loss": "the broad Chinese NAME regex treated 全麻下 as a three-character name before provider execution",
+    "fix": "protect anesthesia phrases only in explicit surgical contexts while retaining redaction for an ambiguous person name such as 患者全麻",
+    "privacy_regression_tested": true
+  },
+  "provider": {
+    "agent_id": "surgical-registry",
+    "provider_id": "icoder.governed-surgical-registry.v1",
+    "backend_type": "rule_engine",
+    "deterministic": true,
+    "network_required": false,
+    "llm_required": false,
+    "model_cost_usd": 0.0,
+    "policy_id": "cn.surgical-registry.explicit-source-facts",
+    "policy_version": "1.0.0",
+    "output_contract": "icoder/SurgicalRegistryOutput/v4",
+    "manual_review_required": true,
+    "production_writeback_blocked": true,
+    "evidence_policy": "every populated field carries an exact source substring; unknown fields remain empty",
+    "pack_integrity_sha256": "9a148ffa9261af5ab5ac0a610f6582ea3759ad5b1feefbf101ad97898e01b620",
+    "pack_integrity_verified": true
+  },
+  "verification": {
+    "focused_combined_regression": {
+      "result": "passed",
+      "passed": 229,
+      "failed": 0,
+      "duration_seconds": 33.04
+    },
+    "all_visible_agent_offline_e2e": {
+      "result": "passed",
+      "passed": 78,
+      "failed": 0,
+      "coverage": [
+        "26 source Agent runs",
+        "26 project clone runs with project identity and attestation",
+        "26 adversarial prompt-injection runs"
+      ],
+      "duration_seconds": 47.73
+    },
+    "reference_quality_regression": {
+      "result": "passed",
+      "passed": 8,
+      "failed": 0,
+      "known_historical_gaps_closed": 4,
+      "fresh_live_llm_claim": false
+    },
+    "runtime_matrix": {
+      "artifact": "reports/agent_hub/governed_surgical_registry_phase_20260823/runtime_matrix/agent_hub_runtime_matrix.json",
+      "disk_packs": 32,
+      "hub_visible": 26,
+      "visible_executable": 26,
+      "visible_provider_resolvable": 26,
+      "visible_launch_candidate_ready": 26,
+      "external_llm_dependent": 19,
+      "external_llm_optional": 1,
+      "local_deterministic_execution": 6,
+      "local_baseline_available": 7,
+      "offline_safe_fail_closed_expected": 19,
+      "semantic_live_e2e_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {
+      "artifact": "reports/agent_hub/governed_surgical_registry_phase_20260823/preflight/deployment_preflight.json",
+      "mode": "static_without_docker_cli",
+      "passed": true,
+      "checks": 81,
+      "failed_checks": 0
+    },
+    "output_contract_registry": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 109,
+      "new_refs": 0,
+      "changed_refs": 0,
+      "invalid_refs": 0,
+      "duplicate_refs": 0
+    },
+    "openapi_export_check": {
+      "result": "passed",
+      "artifact": "docs/openapi/openapi.json"
+    },
+    "latest_full_backend": {
+      "business_assertions_passed": 5224,
+      "failed": 0,
+      "errors": 1,
+      "error_scope": "SQLite drop_all teardown",
+      "error_reason": "database or disk is full",
+      "isolated_recheck": "1/1 passed",
+      "full_green_claim": false
+    }
+  },
+  "safety": {
+    "llm_provider": "mock",
+    "external_llm_allowed": false,
+    "real_llm_key_used": false,
+    "protected_database": "backend/data/icoder.db",
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "ports_8000_18022_listening_after_tests": false,
+    "production_writeback_blocked": true
+  },
+  "open_gaps": [
+    "0 of 26 visible Agents have fresh semantic live E2E evidence in the current runtime matrix",
+    "0 of 26 visible Agents are production-ready verified",
+    "19 visible Agents still require an external LLM for semantic output and fail closed offline",
+    "the local surgical registry baseline has not been validated against national, provincial, specialty, or hospital registry dictionaries",
+    "full custom Expert and MCP lifecycle plus Corti-equivalent arbitrary workflow authoring remain incomplete",
+    "the latest full backend suite needs a clean rerun after at least 1-2 GB is freed on E:",
+    "real Chinese hospital datasets, blinded reviewer evaluation, cloud capacity, SLA, legal, regulatory, certification, and independent security gates remain external"
+  ]
+}

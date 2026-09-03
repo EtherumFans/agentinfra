@@ -1,0 +1,140 @@
+{
+  "schema_version": "icoder.transcripts-encoded-multichannel-phase-evidence/v1",
+  "generated_date": "2026-08-25",
+  "status": "passed_with_external_gates_open",
+  "scope": "prerecorded two-channel encoded-container isolation plus provider-grounded millisecond phrase timestamps across synchronous, persistent asynchronous and recovery paths",
+  "safety": {
+    "temporary_database": true,
+    "protected_database_written": false,
+    "protected_database_bytes": 8536064,
+    "protected_database_last_write": "2026-08-22 17:16:22",
+    "protected_database_sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "real_llm_used": false,
+    "real_stt_used": false,
+    "patient_audio_used": false,
+    "native_models_loaded_by_final_validation": false,
+    "release_published": false,
+    "workspace_deepseek_key_shape_matches": 0,
+    "release_candidate_deepseek_key_shape_matches": 0,
+    "port_8000_listening_at_final_audit": false,
+    "project_uvicorn_processes_at_final_audit": 0,
+    "synthetic_temp_directories_retained_after_cleanup_policy_denial": 2
+  },
+  "tests": {
+    "backend_full_sharded": {
+      "passed": 5604,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "seconds": 1585.962,
+      "database_environment_invariant": "DATABASE_URL and ICODER_DATABASE_URL were identical unique temporary SQLite URLs",
+      "unhandled_thread_warning_is_error": true
+    },
+    "root_release_tests": {"passed": 13, "failed": 0, "seconds": 0.78},
+    "python_test_total_including_root": {"passed": 5617, "skipped": 20, "deselected": 11, "failed": 0},
+    "stt_expanded": {"passed": 206, "failed": 0, "seconds": 62.5},
+    "javascript_sdk": {"passed": 95, "failed": 0},
+    "python_sdk": {"passed": 101, "failed": 0, "seconds": 5.181},
+    "dotnet_net8": {"passed": 82, "failed": 0},
+    "dotnet_net10": {"passed": 82, "failed": 0},
+    "deployment_preflight": {"passed": 101, "failed": 0},
+    "release_candidate_validator": {"passed": 5, "failed": 0},
+    "openapi_check": {"passed": 1, "failed": 0},
+    "loopback_e2e": {
+      "successful_full_runs": 3,
+      "initial_transient_timeout_runs": 1,
+      "status": "passed_after_initial_timeout",
+      "real_uvicorn": true,
+      "real_ffmpeg_decode": true,
+      "real_encoded_container_exercised": "FLAC",
+      "synthetic_asr_boundary": true,
+      "synthetic_audio_only": true,
+      "prerecorded_encoded_stereo_decoded_without_crosstalk": true,
+      "prerecorded_stereo_pcm_split_without_crosstalk": true,
+      "prerecorded_multichannel_attribution_sync_async": true,
+      "prerecorded_phrase_timestamps_are_milliseconds": true
+    },
+    "encoded_format_matrix_e2e": {
+      "successful_full_runs": 2,
+      "cases_per_run": 10,
+      "total_cases_passed": 20,
+      "total_cases_failed": 0,
+      "real_uvicorn": true,
+      "real_ffmpeg_encode_decode": true,
+      "synchronous_and_persistent_asynchronous": true,
+      "channel_frequency_isolation": true,
+      "phrase_timestamps_are_milliseconds": true,
+      "synthetic_tone_audio_only": true,
+      "synthetic_asr_boundary": true
+    }
+  },
+  "openapi": {
+    "check": "up_to_date",
+    "bytes": 877158,
+    "paths": 271,
+    "schemas": 299,
+    "sha256": "2c4763c073a6ffafaec6c52e433af7903bb4aa9146c32c32e26307b2e6371d57"
+  },
+  "source_hashes": {
+    "backend/app/services/prerecorded_media_decoder.py": "990ba6ff6520f1b76967e5f13c3d51b1559b7b3d0690d8d958b0c44dc8df4721",
+    "backend/app/config.py": "54390b38665e1b7db8f629f09b297422eaea8c5df36434c6d90444f0911527d5",
+    "backend/app/main.py": "b337cf538108a3e56ec0499c557bd490bebfaad3c9a98332f514bae1438d164c",
+    "backend/app/services/stt_service.py": "5af32aa5610cda860cca5733e6bab5df66dc18f7ec6e975ebcccbd7eaf91aff8",
+    "backend/app/api/v2_tools_stt.py": "c4e9e93b9f16c99373a21f035c614ede43c97c1baf9d32e498afafe23c7ab760",
+    "backend/scripts/transcripts_dictation_e2e_app.py": "1fab62e8b73e622d68d78201a2a9d7a88895ea462393b3444815fc54da964ef4",
+    "backend/scripts/transcripts_dictation_e2e_client.py": "388c54ce4430911ea86f7824f319b7b8768b421fcb55ae249e9c5517cb818641",
+    "backend/scripts/corti_parity/validate_deployment_candidate.py": "de1f0da1ab34599bfc7c02957e5b7f874367b0e9a56bbaf9dc151c07b7b09c01",
+    "backend/tests/unit/app/services/test_prerecorded_media_decoder.py": "00a77d8a8db914043ea3d82ecabc8ce0c0228895fb5f87047ecf916039a7fed1",
+    "backend/tests/unit/app/services/test_stt_inference_telemetry.py": "93354aa348eb25cb7e94bfe92f765402988a72563ab255bca4ba64fa61543f08",
+    "backend/tests/test_api/test_v2_stt_real_lifecycle.py": "fce5a87639b2193722d34c53d0a3bf36a4fc13fae3cf819d306c59b8f2f219dd",
+    "backend/tests/unit/corti_parity/test_deployment_candidate_preflight.py": "5bf01a021110e46357e0576b9f50d9ad436af0f4080d09ccc241c7fdbc0566d7",
+    "scripts/release/run-transcripts-dictation-e2e.ps1": "207e497df77cd7ef904a872a646d84516c2913354e2761307c3d38e7e6ab3405",
+    "packages/icoder-sdk/src/resources/speech-to-text.ts": "0c4cbe84f6f3bf043db2c263b8919d18a4a7f0e2dbd185dca17f8caf687dbe08",
+    "packages/icoder-python/icoder_sdk/resources/speech_to_text.py": "04cdc5e97b88093556413da4965af5ef8f920e6960246a139441d9144842ef66",
+    "packages/icoder-dotnet/src/Icoder.Sdk/SpeechToTextResource.cs": "6ce144ace88fce45c44046555f334f07400fd1b7fd4d3b8f80fa7700e42359e8"
+  },
+  "evidence_hashes": {
+    "reports/transcripts_encoded_multichannel_phase_20260825/e2e.json": "34e2dfadb145ee87723199ff8c154d54ed4f1b34cd9e7d7760f0f300dbb5fb39",
+    "reports/transcripts_encoded_multichannel_phase_20260825/e2e-stability-1.json": "34e2dfadb145ee87723199ff8c154d54ed4f1b34cd9e7d7760f0f300dbb5fb39",
+    "reports/transcripts_encoded_multichannel_phase_20260825/e2e-stability-2.json": "34e2dfadb145ee87723199ff8c154d54ed4f1b34cd9e7d7760f0f300dbb5fb39",
+    "reports/transcripts_encoded_multichannel_phase_20260825/encoded_format_matrix_e2e.json": "e7dd2c32550d71a855b8197ae81ab8d8bfc0a8cd292d0690d9bf1f3180f1ec8c",
+    "reports/transcripts_encoded_multichannel_phase_20260825/encoded_format_matrix_e2e_stability_1.json": "ef1795acbba0789d6f34630bbe4c836c1403e50e599c032a04abff9ab0e39f26",
+    "reports/transcripts_encoded_multichannel_phase_20260825/preflight/deployment_preflight.json": "ffd7cb1cbcac2b33e5988e746e7af250f8b1b06f445e908c6ba11ee9a24bde36",
+    "reports/transcripts_encoded_multichannel_phase_20260825/release_candidate_validation.json": "31bc51a29f9e39a5e393a13791482930ed9b53717ee893f0d01c8bfe017630fc"
+  },
+  "release_artifacts": {
+    "icoder-sdk-1.0.0-beta.42.tgz": {"bytes": 73953, "sha256": "87479dc61cd37a4ac1136070ecb15ade2768fefcd92838c639f41bef7d2658b2"},
+    "icoder_sdk-1.0.0b42-py3-none-any.whl": {"bytes": 58225, "sha256": "b7a3fafb3b6858fbf2635888b5eaade7a5daf5c024e7e33922d0e0f1b4e49569"},
+    "icoder_sdk-1.0.0b42.tar.gz": {"bytes": 82861, "sha256": "af995a9e84a35587fe12bbfadcfb1385a494ef68631d3257ebcfb046a1e13584"},
+    "iCoDer.Sdk.1.0.0-beta.42.nupkg": {"bytes": 423558, "sha256": "7731f2c70f885c9207b6b10a33e43fd9d6108aecc79977f5c28decdefea061d4"},
+    "iCoDer.Sdk.1.0.0-beta.42.snupkg": {"bytes": 90511, "sha256": "ecfcd3167b3f4c05bf09d59e9fd57c2313479c2a9de69b80a754728970beffd2"},
+    "release-candidate-b42-transcripts-encoded-multichannel.json": {"bytes": 1819, "sha256": "b16d62f89421e0a6e6e154043c3856b0148e1124b55dc2e75f3b066e8df0f10d"}
+  },
+  "validated_boundary": {
+    "accepted_container_contract": ["Ogg", "WebM", "Opus", "Vorbis", "MP3", "FLAC", "M4A", "AAC", "WAV"],
+    "real_encoded_e2e_media_types": ["audio/ogg", "audio/webm", "audio/opus", "audio/vorbis", "audio/mpeg", "audio/mp3", "audio/mpeg3", "audio/flac", "audio/mp4", "audio/m4a"],
+    "real_encoded_e2e_payloads": ["Ogg/Opus", "WebM/Opus", "Ogg/Vorbis", "MP3", "FLAC", "fragmented MP4/AAC"],
+    "channels": 2,
+    "decoded_output": "two isolated 16 kHz 16-bit mono PCM WAV files",
+    "participant_channels": [0, 1],
+    "provider_segment_time_unit": "milliseconds",
+    "timestamp_fallback": "one whole-channel row with zero-duration boundary when the provider returns no valid segments",
+    "diarization": false
+  },
+  "environment_stability": {
+    "system_python_native_crash_previously_observed": true,
+    "fault_module": "pyarrow/arrow.dll",
+    "windows_exception_code": "0xc0000005",
+    "read_or_write_direction_determined": false,
+    "final_validation_runtime": "bundled isolated Python with native STT, native MedCoder and external LLM disabled",
+    "final_full_suite_unhandled_thread_warnings": 0
+  },
+  "open_gaps": [
+    "mono speaker diarization and participant inference",
+    "word-level timestamps and clinical validation of phrase segmentation",
+    "real Chinese clinical ASR quality for dialects, overlap, noise, terminology and long recordings",
+    "same-audio Corti head-to-head quality, latency, cost, capacity and SLA",
+    "real DeepSeek regression for this phase because no user-keyed backend was listening on port 8000 at final audit",
+    "production Linux/PostgreSQL multi-replica, observability, security, legal, certification and hospital acceptance"
+  ]
+}

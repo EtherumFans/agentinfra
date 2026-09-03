@@ -1,21 +1,29 @@
-// iCoDer Medical Coding — Corti Console 1:1 visual replica
+// iCoDer Medical Coding
 // All UI text is i18n-driven: zh-CN ↔ en-US
+// G001 refactor (2026-07-09): Default flow switched from A2A MedCodER 5-stage
+// pipeline to Fast Coding Runtime via /api/v1/coding/predict.
+// MedCodER retained as Deep Evidence mode (mode=medcoder_deep).
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  X, Sparkles, Loader2, Plus, ChevronRight,
+  Eraser, Copy, BookText, Info, RotateCcw,
+  FileText, ChevronDown, Check, SlidersHorizontal, Activity,
+  AlertTriangle, Zap, FileSearch, Clipboard,
+} from 'lucide-react';
+
 import { useAppStore, useCostStore } from '../store';
 import { useT } from '../i18n';
-import { runtimeAgentApi } from '../services/runtimeApi';
+import { codingApi } from '../services/api';
+import type { CodingPredictResult, CodingMode, CodingPricingEstimate, CodingResultCode } from '../services/api';
 import type { RuntimeRunResult, CodingIssue } from '../types/runtime';
-import type { ExtractedDiagnosis, CandidateCode } from '../types/runtime';
+import type { ExtractedDiagnosis } from '../types/runtime';
 import { HighlightedTextarea } from '../components/medical-coding/HighlightedTextarea';
 import type { EvidenceSpanLike } from '../components/medical-coding/EvidenceHighlighter';
 import { DiagnosisCard } from '../components/medical-coding/DiagnosisCard';
-import {
-  X, Sparkles, Loader2, Plus, ChevronRight, ChevronLeft,
-  Eraser, Copy, BookText, Info, RotateCcw,
-  FileText, ChevronDown, Check,
-} from 'lucide-react';
 import CodeSnippet from '../components/common/CodeSnippet';
+import { buildMedicalCodingSnippets } from '../utils/developerSdkCode';
+import { shouldRenderCodingReviewSummary } from '../utils/medicalCodingSafety';
 
 type RightTab = 'settings' | 'code';
 
@@ -112,15 +120,46 @@ export default function MedicalCodingPage() {
   // ── Right panel ──
   const [rightTab, setRightTab] = useState<RightTab>('settings');
 
+  // ── Phase 3-F: Config drawer + Event Inspector drawer ──
+  const [configOpen, setConfigOpen] = useState(false);
+  const [eventInspectorOpen, setEventInspectorOpen] = useState(false);
+
   // ── Input state ──
   const [input, setInput] = useState('');
-  const [result, setResult] = useState<RuntimeRunResult | any>(null);
+  const [result, setResult] = useState<RuntimeRunResult | CodingPredictResult | any>(null);
   const [loading, setLoading] = useState(false);
 
-  // ── Real-time char + cost estimate (live, not gated on Predict) ──
-  // TODO: replace 0.00001 with real pricing once /api/v2/tools/coding/pricing lands.
+  // ── G001 refactor: coding mode (corti_like_fast default, medcoder_deep for advanced) ──
+  const [codingMode, setCodingMode] = useState<CodingMode>('corti_like_fast');
+
+  // ── Real-time char + server-configured cost range (not a billing quote) ──
   const charCount = input.length;
-  const costEstimate = (charCount * 0.00001).toFixed(6);
+  const [pricingEstimate, setPricingEstimate] = useState<CodingPricingEstimate | null>(null);
+
+  useEffect(() => {
+    if (charCount === 0) {
+      setPricingEstimate(null);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      codingApi.estimateCost(charCount, codingMode, controller.signal)
+        .then(response => setPricingEstimate(response.data))
+        .catch(error => {
+          if (error?.name !== 'CanceledError' && error?.code !== 'ERR_CANCELED') {
+            setPricingEstimate(null);
+          }
+        });
+    }, 300);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [charCount, codingMode]);
+
+  const costEstimate = pricingEstimate
+    ? `${pricingEstimate.estimated_cost_min.toFixed(6)}–${pricingEstimate.estimated_cost_max.toFixed(6)}`
+    : charCount === 0 ? '0.000000' : '—';
 
   // ── Evidence highlight focus (which code row is currently clicked) ──
   const [focusedSpanIndex, setFocusedSpanIndex] = useState<number | null>(null);
@@ -128,7 +167,7 @@ export default function MedicalCodingPage() {
   // ── Sample dropdown (top header "Samples" button) ──
   const [sampleMenuOpen, setSampleMenuOpen] = useState(false);
 
-  // ── Inline templates (Corti-style 4-card layout) ──
+  // ── Inline templates (4-card layout) ──
 
   // ── Coding systems ──
   const [codingSystems, setCodingSystems] = useState<{code_system:string;name:string;is_default:boolean}[]>([]);
@@ -140,9 +179,8 @@ export default function MedicalCodingPage() {
   const [addCodeDialog, setAddCodeDialog] = useState<{show:boolean; target:'include'|'exclude'}>({show:false, target:'include'});
   const [addCodeVal, setAddCodeVal] = useState('');
 
-  // ── Expand & threshold ──
-  const [expandResults, setExpandResults] = useState(false);
-  const [confidenceThreshold, setConfidenceThreshold] = useState(0.6);
+  // ── Corti-compatible category expansion ──
+  const [expandResults, setExpandResults] = useState(true);
 
   // ── Event Inspector ──
   const [events, setEvents] = useState<{ts:string; msg:string; type:'info'|'success'|'error'}[]>([]);
@@ -180,7 +218,7 @@ export default function MedicalCodingPage() {
     setSelectedSystems([systems[0].code_system]);
   }, []);
 
-  // ── Inline templates (Corti-style 4-card layout) ──
+  // ── Inline templates (4-card layout) ──
   const loadSampleAndRun = (sampleKey: typeof samples[number]['key']) => {
     const sample = samples.find(s => s.key === sampleKey);
     if (!sample) return;
@@ -196,51 +234,86 @@ export default function MedicalCodingPage() {
   };
 
   // ── Predict ──
+  // G001 refactor: Default calls /api/v1/coding/predict (Fast Coding).
+  // mode=corti_like_fast (default) → single LLM call, target <15s
+  // mode=medcoder_deep             → 5-stage MedCodER pipeline, 30-60s+
   const handlePredict = async (textOverride?: string) => {
     const text = textOverride || input;
-    if (!text.trim() || loading) return;
+    if (!text.trim() || loading || selectedSystems.length < 1) return;
     if (!textOverride) setInput(text);
     setLoading(true);
     setProcessing(true);
     setError(null);
     setResult(null);
+    setUserOverrides({});
     setEvents([]);
     addEvent(t.startingPrediction, 'info');
+    addEvent(`mode=${codingMode}`, 'info');
 
     try {
       const startTime = Date.now();
-      const data = await runtimeAgentApi.runAgentViaA2A(MEDICAL_CODING_AGENT_ID, text);
+      const response = await codingApi.predict(text, codingMode, {
+        coding_systems: selectedSystems as Array<'icd10cn' | 'icd9cm3'>,
+        include_evidence: true,
+        include_trace: true,
+        filter: {
+          include: includeCodes,
+          exclude: excludeCodes,
+          expand: expandResults,
+        },
+      });
       const elapsed = Date.now() - startTime;
+      const data: CodingPredictResult = response.data;
       setResult(data);
-      if (data.processing_time_ms) addCost((data.processing_time_ms / 1000) * 0.02);
+      addEvent(
+        `filter include=${includeCodes.length} exclude=${excludeCodes.length} expand=${expandResults}`,
+        'info',
+      );
+      const reportedCost = Number(data.cost?.amount ?? 0);
+      if (Number.isFinite(reportedCost) && reportedCost > 0) addCost(reportedCost);
 
-      addEvent(`${t.completedPrefix} ${data.processing_time_ms || elapsed}ms`, 'success');
-      if (data.audit_trail?.length) {
-        data.audit_trail.forEach((step: any) => {
-          const p = step.payload || {};
-          const prefix = `[${step.step}]`;
-          if (step.step === 'pre_guard' && p.violations?.length) {
-            addEvent(`${prefix} ${fillTmpl(t.preGuardViolations, { count: p.violations.length })}`, 'info');
-          } else if (step.step === 'contract_verified') {
-            addEvent(`${prefix} ${fillTmpl(t.contractVerified, { status: p.valid ? 'PASS' : 'FAIL' })}`, p.valid ? 'success' : 'error');
-          } else if (step.step === 'post_guard') {
-            const status = `${t.safety}:${p.safety_valid ? 'PASS' : 'WARN'} ${t.schema}:${p.schema_valid ? 'PASS' : 'ISSUE'}`;
-            addEvent(`${prefix} ${status}`, p.safety_valid ? 'success' : 'error');
-          } else if (step.step !== 'llm_response') {
-            addEvent(`${prefix} ${JSON.stringify(p).slice(0, 80)}`, 'info');
-          }
+      // Emit trace events from the runtime (7-step Fast / 5-stage+2 Deep)
+      if (data.trace_events?.length) {
+        data.trace_events.forEach((ev) => {
+          const prefix = `[${ev.step}]`;
+          const meta = ev.metadata && Object.keys(ev.metadata).length
+            ? ` ${JSON.stringify(ev.metadata).slice(0, 80)}`
+            : '';
+          addEvent(`${prefix} ${ev.status}${meta}`, ev.status === 'ok' ? 'info' : 'error');
         });
       }
-      if (data.errors?.length) {
-        data.errors.forEach((e: any) => addEvent(`${t.errorPrefix}: ${typeof e === 'string' ? e : e.message || JSON.stringify(e)}`, 'error'));
+
+      if (data.error) {
+        // Runtime reported an error — show friendly message + retry path
+        setError(data.summary || t.processingFailed);
+        addEvent(`${t.failedPrefix}: ${data.error_reason}`, 'error');
+      } else {
+        addEvent(`${t.completedPrefix} ${data.latency_ms || elapsed}ms (${data.runtime_mode})`, 'success');
       }
     } catch (err: any) {
-      const msg = err.response?.data?.detail || err.message || t.processingFailed;
+      // axios error — distinguish timeout from other errors
+      const isTimeout = err.code === 'ECONNABORTED' || /timeout/i.test(err.message || '');
+      const detail = err.response?.data?.detail || err.message || t.processingFailed;
+      const msg = isTimeout
+        ? (codingMode === 'corti_like_fast'
+            ? 'Fast Coding 超时,请重试或切换至 Deep Evidence 模式。'
+            : 'Deep Evidence 超时,请切换至 Fast Coding 模式或缩减输入后重试。')
+        : (typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 200));
       setError(msg);
       addEvent(`${t.failedPrefix}: ${msg}`, 'error');
     } finally {
       setLoading(false);
       setProcessing(false);
+    }
+  };
+
+  // ── Retry (re-run with same input + mode, or switch mode first) ──
+  const handleRetry = (switchToFast?: boolean) => {
+    if (switchToFast && codingMode !== 'corti_like_fast') {
+      setCodingMode('corti_like_fast');
+      setTimeout(() => handlePredict(), 0);
+    } else {
+      handlePredict();
     }
   };
 
@@ -255,144 +328,204 @@ export default function MedicalCodingPage() {
     setSelectedSystems(prev => prev.filter(s => s !== sys));
   };
   const addSystem = (sys: string) => {
-    if (!selectedSystems.includes(sys)) setSelectedSystems(prev => [...prev, sys]);
+    setSelectedSystems(prev => (
+      prev.includes(sys) || prev.length >= 2 ? prev : [...prev, sys]
+    ));
   };
 
   // ── Add include/exclude code ──
   const confirmAddCode = () => {
-    if (!addCodeVal.trim()) return;
-    if (addCodeDialog.target === 'include') setIncludeCodes(prev => [...prev, addCodeVal.trim()]);
-    else setExcludeCodes(prev => [...prev, addCodeVal.trim()]);
+    const code = addCodeVal.trim();
+    if (!code || code.length > 64) return;
+    if (addCodeDialog.target === 'include') {
+      setIncludeCodes(prev => prev.some(item => item.toLowerCase() === code.toLowerCase()) ? prev : [...prev, code]);
+    } else {
+      setExcludeCodes(prev => prev.some(item => item.toLowerCase() === code.toLowerCase()) ? prev : [...prev, code]);
+    }
     setAddCodeVal('');
     setAddCodeDialog({show:false, target:'include'});
   };
 
   // ── Derived ──
-  const primaryDiag = (result as RuntimeRunResult)?.primary_diagnosis;
-  const secondaryDiags = (result as RuntimeRunResult)?.secondary_diagnoses || [];
-  const procedures = (result as RuntimeRunResult)?.procedures || [];
-  const isMedcoderMode = (result as RuntimeRunResult)?.mode === 'medcoder';
-  const extractedDiagnoses: ExtractedDiagnosis[] =
-    (result as RuntimeRunResult)?.extracted_diagnoses || [];
+  // G001 refactor: result can be either:
+  //   - CodingPredictResult (new shape from /api/v1/coding/predict) with flat `codes` array
+  //   - RuntimeRunResult (legacy A2A shape) with primary_diagnosis/secondary_diagnoses/procedures
+  // Detect shape and project uniformly.
+  const isCodingPredictResult = (result as any)?.runtime_mode !== undefined;
+  const codingResult: CodingPredictResult | null = isCodingPredictResult ? (result as CodingPredictResult) : null;
+  const codingResultCodes: CodingResultCode[] = codingResult?.codes || [];
+
+  const primaryDiag = codingResult
+    ? codingResultCodes.find(c => c.type === 'primary_diagnosis')
+    : (result as RuntimeRunResult)?.primary_diagnosis;
+  const secondaryDiags = codingResult
+    ? codingResultCodes.filter(c => c.type === 'secondary_diagnosis' || c.type === 'complication')
+    : (result as RuntimeRunResult)?.secondary_diagnoses || [];
+  const procedures = codingResult
+    ? codingResultCodes.filter(c => c.type === 'procedure' || c.type === 'external_cause' || c.type === 'aftercare')
+    : (result as RuntimeRunResult)?.procedures || [];
+  const isMedcoderMode = codingResult
+    ? codingResult.runtime_mode === 'medcoder_deep'
+    : (result as RuntimeRunResult)?.mode === 'medcoder';
+  const extractedDiagnoses: ExtractedDiagnosis[] = codingResult
+    ? ((codingResult.raw_schema as any)?.extracted_diagnoses as ExtractedDiagnosis[]) || []
+    : (result as RuntimeRunResult)?.extracted_diagnoses || [];
   // Map dx index → user-selected code (override)
   const [userOverrides, setUserOverrides] = useState<Record<number, string>>({});
-  const allCodes = [primaryDiag, ...secondaryDiags, ...procedures]
-    .filter(Boolean)
-    .slice()
-    .sort((a: any, b: any) => (b.confidence ?? 0) - (a.confidence ?? 0));
+  const allCodes = codingResult
+    ? [...codingResultCodes]
+    : [primaryDiag, ...secondaryDiags, ...procedures].filter(Boolean).slice().sort((a: any, b: any) => (b.confidence ?? 0) - (a.confidence ?? 0));
   const hasText = input.trim().length > 0;
+  const hasRunnableSystem = selectedSystems.length >= 1;
   const availableSystems = codingSystems.filter(cs => !selectedSystems.includes(cs.code_system));
-  const snippetSystems = selectedSystems.length ? selectedSystems : ['icd10-cn'];
 
   // ── Code snippets (live) ──
   const snippetInput = input.slice(0, 80) + (input.length > 80 ? '...' : '');
-  const codeSnippetJS = useMemo(() => {
-    const lines = [
-      `import { iCoDerClient } from "@icoder/sdk";`,
-      ``,
-      `const client = new iCoDerClient({`,
-      `  baseURL: "http://localhost:8000",`,
-      `  accessToken: "<your-access-token>",`,
-      `});`,
-      ``,
-      `const response = await client.codes.predict({`,
-      `  context: [{ type: "text", text: \`${snippetInput || t.enterClinicalText}\` }],`,
-      `  system: [${snippetSystems.map(s => `"${s}"`).join(', ')}],`,
-    ];
-    if (includeCodes.length) lines.push(`  include_codes: [${includeCodes.map(c => `"${c}"`).join(', ')}],`);
-    if (excludeCodes.length) lines.push(`  exclude_codes: [${excludeCodes.map(c => `"${c}"`).join(', ')}],`);
-    lines.push(`  expand: ${expandResults},`);
-    lines.push(`  confidence_threshold: ${confidenceThreshold},`);
-    lines.push(`});`);
-    return lines.join('\n');
-  }, [snippetInput, snippetSystems, includeCodes, excludeCodes, expandResults, confidenceThreshold, t]);
-  const codeSnippetJSON = useMemo(() => JSON.stringify({
-    method: 'codes.predict',
-    params: {
-      context: [{ type: 'text', text: snippetInput || t.enterClinicalText }],
-      system: snippetSystems,
-      include_codes: includeCodes.length ? includeCodes : undefined,
-      exclude_codes: excludeCodes.length ? excludeCodes : undefined,
-      expand: expandResults,
-      confidence_threshold: confidenceThreshold,
-    },
-  }, null, 2), [snippetInput, snippetSystems, includeCodes, excludeCodes, expandResults, confidenceThreshold, t]);
+  const medicalCodingSnippets = useMemo(() => buildMedicalCodingSnippets({
+    baseURL: window.location.origin,
+    text: snippetInput || t.enterClinicalText,
+    mode: codingMode,
+    codingSystems: selectedSystems.length ? selectedSystems : ['icd10cn'],
+    includeCodes,
+    excludeCodes,
+    expand: expandResults,
+  }), [snippetInput, codingMode, selectedSystems, includeCodes, excludeCodes, expandResults, t]);
+  const codeSnippetJS = medicalCodingSnippets.javascript;
+  const codeSnippetJSON = medicalCodingSnippets.json;
 
   // ── Render ──
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* ==================== HEADER (breadcrumb only — cost/Docs now in global header) ==================== */}
+      {/* ==================== HEADER (breadcrumb only - cost/Docs now in global header) ==================== */}
       <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
         <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
         <ChevronRight size={12} className="text-muted-foreground/50" />
         <span className="text-foreground font-medium truncate">{t.medicalCodingBreadcrumb}</span>
       </div>
 
-      {/* ==================== Phase 3-A Section D — MVP + AI-assisted banners (Corti red lines) ==================== */}
+      {/* Launch-candidate status remains explicit without the obsolete MVP label. */}
       <div className="flex items-center gap-2 px-4 py-1.5 border-b border-amber-200/40 bg-amber-50/60 shrink-0 text-[11px]">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium" data-testid="mvp-banner">
-          <Info size={10} /> {t.mvpBanner}
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium" data-testid="launch-candidate-banner">
+          <Info size={10} /> {t.launchCandidateBanner}
         </span>
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium" data-testid="ai-assisted-banner">
           <Check size={10} /> {t.aiAssistedBanner}
         </span>
       </div>
 
-      {/* ==================== ACTION BAR (Predict codes) ==================== */}
-      <div className="flex items-center justify-end gap-2 px-4 py-2 border-b border-border/20 shrink-0">
-        <button data-testid="predict-codes-btn" onClick={() => handlePredict()} disabled={!hasText || loading}
-          className="px-4 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm font-medium hover:bg-accent disabled:opacity-30 transition-all flex items-center gap-1.5">
-          {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          {loading ? t.analyzing : t.predictCodes}
-        </button>
+      {/* ==================== ACTION BAR - Coding systems + Predict + Config ==================== */}
+      <div className="flex shrink-0 items-center border-b bg-muted px-4 py-3 gap-3">
+        {/* 左: Coding systems label + info tooltip + combobox chips */}
+        <span className="text-sm font-medium text-foreground">{t.codingSystems}</span>
+        <span title={t.codingSystemsInfo} className="cursor-help">
+          <Info size={14} className="text-muted-foreground/50" />
+        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {selectedSystems.map(sys => (
+            <span
+              key={sys}
+              data-testid={`coding-system-chip-${sys}`}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-border bg-background text-foreground"
+            >
+              {shortSystemLabel(sys)}
+              <button
+                onClick={() => removeSystem(sys)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Remove ${sys}`}
+              >
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+          {availableSystems.length > 0 && (
+            <button
+              onClick={() => addSystem(availableSystems[0].code_system)}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-dashed border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+            >
+              <Plus size={10} /> {t.addSystem}
+            </button>
+          )}
+        </div>
+        {/* 右: Mode indicator + Predict codes + Config */}
+        <div className="ml-auto flex items-center gap-2">
+          {codingMode === 'corti_like_fast' ? (
+            <span data-testid="active-mode-fast" className="inline-flex items-center gap-1 px-2 py-1 text-[10px] rounded-md bg-emerald-50 text-emerald-700 font-medium">
+              <Zap size={10} /> Fast
+            </span>
+          ) : (
+            <span data-testid="active-mode-deep" className="inline-flex items-center gap-1 px-2 py-1 text-[10px] rounded-md bg-violet-50 text-violet-700 font-medium">
+              <FileSearch size={10} /> Deep
+            </span>
+          )}
+          <button
+            data-testid="predict-codes-btn"
+            onClick={() => handlePredict()}
+            disabled={!hasText || !hasRunnableSystem || loading}
+            className="px-4 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm font-medium hover:bg-accent disabled:opacity-30 transition-all flex items-center gap-1.5"
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            {loading ? t.analyzing : t.predictCodes}
+          </button>
+          <button
+            onClick={() => setConfigOpen(true)}
+            data-testid="config-btn"
+            className="px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm font-medium hover:bg-accent transition-all flex items-center gap-1.5"
+          >
+            <SlidersHorizontal size={14} />
+            {t.config}
+          </button>
+        </div>
       </div>
 
-      {/* ==================== MAIN 3-PANE ==================== */}
-      <div className="flex-1 flex min-h-0">
-        {/* ===== LEFT: Input + SampleMenu dropdown + Guide wizard ===== */}
-        <div className="flex-1 flex flex-col p-4 min-w-0 border-r border-border/20">
-          <div className="flex items-center gap-2 mb-2 relative">
+      {/* ==================== MAIN 2-PANE (Input + Output) ==================== */}
+      <div className={`flex-1 flex min-h-0 transition-all duration-200 ${configOpen ? 'mr-[400px]' : ''}`}>
+        {/* ===== LEFT: Input + sub-toolbar + floating onboarding card ===== */}
+        <div className="flex-1 flex flex-col min-w-0 border-r border-border/20">
+          {/* Input/Samples/Clear/Copy sub-toolbar */}
+          <div className="flex items-center justify-between px-4 py-2">
             <span className="text-sm font-medium text-foreground">{t.inputLabel}</span>
-            <div className="ml-auto" />
-            {/* "Samples" button — opens a simple dropdown menu */}
-            <div className="relative">
-              <button onClick={() => setSampleMenuOpen(o => !o)}
-                className={`px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md flex items-center gap-1 ${sampleMenuOpen ? 'bg-accent' : ''}`}>
-                <BookText size={12} /> {t.samples} <ChevronDown size={10} />
+            <div className="flex items-center gap-1">
+              {/* "Samples" button - opens a simple dropdown menu */}
+              <div className="relative">
+                <button onClick={() => setSampleMenuOpen(o => !o)}
+                  className={`px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md flex items-center gap-1 ${sampleMenuOpen ? 'bg-accent' : ''}`}>
+                  <BookText size={12} /> {t.samples} <ChevronDown size={10} />
+                </button>
+                {sampleMenuOpen && (
+                  <>
+                    {/* Backdrop to close on outside click */}
+                    <div className="fixed inset-0 z-40" onClick={() => setSampleMenuOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 py-1">
+                      {samples.map(s => (
+                        <button key={s.key}
+                          onClick={() => { selectSample(s.text); setSampleMenuOpen(false); }}
+                          className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors text-foreground">
+                          {s.title}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <button onClick={() => setInput('')} disabled={!hasText}
+                className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title={t.clearInput}>
+                <Eraser size={14} />
               </button>
-              {sampleMenuOpen && (
-                <>
-                  {/* Backdrop to close on outside click */}
-                  <div className="fixed inset-0 z-40" onClick={() => setSampleMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 py-1">
-                    {samples.map(s => (
-                      <button key={s.key}
-                        onClick={() => { selectSample(s.text); setSampleMenuOpen(false); }}
-                        className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors text-foreground">
-                        {s.title}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+              <button onClick={() => navigator.clipboard?.writeText(input)} disabled={!hasText}
+                className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title={t.copyInput}>
+                <Copy size={14} />
+              </button>
+              {/* Debounced server-configured range; final billing uses actual provider usage. */}
+              <span
+                className="ml-1 text-[11px] text-muted-foreground/70 font-mono tabular-nums"
+                data-testid="char-counter"
+                title={pricingEstimate?.disclaimer || 'Pre-run estimate unavailable; final cost is reported after completion.'}
+              >
+                {fillTmpl(t.charCount, { n: charCount })} · {fillTmpl(t.costEstimate, { n: costEstimate })}
+              </span>
             </div>
-            <button onClick={() => setInput('')} disabled={!hasText}
-              className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title={t.clearInput}>
-              <Eraser size={14} />
-            </button>
-            <button onClick={() => navigator.clipboard?.writeText(input)} disabled={!hasText}
-              className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title={t.copyInput}>
-              <Copy size={14} />
-            </button>
-            {/* Live char + cost counter (updates per keystroke; not gated on Predict) */}
-            <span
-              className="ml-1 text-[11px] text-muted-foreground/70 font-mono tabular-nums"
-              data-testid="char-counter"
-              title="Live char + cost estimate (placeholder rate, see TODO in source)"
-            >
-              {fillTmpl(t.charCount, { n: charCount })} · {fillTmpl(t.costEstimate, { n: costEstimate })}
-            </span>
           </div>
+          {/* textarea + floating onboarding card (overlay) */}
           <div className="flex-1 relative min-h-0">
             <HighlightedTextarea
               value={input}
@@ -402,42 +535,53 @@ export default function MedicalCodingPage() {
               placeholder={t.enterClinicalText}
               className="h-full"
             />
-          </div>
-
-          {/* ─────── Get started with: 4 inline template cards (Corti IA) ─────── */}
-          <div className="mt-3 rounded-xl border border-border/30 bg-muted/20 p-4">
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Sparkles size={16} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{t.medicalCoding}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{t.medicalCodingDesc}</p>
-              </div>
-            </div>
-            <p className="text-[11px] font-medium text-muted-foreground mb-2">{t.getStartedWith}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { key: 'admission' as const, label: t.hospitalMedicalRecord, desc: t.hospitalMedicalRecordDesc, run: false },
-                { key: 'outpatient' as const, label: t.gpTranscript, desc: t.gpTranscriptDesc, run: false },
-                { key: 'consultation' as const, label: t.orthopedicReferral, desc: t.orthopedicReferralDesc, run: false },
-                { key: 'admission' as const, label: t.guidedDemo, desc: t.guidedDemoDesc, run: true },
-              ].map((card) => (
-                <button key={card.label} onClick={() => card.run ? loadSampleAndRun(card.key) : loadSampleOnly(card.key)}
-                  className="text-left p-2.5 rounded-lg border border-border/30 bg-background hover:border-primary/40 hover:bg-primary/5 transition-colors flex items-start gap-2">
-                  <FileText size={14} className="text-muted-foreground shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-foreground truncate">{card.label}</p>
-                    <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{card.desc}</p>
+            {/* Floating onboarding card - only shown when input is empty */}
+            {!hasText && (
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-end overflow-hidden">
+                <div className="pointer-events-auto max-h-[calc(100%-4rem)] w-full overflow-y-auto p-4 pt-16">
+                  <div className="overflow-hidden border border-t-0 bg-stone-50 shadow-sm rounded-b-lg dark:bg-stone-800">
+                    <div className="flex flex-col gap-4 p-6">
+                      {/* icon + Medical Coding title + description */}
+                      <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <Sparkles size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground">{t.medicalCoding}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t.medicalCodingDesc}</p>
+                        </div>
+                      </div>
+                      {/* Get started with + horizontal 4 sample buttons */}
+                      <div className="flex gap-3 items-start">
+                        <p className="text-[11px] font-medium text-muted-foreground shrink-0 pt-1.5">{t.getStartedWith}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { key: 'admission' as const, label: t.hospitalMedicalRecord, run: false },
+                            { key: 'outpatient' as const, label: t.gpTranscript, run: false },
+                            { key: 'consultation' as const, label: t.orthopedicReferral, run: false },
+                            { key: 'admission' as const, label: t.guidedDemo, run: true },
+                          ].map((card) => (
+                            <button
+                              key={card.label}
+                              onClick={() => card.run ? loadSampleAndRun(card.key) : loadSampleOnly(card.key)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md border border-border bg-background hover:border-primary/40 hover:bg-primary/5 transition-colors text-foreground"
+                            >
+                              <FileText size={12} className="text-muted-foreground" />
+                              {card.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ===== MIDDLE: Output ===== */}
-        <div className="w-[400px] shrink-0 flex flex-col border-r border-border/20">
+        {/* ===== RIGHT: Output (w-[480px]) — hidden when config drawer open to avoid being covered ===== */}
+        <div className={`w-[480px] shrink-0 flex flex-col ${configOpen ? 'hidden' : 'flex'}`}>
           <div className="px-4 py-3 border-b border-border/20 shrink-0">
             <span className="text-sm font-medium text-foreground">{t.outputLabel}</span>
           </div>
@@ -448,12 +592,102 @@ export default function MedicalCodingPage() {
               </div>
             ) : (
               <div className="space-y-4">
+                {/* ===== G001 refactor: Runtime Info panel (Fast / Deep mode badge + latency + trace_id + summary) ===== */}
+                {codingResult && (
+                  <div className="rounded-md border border-border/30 bg-muted/30 p-3 space-y-2" data-testid="runtime-info-panel">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {codingResult.runtime_mode === 'corti_like_fast' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-medium" data-testid="mode-badge-fast">
+                          <Zap size={10} /> Fast Coding
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 text-[10px] font-medium" data-testid="mode-badge-deep">
+                          <FileSearch size={10} /> Deep Evidence
+                        </span>
+                      )}
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {codingResult.latency_ms ? (codingResult.latency_ms / 1000).toFixed(2) : '?'}s
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">{codingResult.llm_provider || 'deepseek'}</span>
+                      {codingResult.trace_id && (
+                        <span className="text-[10px] text-muted-foreground/40 font-mono ml-auto" title={codingResult.trace_id}>
+                          trace: {codingResult.trace_id.slice(0, 16)}…
+                        </span>
+                      )}
+                    </div>
+                    {codingResult.summary && (
+                      <p className="text-xs text-foreground/80 leading-relaxed">{codingResult.summary}</p>
+                    )}
+                    {codingResult.error && (
+                      <div className="rounded-md bg-amber-50 border border-amber-200/60 p-2 flex items-start gap-2">
+                        <AlertTriangle size={12} className="text-amber-600 mt-0.5 shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-[11px] text-amber-800">{codingResult.summary}</p>
+                          <div className="flex gap-2 mt-1.5">
+                            <button
+                              onClick={() => handleRetry(false)}
+                              className="text-[10px] px-2 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
+                              data-testid="retry-same-mode"
+                            >
+                              <RotateCcw size={10} className="inline mr-1" />重试
+                            </button>
+                            {codingMode !== 'corti_like_fast' && (
+                              <button
+                                onClick={() => handleRetry(true)}
+                                className="text-[10px] px-2 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors"
+                                data-testid="retry-switch-fast"
+                              >
+                                <Zap size={10} className="inline mr-1" />切换 Fast Coding
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ===== Copy JSON / Copy Markdown buttons (G001 §5.3) ===== */}
+                {codingResult && codingResult.codes.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard?.writeText(JSON.stringify(codingResult, null, 2));
+                        addEvent('Copied JSON', 'info');
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-md border border-border bg-background text-foreground hover:bg-accent transition-colors"
+                      data-testid="copy-json-btn"
+                    >
+                      <Copy size={10} /> Copy JSON
+                    </button>
+                    <button
+                      onClick={() => {
+                        const md = codingResult.codes.map((c, i) =>
+                          `### ${i + 1}. ${c.code} — ${c.display}\n` +
+                          `- **Type**: ${c.type}\n` +
+                          `- **Confidence**: ${(c.confidence * 100).toFixed(0)}%\n` +
+                          `- **System**: ${c.system}\n` +
+                          (c.evidence ? `- **Evidence**: ${c.evidence}\n` : '') +
+                          (c.rationale ? `- **Rationale**: ${c.rationale}\n` : '') +
+                          (c.warnings?.length ? `- **Warnings**: ${c.warnings.join('; ')}\n` : '')
+                        ).join('\n');
+                        navigator.clipboard?.writeText(`# Medical Coding Result\n\nRuntime: ${codingResult.runtime_mode} | Latency: ${codingResult.latency_ms}ms\n\n${md}`);
+                        addEvent('Copied Markdown', 'info');
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-md border border-border bg-background text-foreground hover:bg-accent transition-colors"
+                      data-testid="copy-markdown-btn"
+                    >
+                      <Clipboard size={10} /> Copy Markdown
+                    </button>
+                  </div>
+                )}
+
                 {primaryDiag?.code && (
                   <div>
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.primaryDiagnosis}</p>
+                    <p className="text-[10px] font-semibold text-muted-foreground mb-1">{t.primaryDiagnosis}</p>
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold font-mono text-foreground">{primaryDiag.code}</span>
-                      <span className="text-xs text-muted-foreground">{primaryDiag.description || ''}</span>
+                      <span className="text-xs text-muted-foreground">{(primaryDiag as any).display || (primaryDiag as any).description || ''}</span>
                     </div>
                   </div>
                 )}
@@ -478,18 +712,72 @@ export default function MedicalCodingPage() {
                         >
                           <td className="py-1.5 text-muted-foreground">{i + 1}</td>
                           <td className="py-1.5 font-mono font-medium">{c.code || ''}</td>
-                          <td className="py-1.5 text-muted-foreground">{c.description || ''}</td>
+                          <td className="py-1.5 text-muted-foreground">{c.display || c.description || ''}</td>
                           <td className="py-1.5 text-right font-mono text-muted-foreground">
-                            {c.confidence ? Math.round(c.confidence * 100) + '%' : '—'}
+                            {c.confidence ? Math.round(c.confidence * 100) + '%' : '-'}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 )}
+
+                {/* ===== G001 refactor: per-code rationale + warnings + evidence + alternatives ===== */}
+                {codingResult && codingResultCodes.length > 0 && focusedSpanIndex !== null && codingResultCodes[focusedSpanIndex] && (
+                  <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2" data-testid="code-detail-panel">
+                    {(() => {
+                      const c = codingResultCodes[focusedSpanIndex];
+                      return (
+                        <>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-base font-bold font-mono text-foreground">{c.code}</span>
+                            <span className="text-xs text-muted-foreground">{c.display}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground ml-auto">{c.type}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-mono">{(c.confidence * 100).toFixed(0)}%</span>
+                          </div>
+                          {c.evidence && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground mb-1">{t.evidence}</p>
+                              <p className="text-xs text-foreground/80 italic bg-background/60 rounded px-2 py-1.5">"{c.evidence}"</p>
+                            </div>
+                          )}
+                          {c.rationale && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground mb-1">Rationale</p>
+                              <p className="text-xs text-foreground/80 leading-relaxed">{c.rationale}</p>
+                            </div>
+                          )}
+                          {c.warnings?.length > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-amber-700 mb-1 flex items-center gap-1">
+                                <AlertTriangle size={10} /> Warnings
+                              </p>
+                              <ul className="text-[11px] text-amber-800 list-disc list-inside space-y-0.5">
+                                {c.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                              </ul>
+                            </div>
+                          )}
+                          {c.alternatives?.length > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground mb-1">Alternatives</p>
+                              <div className="flex flex-wrap gap-1">
+                                {c.alternatives.map((alt, i) => (
+                                  <span key={i} className="text-[10px] px-1.5 py-0.5 rounded border border-border bg-background text-muted-foreground font-mono" title={alt.name}>
+                                    {alt.code} <span className="text-muted-foreground/60">({alt.score.toFixed(2)})</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+
                 {dataEvidences(result).length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.evidence}</p>
+                    <p className="text-[10px] font-semibold text-muted-foreground mb-1">{t.evidence}</p>
                     <div className="space-y-1">
                       {dataEvidences(result).map((span, i) => (
                         <div key={i} className="text-xs text-muted-foreground bg-primary/5 rounded px-2.5 py-1.5">“{span.text}”</div>
@@ -502,7 +790,7 @@ export default function MedicalCodingPage() {
                 {isMedcoderMode && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      <p className="text-[10px] font-semibold text-muted-foreground">
                         {t.codingPipeline}
                       </p>
                       <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
@@ -539,10 +827,10 @@ export default function MedicalCodingPage() {
                   </div>
                 )}
 
-                {/* ==================== Phase 3-A Section D — Corti-style Review Summary (8-field output) ==================== */}
-                {(() => {
+                {/* ==================== Phase 3-A Section D - Review Summary (8-field output) ==================== */}
+                {shouldRenderCodingReviewSummary(result) && (() => {
                   const r = result as RuntimeRunResult;
-                  // Project v1 → Corti-style display when v2 fields absent (Section E will populate v2)
+                  // Project v1 → 8-field display when v2 fields absent (Section E will populate v2)
                   const reviewConclusion = r?.review_conclusion
                     || (r?.human_review?.review_conclusion as string | undefined)
                     || (r?.issues_found && r.issues_found.length > 0 ? 'WARNING' : 'PASS');
@@ -566,7 +854,7 @@ export default function MedicalCodingPage() {
                   return (
                     <div data-testid="corti-review-summary" className="mt-4 rounded-lg border border-border/40 bg-muted/20 p-3 space-y-3">
                       <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                        <p className="text-[10px] font-semibold text-muted-foreground">
                           {t.reviewSummary}
                         </p>
                         <div className="flex items-center gap-1.5">
@@ -581,10 +869,10 @@ export default function MedicalCodingPage() {
                         </div>
                       </div>
 
-                      {/* Validation summary — issues found list */}
+                      {/* Validation summary - issues found list */}
                       {issues.length > 0 && (
                         <div>
-                          <p className="text-[10px] font-medium text-muted-foreground mb-1">{t.validationSummary} — {issues.length}</p>
+                          <p className="text-[10px] font-medium text-muted-foreground mb-1">{t.validationSummary} - {issues.length}</p>
                           <ul className="space-y-1">
                             {issues.map((iss: CodingIssue, i: number) => (
                               <li key={i} className="text-[11px] text-muted-foreground bg-background rounded px-2 py-1 border border-border/30">
@@ -657,192 +945,273 @@ export default function MedicalCodingPage() {
           </div>
         </div>
 
-        {/* ===== RIGHT: Settings / Code ===== */}
-        <div className="w-[360px] shrink-0 flex flex-col bg-background">
-          <div className="flex items-center border-b border-border/20 shrink-0">
-            <button onClick={() => setRightTab('settings')}
-              className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${rightTab === 'settings' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-              {t.settings}
-            </button>
-            <button onClick={() => setRightTab('code')}
-              className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${rightTab === 'code' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-              {t.tabCode}
-            </button>
-            <span className="px-2 text-muted-foreground/40 cursor-help" title={t.tabCode}>
-              <Info size={12} />
-            </span>
+        {/* ===== (no fixed right Settings pane - moved to Config drawer) ===== */}
+      </div>
+
+      {/* ==================== CONFIG DRAWER (right slide-out) ==================== */}
+      {configOpen && (
+        <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setConfigOpen(false)} />
+      )}
+      <div
+        data-testid="config-drawer"
+        className={`fixed right-0 top-0 h-full w-[400px] bg-background border-l border-border shadow-xl z-50 transform transition-transform duration-200 flex flex-col ${
+          configOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/20 shrink-0">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={14} className="text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">{t.config}</span>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            {rightTab === 'settings' ? (
-              <div className="p-4 space-y-5">
-                {/* Coding systems (chips) */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1">
-                      <label className="text-xs font-medium text-foreground">{t.codingSystems}</label>
-                      <span className="text-muted-foreground/40 cursor-help" title={t.codingSystems}>
-                        <Info size={11} />
-                      </span>
+          <button
+            onClick={() => setConfigOpen(false)}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label={t.close || 'Close'}
+          >
+            <X size={16} />
+          </button>
+        </div>
+        {/* Sub-tab: Settings / Code */}
+        <div className="flex items-center border-b border-border/20 shrink-0">
+          <button
+            onClick={() => setRightTab('settings')}
+            className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${rightTab === 'settings' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            {t.settings}
+          </button>
+          <button
+            onClick={() => setRightTab('code')}
+            className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${rightTab === 'code' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            {t.tabCode}
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {rightTab === 'settings' ? (
+            <div className="p-4 space-y-5">
+              {/* China runtime supports diagnosis, procedure, or both systems. */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-medium text-foreground">{t.codingSystems}</label>
+                    <span className="text-muted-foreground/40 cursor-help" title={t.codingSystems}>
+                      <Info size={11} />
+                    </span>
+                  </div>
+                  {availableSystems.length > 0 && (
+                    <div className="relative group">
+                      <button className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+                        <Plus size={11} /> {t.add}
+                      </button>
+                      <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg z-50 py-1 hidden group-hover:block">
+                        {availableSystems.map(cs => (
+                          <button key={cs.code_system} onClick={() => addSystem(cs.code_system)}
+                            className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors">
+                            {cs.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    {availableSystems.length > 0 && (
-                      <div className="relative group">
-                        <button className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
-                          <Plus size={11} /> {t.add}
-                        </button>
-                        <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg z-50 py-1 hidden group-hover:block">
-                          {availableSystems.map(cs => (
-                            <button key={cs.code_system} onClick={() => addSystem(cs.code_system)}
-                              className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors">
-                              {cs.name}
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedSystems.length === 0 && (
+                    <span className="text-[11px] text-muted-foreground/50">{t.noSystemsSelected}</span>
+                  )}
+                  {selectedSystems.map(sys => (
+                    <span key={sys} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-xs text-foreground">
+                      {shortSystemLabel(sys)}
+                      <button onClick={() => removeSystem(sys)} className="text-muted-foreground hover:text-foreground">
+                        <X size={11} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Filter codes */}
+              <div>
+                <div className="flex items-center gap-1">
+                  <label className="text-xs font-medium text-foreground">{t.filterCodes}</label>
+                  <span className="text-muted-foreground/40 cursor-help" title={t.filterCodes}>
+                    <Info size={11} />
+                  </span>
+                </div>
+                <div className="mt-1.5 space-y-2.5">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-muted-foreground">{t.include}</span>
+                        <span className="text-muted-foreground/30"><Info size={10} /></span>
+                      </div>
+                      <button onClick={() => setAddCodeDialog({show:true, target:'include'})} className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+                        <Plus size={11} /> {t.addCodes}
+                      </button>
+                    </div>
+                    {includeCodes.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {includeCodes.map((c, i) => (
+                          <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-muted flex items-center gap-1">
+                            {c}
+                            <button onClick={() => setIncludeCodes(prev => prev.filter((_, j) => j !== i))} className="hover:text-foreground">
+                              <X size={10} />
                             </button>
-                          ))}
-                        </div>
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedSystems.length === 0 && (
-                      <span className="text-[11px] text-muted-foreground/50">{t.noSystemsSelected}</span>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-muted-foreground">{t.exclude}</span>
+                        <span className="text-muted-foreground/30"><Info size={10} /></span>
+                      </div>
+                      <button onClick={() => setAddCodeDialog({show:true, target:'exclude'})} className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+                        <Plus size={11} /> {t.addCodes}
+                      </button>
+                    </div>
+                    {excludeCodes.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {excludeCodes.map((c, i) => (
+                          <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-muted flex items-center gap-1">
+                            {c}
+                            <button onClick={() => setExcludeCodes(prev => prev.filter((_, j) => j !== i))} className="hover:text-foreground">
+                              <X size={10} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
                     )}
-                    {selectedSystems.map(sys => (
-                      <span key={sys} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-xs text-foreground">
-                        {shortSystemLabel(sys)}
-                        <button onClick={() => removeSystem(sys)} className="text-muted-foreground hover:text-foreground">
-                          <X size={11} />
-                        </button>
-                      </span>
-                    ))}
                   </div>
                 </div>
+              </div>
 
-                {/* Filter codes */}
-                <div>
+              {/* ===== G001 refactor: Coding Mode selector (Fast vs Deep Evidence) ===== */}
+              <div data-testid="coding-mode-section">
+                <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1">
-                    <label className="text-xs font-medium text-foreground">{t.filterCodes}</label>
-                    <span className="text-muted-foreground/40 cursor-help" title={t.filterCodes}>
+                    <span className="text-xs font-medium text-foreground">Coding Mode</span>
+                    <span className="text-muted-foreground/40 cursor-help" title="Fast = single LLM call (~7-12s). Deep Evidence = MedCodER 5-stage pipeline (30-60s+).">
                       <Info size={11} />
                     </span>
                   </div>
-                  <div className="mt-1.5 space-y-2.5">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] text-muted-foreground">{t.include}</span>
-                          <span className="text-muted-foreground/30"><Info size={10} /></span>
-                        </div>
-                        <button onClick={() => setAddCodeDialog({show:true, target:'include'})} className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
-                          <Plus size={11} /> {t.addCodes}
-                        </button>
-                      </div>
-                      {includeCodes.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {includeCodes.map((c, i) => (
-                            <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-muted flex items-center gap-1">
-                              {c}
-                              <button onClick={() => setIncludeCodes(prev => prev.filter((_, j) => j !== i))} className="hover:text-foreground">
-                                <X size={10} />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] text-muted-foreground">{t.exclude}</span>
-                          <span className="text-muted-foreground/30"><Info size={10} /></span>
-                        </div>
-                        <button onClick={() => setAddCodeDialog({show:true, target:'exclude'})} className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
-                          <Plus size={11} /> {t.addCodes}
-                        </button>
-                      </div>
-                      {excludeCodes.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {excludeCodes.map((c, i) => (
-                            <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-muted flex items-center gap-1">
-                              {c}
-                              <button onClick={() => setExcludeCodes(prev => prev.filter((_, j) => j !== i))} className="hover:text-foreground">
-                                <X size={10} />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
-
-                {/* Expand */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-medium text-foreground">{t.expand}</span>
-                    <span className="text-muted-foreground/40 cursor-help" title={t.expand}>
-                      <Info size={11} />
-                    </span>
-                  </div>
-                  <button onClick={() => setExpandResults(!expandResults)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${expandResults ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
-                    role="switch" aria-checked={expandResults}>
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${expandResults ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    data-testid="mode-fast-btn"
+                    onClick={() => setCodingMode('corti_like_fast')}
+                    className={`text-left px-2.5 py-2 rounded-md border transition-all ${
+                      codingMode === 'corti_like_fast'
+                        ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
+                        : 'border-border bg-background text-muted-foreground hover:border-foreground/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Zap size={11} />
+                      <span className="text-[11px] font-medium">Fast Coding</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/70 leading-tight">单阶段 LLM · ~7-12s · 默认</p>
+                  </button>
+                  <button
+                    data-testid="mode-deep-btn"
+                    onClick={() => setCodingMode('medcoder_deep')}
+                    className={`text-left px-2.5 py-2 rounded-md border transition-all ${
+                      codingMode === 'medcoder_deep'
+                        ? 'border-violet-400 bg-violet-50 text-violet-800'
+                        : 'border-border bg-background text-muted-foreground hover:border-foreground/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <FileSearch size={11} />
+                      <span className="text-[11px] font-medium">Deep Evidence</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/70 leading-tight">MedCodER 5 阶段 · 30-60s+ · 高级</p>
                   </button>
                 </div>
+                {codingMode === 'medcoder_deep' && (
+                  <p className="text-[10px] text-amber-700 mt-1.5 flex items-start gap-1">
+                    <AlertTriangle size={10} className="mt-0.5 shrink-0" />
+                    Deep Evidence 模式更慢但更详细,适合复杂病例。超时建议切换至 Fast Coding。
+                  </p>
+                )}
+              </div>
 
-                {/* Confidence threshold */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground">{t.confidenceThreshold}</span>
-                      <span className="text-muted-foreground/40 cursor-help" title="Minimum confidence to include a candidate">
-                        <Info size={11} />
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono text-muted-foreground">{confidenceThreshold.toFixed(2)}</span>
-                  </div>
-                  <input
-                    type="range" min={0} max={1} step={0.05}
-                    value={confidenceThreshold}
-                    onChange={e => setConfidenceThreshold(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
-                  />
-                  <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-0.5 font-mono">
-                    <span>0.00</span><span>0.50</span><span>1.00</span>
-                  </div>
+              {/* Corti filter.expand: category-prefix matching when enabled. */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-foreground">{t.expand}</span>
+                  <span className="text-muted-foreground/40 cursor-help" title={t.expand}>
+                    <Info size={11} />
+                  </span>
                 </div>
-
-                {/* Reset settings */}
-                <button onClick={() => { setExpandResults(false); setConfidenceThreshold(0.6); setIncludeCodes([]); setExcludeCodes([]); }}
-                  className="w-full text-[11px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 py-1.5 border border-border/40 rounded-md transition-colors">
-                  <RotateCcw size={11} /> {t.resetSettings}
+                <button onClick={() => setExpandResults(!expandResults)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${expandResults ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+                  role="switch" aria-checked={expandResults}>
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${expandResults ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
                 </button>
               </div>
-            ) : (
-              <div className="p-4">
-                <CodeSnippet javascript={codeSnippetJS} json={codeSnippetJSON} compact />
-              </div>
-            )}
-          </div>
+
+              {/* Reset settings */}
+              <button onClick={() => { setExpandResults(true); setIncludeCodes([]); setExcludeCodes([]); setCodingMode('corti_like_fast'); }}
+                className="w-full text-[11px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 py-1.5 border border-border/40 rounded-md transition-colors">
+                <RotateCcw size={11} /> {t.resetSettings}
+              </button>
+            </div>
+          ) : (
+            <div className="p-4">
+              <CodeSnippet javascript={codeSnippetJS} json={codeSnippetJSON} compact />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ==================== EVENT INSPECTOR ==================== */}
-      <div className="h-8 shrink-0 border-t border-border/30 bg-muted/20 flex items-center px-4 gap-4">
-        <span className="text-[10px] text-muted-foreground font-medium shrink-0">{t.eventInspector}</span>
-        <div className="flex-1 flex items-center gap-3 overflow-hidden">
+      {/* ==================== EVENT INSPECTOR - floating button + drawer ==================== */}
+      <button
+        data-testid="event-inspector-fab"
+        onClick={() => setEventInspectorOpen(true)}
+        className="fixed bottom-4 right-4 z-40 flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background shadow-lg text-sm hover:bg-accent transition-colors"
+      >
+        <Activity size={14} className="text-muted-foreground" />
+        <span className="text-foreground font-medium">{t.eventInspector}</span>
+        <span className="text-xs text-muted-foreground/70 font-mono">
+          {t.creditsConsumed}: {liveCost > 0 ? `¥${liveCost.toFixed(6)}` : 'N/A'}
+        </span>
+      </button>
+      {eventInspectorOpen && (
+        <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setEventInspectorOpen(false)} />
+      )}
+      <div
+        data-testid="event-inspector-drawer"
+        className={`fixed right-0 top-0 h-full w-[400px] bg-background border-l border-border shadow-xl z-50 transform transition-transform duration-200 flex flex-col ${
+          eventInspectorOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/20 shrink-0">
+          <div className="flex items-center gap-2">
+            <Activity size={14} className="text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">{t.eventInspector}</span>
+          </div>
+          <button
+            onClick={() => setEventInspectorOpen(false)}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label={t.close || 'Close'}
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-1">
           {events.length === 0 ? (
             <span className="text-[11px] text-muted-foreground/40 font-mono">{t.ready}</span>
           ) : (
-            events.slice(-3).map((ev, i) => (
-              <span key={i} className={`text-[11px] font-mono truncate ${ev.type==='error'?'text-red-500':ev.type==='success'?'text-emerald-600':'text-muted-foreground'}`}>
+            events.map((ev, i) => (
+              <div key={i} className={`text-[11px] font-mono ${ev.type==='error'?'text-red-500':ev.type==='success'?'text-emerald-600':'text-muted-foreground'}`}>
                 <span className="text-muted-foreground/40 mr-1">{ev.ts}</span>
                 {ev.msg}
-              </span>
+              </div>
             ))
           )}
         </div>
-        <span className="text-[10px] text-muted-foreground/40 font-mono shrink-0">
-          {t.creditsConsumedLabel}: {liveCost > 0 ? `$${liveCost.toFixed(6)}` : 'N/A'}
-        </span>
       </div>
 
       {/* ==================== ADD CODE DIALOG ==================== */}

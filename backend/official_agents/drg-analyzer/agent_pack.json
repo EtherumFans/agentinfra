@@ -1,63 +1,1410 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/drg-analyzer@1.0.0",
+  "agent_ref": "icoder/drg-analyzer@1.1.3",
   "manifest": {
-    "name": "DRG 分组分析",
-    "version": "1.0.0",
-    "description": "分析编码方案对 DRG 分组和医保支付的影响。",
-    "category": "医保",
+    "name": "DRG/DIP 风险复核智能体",
+    "version": "1.1.3",
+    "description": "对编码员明确提供且逐字回链的 ICD-10-CN/ICD-9-CM-3 编码执行确定性中国 DRG/DIP 开发期风险复核。输出仅含未验证候选组与规则风险，不执行编码提取/分配、官方分组、DIP 计分、支付结算、提交或写回。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "PieChart",
-    "maturity": "metadata-only",
+    "tags": [
+      "drg",
+      "dip",
+      "explicit-coded-case",
+      "deterministic-risk-review",
+      "evidence-first",
+      "no-upcoding",
+      "china-hospital"
+    ],
+    "maturity": "runnable",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是 DRG/DIP 支付分析专家。分析编码方案对 DRG 分组的影响并给出优化建议。",
-  "experts": [],
-  "tools": [
-    "analyze_drg_impact",
-    "rank_evidence",
-    "calibrate_confidence",
-    "guard_input",
-    "guard_output"
-  ],
-  "permissions": {
-    "key": "drg-analyzer",
-    "name": "DRG 分组分析权限",
-    "description": "分析编码方案对 DRG 分组和医保支付的影响。",
-    "tools": {
-      "analyze_drg_impact": {
-        "allowed": true
-      },
-      "rank_evidence": {
-        "allowed": true
-      },
-      "calibrate_confidence": {
-        "allowed": true
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
+  "system_prompt": "你是 iCoDer 受治理 DRG/DIP 风险复核智能体。只处理明确标签输入：审核目的、诊断编码标准/版本、手术编码标准/版本、患者性别/年龄、主诊断编码、次诊断编码和手术操作编码。编码行格式固定为 code|display|source_document|evidence_text。不得从自由文本提取、推断、新增、修改或推荐编码。仅调用仓库内经 SHA-256 锁定但权威性和许可尚未独立验证的中国通用开发期规则，候选 DRG 必须标记为 EXPERIMENTAL_UNVERIFIED_CANDIDATE。不得输出官方分组、权重、CMI、DIP 分值、支付或结算金额。READY_FOR_CODER_REVIEW 只表示启发式运行完成；必须由获授权的地区/医院引擎和人工编码员复核，禁止自动提交和写回。",
+  "model": null,
+  "backend_provider": "icoder.governed-drg-dip-risk-review.v1",
+  "backend_config": {},
+  "experts": [
+    {
+      "expert_id": "drg-risk-reviewer",
+      "name": "DRG/DIP Risk Reviewer",
+      "role": "primary",
+      "description": "使用哈希锁定的开发期规则对明确编码集执行确定性、非结算风险复核。"
     }
+  ],
+  "tools": [],
+  "permissions": {
+    "key": "governed-drg-dip-risk-review-default",
+    "name": "受治理 DRG/DIP 风险复核默认权限",
+    "description": "只读处理明确编码与逐字证据；禁止编码分配、官方分组、支付结算、提交和写回。",
+    "tools": {},
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true
   },
-  "requirements": {
-    "min_runtime_version": "1.0.0"
-  },
-  "llm_capabilities": {
-    "required_models": [
+  "output_contract": {
+    "schema_ref": "icoder/DRGDIPRiskReview/v8",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "review_status",
+      "review_conclusion",
+      "review_method",
+      "coded_case",
+      "development_candidate_group",
+      "dip_review",
+      "risk_findings",
+      "review_actions",
+      "quality_flags",
+      "governance",
+      "evidence_items",
+      "missing_required_fields",
+      "input_conflicts",
+      "limitations",
+      "code_extraction_performed",
+      "code_assignment_performed",
+      "code_validation_performed",
+      "clinical_inference_performed",
+      "local_development_rules_used",
+      "official_grouping_performed",
+      "official_dip_scoring_performed",
+      "payment_calculation_performed",
+      "billing_authoritative",
+      "production_submission_blocked",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "optional_fields": [],
+    "field_definitions": {
+      "review_status": "输入、证据和本地规则运行状态，不是正式分组或支付结论",
+      "coded_case": "调用方明确提供的编码与逐字证据；不是 Agent 提取或分配",
+      "development_candidate_group": "未验证开发启发式候选，不能用于分组、报送、支付或结算",
+      "dip_review": "明确保留地区授权 DIP 目录门禁，不计算分值或金额",
+      "risk_findings": "开发期规则触发项及其输入证据引用",
+      "governance": "固定规则资产版本、辖区、权威性、许可和用途限制"
+    },
+    "field_types": {
+      "review_status": "string",
+      "review_conclusion": "string",
+      "review_method": "string",
+      "coded_case": "object",
+      "development_candidate_group": "object",
+      "dip_review": "object",
+      "risk_findings": "array",
+      "review_actions": "array",
+      "quality_flags": "object",
+      "governance": "object",
+      "evidence_items": "array",
+      "missing_required_fields": "array",
+      "input_conflicts": "array",
+      "limitations": "array",
+      "code_extraction_performed": "boolean",
+      "code_assignment_performed": "boolean",
+      "code_validation_performed": "boolean",
+      "clinical_inference_performed": "boolean",
+      "local_development_rules_used": "boolean",
+      "official_grouping_performed": "boolean",
+      "official_dip_scoring_performed": "boolean",
+      "payment_calculation_performed": "boolean",
+      "billing_authoritative": "boolean",
+      "production_submission_blocked": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "review_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "INPUT_REQUIRED",
+          "EVIDENCE_REVIEW_REQUIRED",
+          "READY_FOR_CODER_REVIEW",
+          "RUNTIME_FAILED"
+        ]
+      },
+      "review_conclusion": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NOT_ASSESSABLE",
+          "WARNING",
+          "FAIL"
+        ]
+      },
+      "review_method": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW"
+      },
+      "coded_case": {
+        "type": "object",
+        "properties": {
+          "diagnosis_coding_standard": {
+            "type": "object",
+            "properties": {
+              "system": {
+                "type": "object",
+                "properties": {
+                  "documented_text": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "evidence_ref": {
+                    "type": "string",
+                    "maxLength": 32768
+                  }
+                },
+                "required": [
+                  "documented_text",
+                  "evidence_ref"
+                ],
+                "additionalProperties": false
+              },
+              "version": {
+                "type": "object",
+                "properties": {
+                  "documented_text": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "evidence_ref": {
+                    "type": "string",
+                    "maxLength": 32768
+                  }
+                },
+                "required": [
+                  "documented_text",
+                  "evidence_ref"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "system",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "patient_age": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "patient_gender": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768,
+                "enum": [
+                  "",
+                  "M",
+                  "F"
+                ]
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "primary_diagnosis": {
+            "type": "object",
+            "properties": {
+              "char_span": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "x-order": "nondecreasing"
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "display": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_status": {
+                "type": "string",
+                "maxLength": 32768,
+                "enum": [
+                  "NOT_PROVIDED",
+                  "EXACT_INPUT_SPAN"
+                ]
+              },
+              "evidence_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "source_document": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "code",
+              "display",
+              "source_document",
+              "evidence_text",
+              "char_span",
+              "evidence_ref",
+              "evidence_status"
+            ],
+            "additionalProperties": false
+          },
+          "procedure_coding_standard": {
+            "type": "object",
+            "properties": {
+              "system": {
+                "type": "object",
+                "properties": {
+                  "documented_text": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "evidence_ref": {
+                    "type": "string",
+                    "maxLength": 32768
+                  }
+                },
+                "required": [
+                  "documented_text",
+                  "evidence_ref"
+                ],
+                "additionalProperties": false
+              },
+              "version": {
+                "type": "object",
+                "properties": {
+                  "documented_text": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "evidence_ref": {
+                    "type": "string",
+                    "maxLength": 32768
+                  }
+                },
+                "required": [
+                  "documented_text",
+                  "evidence_ref"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "system",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "procedures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "char_span": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "x-order": "nondecreasing"
+                },
+                "code": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "display": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "evidence_ref": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "evidence_status": {
+                  "type": "string",
+                  "maxLength": 32768,
+                  "const": "EXACT_INPUT_SPAN"
+                },
+                "evidence_text": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "source_document": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "code",
+                "display",
+                "source_document",
+                "evidence_text",
+                "char_span",
+                "evidence_ref",
+                "evidence_status"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "review_purpose": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "secondary_diagnoses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "char_span": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "x-order": "nondecreasing"
+                },
+                "code": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "display": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "evidence_ref": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "evidence_status": {
+                  "type": "string",
+                  "maxLength": 32768,
+                  "const": "EXACT_INPUT_SPAN"
+                },
+                "evidence_text": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "source_document": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "code",
+                "display",
+                "source_document",
+                "evidence_text",
+                "char_span",
+                "evidence_ref",
+                "evidence_status"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "review_purpose",
+          "diagnosis_coding_standard",
+          "procedure_coding_standard",
+          "patient_gender",
+          "patient_age",
+          "primary_diagnosis",
+          "secondary_diagnoses",
+          "procedures"
+        ],
+        "additionalProperties": false
+      },
+      "development_candidate_group": {
+        "type": "object",
+        "properties": {
+          "adrg": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "candidate_drg": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "candidate_name": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "cc_level": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "coverage": {
+            "type": "boolean"
+          },
+          "grouping_method": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "mdc": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "mdc_name": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "result_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "NOT_ASSESSED",
+              "EXPERIMENTAL_UNVERIFIED_CANDIDATE"
+            ]
+          }
+        },
+        "required": [
+          "candidate_drg",
+          "candidate_name",
+          "mdc",
+          "mdc_name",
+          "adrg",
+          "cc_level",
+          "grouping_method",
+          "coverage",
+          "result_status"
+        ],
+        "additionalProperties": false
+      },
+      "dip_review": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "NOT_ASSESSED",
+              "NO_AUTHORIZED_REGIONAL_DIP_PACK"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "risk_findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "input_evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100,
+              "uniqueItems": true
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "review_action": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "rule_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "severity": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "critical",
+                "high",
+                "medium",
+                "low",
+                "info"
+              ]
+            }
+          },
+          "required": [
+            "rule_id",
+            "severity",
+            "category",
+            "message",
+            "review_action",
+            "input_evidence_refs"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "review_actions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100,
+        "uniqueItems": true
+      },
+      "quality_flags": {
+        "type": "object",
+        "properties": {
+          "candidate_coverage": {
+            "type": "boolean"
+          },
+          "candidate_only": {
+            "type": "boolean",
+            "const": true
+          },
+          "rule_pack_integrity_verified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "candidate_coverage",
+          "candidate_only",
+          "rule_pack_integrity_verified"
+        ],
+        "additionalProperties": false
+      },
+      "governance": {
+        "type": "object",
+        "properties": {
+          "authority_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "experimental_unverified"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "CN_GENERIC_DEVELOPMENT"
+          },
+          "license_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "external_review_required"
+          },
+          "rule_pack_id": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "cn.drg_dip.risk_heuristics"
+          },
+          "rule_pack_version": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "1.0.0-development"
+          },
+          "use_restriction": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "development_risk_review_only_not_for_grouping_payment_or_settlement"
+          }
+        },
+        "required": [
+          "rule_pack_id",
+          "rule_pack_version",
+          "jurisdiction",
+          "authority_status",
+          "license_status",
+          "use_restriction"
+        ],
+        "additionalProperties": false
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "evidence_id",
+            "field",
+            "label",
+            "text",
+            "char_span"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "missing_required_fields": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100,
+        "uniqueItems": true
+      },
+      "input_conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "documented_value": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "field",
+            "documented_value",
+            "reason",
+            "evidence_refs"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100,
+        "minItems": 1
+      },
+      "code_extraction_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "code_assignment_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "code_validation_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_inference_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "local_development_rules_used": {
+        "type": "boolean"
+      },
+      "official_grouping_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "official_dip_scoring_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "payment_calculation_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "billing_authoritative": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_submission_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id",
+          "provider_trace_refs"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
       {
-        "name": "deepseek-v4"
+        "id": "ready_drg_review_has_governed_candidate",
+        "when": [
+          {
+            "path": "review_status",
+            "operator": "equals",
+            "value": "READY_FOR_CODER_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "missing_required_fields",
+            "operator": "empty"
+          },
+          {
+            "path": "input_conflicts",
+            "operator": "empty"
+          },
+          {
+            "path": "local_development_rules_used",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "quality_flags.rule_pack_integrity_verified",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "development_candidate_group.result_status",
+            "operator": "equals",
+            "value": "EXPERIMENTAL_UNVERIFIED_CANDIDATE"
+          },
+          {
+            "path": "dip_review.status",
+            "operator": "equals",
+            "value": "NO_AUTHORIZED_REGIONAL_DIP_PACK"
+          }
+        ]
+      },
+      {
+        "id": "unassessed_drg_input_never_runs_rules",
+        "when": [
+          {
+            "path": "development_candidate_group.result_status",
+            "operator": "equals",
+            "value": "NOT_ASSESSED"
+          },
+          {
+            "path": "review_status",
+            "operator": "not_equals",
+            "value": "READY_FOR_CODER_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "development_candidate_group.coverage",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "local_development_rules_used",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "covered_candidate_has_candidate_identifiers",
+        "when": [
+          {
+            "path": "development_candidate_group.coverage",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "development_candidate_group.result_status",
+            "operator": "equals",
+            "value": "EXPERIMENTAL_UNVERIFIED_CANDIDATE"
+          }
+        ],
+        "must": [
+          {
+            "path": "development_candidate_group.candidate_drg",
+            "operator": "non_empty"
+          },
+          {
+            "path": "development_candidate_group.mdc",
+            "operator": "non_empty"
+          },
+          {
+            "path": "development_candidate_group.adrg",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "governed_drg_review_never_groups_or_bills",
+        "when": [
+          {
+            "path": "review_method",
+            "operator": "equals",
+            "value": "EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "code_extraction_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "code_assignment_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "code_validation_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_inference_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "official_grouping_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "official_dip_scoring_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "payment_calculation_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "billing_authoritative",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "governed_drg_review_always_requires_human_gate",
+        "when": [
+          {
+            "path": "review_method",
+            "operator": "equals",
+            "value": "EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "production_submission_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
       }
     ],
-    "supports_tool_calling": false,
-    "supports_json_mode": true
+    "evidence_bindings": [
+      {
+        "id": "drg_review_evidence_items_match_input",
+        "for_each": "evidence_items",
+        "text_path": "text",
+        "span_path": "char_span"
+      }
+    ],
+    "cross_agent_relations": [
+      {
+        "id": "drg_primary_matches_medical_coding",
+        "local_path": "coded_case.primary_diagnosis.code",
+        "upstream_agent_id": "medical-coding-agent",
+        "upstream_path": "code_assignment.primary_diagnosis.code",
+        "upstream_item_path": "code",
+        "operator": "equals_upstream",
+        "normalization": "medical_code",
+        "required": false
+      },
+      {
+        "id": "drg_secondary_matches_medical_coding",
+        "local_path": "coded_case.secondary_diagnoses",
+        "local_item_path": "code",
+        "upstream_agent_id": "medical-coding-agent",
+        "upstream_path": "code_assignment.secondary_diagnoses",
+        "upstream_item_path": "code",
+        "operator": "local_items_subset_upstream_items",
+        "normalization": "medical_code",
+        "allow_empty_local": true,
+        "required": false
+      },
+      {
+        "id": "drg_procedures_match_medical_coding",
+        "local_path": "coded_case.procedures",
+        "local_item_path": "code",
+        "upstream_agent_id": "medical-coding-agent",
+        "upstream_path": "code_assignment.procedures",
+        "upstream_item_path": "code",
+        "operator": "local_items_subset_upstream_items",
+        "normalization": "medical_code",
+        "allow_empty_local": true,
+        "required": false
+      }
+    ]
   },
+  "non_goals": [
+    "不从自由文本提取、推断、分配、新增或修改诊断/手术编码",
+    "不执行或冒充国家、地区、医院官方 DRG 分组器",
+    "不计算或输出权重、CMI、DIP 分值、支付或结算金额",
+    "不判断临床合理性、医疗必要性、医保支付资格或编码正确性",
+    "不自动提交、处罚、修改病历或写回 EMR/HIS/医保系统"
+  ],
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "official_agents.drg_analyzer.agent",
+      "app.services.drg_analyzer_service",
+      "app.services.drg_grouper",
+      "app.services.clinical_asset_governance",
+      "compliance_services.drg_dip_rules"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": false,
+    "supports_mcp_tools": false
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/drg-analyzer/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/drg-analyzer@1.1.3"
+  },
+  "default_runtime_mode": "governed_local_explicit_coded_case_risk_review",
+  "available_runtime_modes": [
+    "governed_local_explicit_coded_case_risk_review"
+  ],
+  "example_inputs": [
+    {
+      "title": "明确编码病例的开发期风险复核",
+      "input_text": "审核目的：开发期DRG/DIP编码风险复核\n诊断编码标准：ICD-10-CN\n诊断编码版本：医院批准版2026.1\n手术编码标准：ICD-9-CM-3\n手术编码版本：医院批准版2026.1\n患者性别：M\n患者年龄：58\n主诊断编码：I21.0|急性前壁心肌梗死|病案首页|I21.0 急性前壁心肌梗死\n次诊断编码：\nI10|原发性高血压|病案首页|I10 原发性高血压\n手术操作编码：\n00.66|经皮冠状动脉介入治疗|手术记录|00.66 经皮冠状动脉介入治疗"
+    }
+  ],
+  "example_outputs": [
+    {
+      "review_status": "READY_FOR_CODER_REVIEW",
+      "review_conclusion": "WARNING",
+      "review_method": "EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW",
+      "coded_case": {
+        "review_purpose": {
+          "documented_text": "开发期DRG/DIP编码风险复核",
+          "evidence_ref": "drg-evidence-1"
+        },
+        "diagnosis_coding_standard": {
+          "system": {
+            "documented_text": "ICD-10-CN",
+            "evidence_ref": "drg-evidence-2"
+          },
+          "version": {
+            "documented_text": "医院批准版2026.1",
+            "evidence_ref": "drg-evidence-3"
+          }
+        },
+        "procedure_coding_standard": {
+          "system": {
+            "documented_text": "ICD-9-CM-3",
+            "evidence_ref": "drg-evidence-4"
+          },
+          "version": {
+            "documented_text": "医院批准版2026.1",
+            "evidence_ref": "drg-evidence-5"
+          }
+        },
+        "patient_gender": {
+          "documented_text": "M",
+          "evidence_ref": "drg-evidence-6"
+        },
+        "patient_age": {
+          "documented_text": "58",
+          "evidence_ref": "drg-evidence-7"
+        },
+        "primary_diagnosis": {
+          "code": "I21.0",
+          "display": "急性前壁心肌梗死",
+          "source_document": "病案首页",
+          "evidence_text": "I21.0 急性前壁心肌梗死",
+          "char_span": [
+            136,
+            150
+          ],
+          "evidence_ref": "drg-evidence-8",
+          "evidence_status": "EXACT_INPUT_SPAN"
+        },
+        "secondary_diagnoses": [
+          {
+            "code": "I10",
+            "display": "原发性高血压",
+            "source_document": "病案首页",
+            "evidence_text": "I10 原发性高血压",
+            "char_span": [
+              174,
+              184
+            ],
+            "evidence_ref": "drg-evidence-9",
+            "evidence_status": "EXACT_INPUT_SPAN"
+          }
+        ],
+        "procedures": [
+          {
+            "code": "00.66",
+            "display": "经皮冠状动脉介入治疗",
+            "source_document": "手术记录",
+            "evidence_text": "00.66 经皮冠状动脉介入治疗",
+            "char_span": [
+              215,
+              231
+            ],
+            "evidence_ref": "drg-evidence-10",
+            "evidence_status": "EXACT_INPUT_SPAN"
+          }
+        ]
+      },
+      "development_candidate_group": {
+        "candidate_drg": "EC13",
+        "candidate_name": "经皮冠状动脉支架植入伴 CC",
+        "mdc": "MDCE",
+        "mdc_name": "循环系统疾病及功能障碍",
+        "adrg": "EC1",
+        "cc_level": "伴一般合并症/并发症 (CC)",
+        "grouping_method": "surgical",
+        "coverage": true,
+        "result_status": "EXPERIMENTAL_UNVERIFIED_CANDIDATE"
+      },
+      "dip_review": {
+        "status": "NO_AUTHORIZED_REGIONAL_DIP_PACK",
+        "note": "存在开发期候选匹配；未安装经授权的地区 DIP 目录，因此不计算分值或支付金额。"
+      },
+      "risk_findings": [
+        {
+          "rule_id": "DRG001",
+          "severity": "info",
+          "category": "grouping",
+          "message": "主诊断 I21.0 的开发期候选组为 EC13 (经皮冠状动脉支架植入伴 CC)，该结果非结算依据。",
+          "review_action": "请使用获授权的本地区/医院分组器复核；不得为改变分组而调整缺乏病历证据的编码。",
+          "input_evidence_refs": [
+            "drg-evidence-8"
+          ]
+        },
+        {
+          "rule_id": "DIP001",
+          "severity": "low",
+          "category": "grouping",
+          "message": "主诊断 I21.0 特异性 4 位字符。",
+          "review_action": "编码特异性通过开发期格式检查，仍需人工复核。",
+          "input_evidence_refs": [
+            "drg-evidence-8",
+            "drg-evidence-9"
+          ]
+        },
+        {
+          "rule_id": "DIP003",
+          "severity": "info",
+          "category": "grouping",
+          "message": "主诊 I21.0 + 主操 00.66 通过开发期启发式匹配，候选组: EC13；并非官方验证。",
+          "review_action": "请交由获授权的地区/医院引擎复核，不得使用本结果计算 DIP 分值。",
+          "input_evidence_refs": [
+            "drg-evidence-8",
+            "drg-evidence-10"
+          ]
+        },
+        {
+          "rule_id": "DRG_GOVERNANCE",
+          "severity": "info",
+          "category": "grouping",
+          "message": "当前 DRG/DIP 规则包为未验证的开发期风险启发式，不能用于支付或结算。",
+          "review_action": "必须人工复核，并使用获授权的本地区/医院规则包完成最终分组。",
+          "input_evidence_refs": []
+        }
+      ],
+      "review_actions": [
+        "请使用获授权的本地区/医院分组器复核；不得为改变分组而调整缺乏病历证据的编码。",
+        "编码特异性通过开发期格式检查，仍需人工复核。",
+        "请交由获授权的地区/医院引擎复核，不得使用本结果计算 DIP 分值。",
+        "必须人工复核，并使用获授权的本地区/医院规则包完成最终分组。"
+      ],
+      "quality_flags": {
+        "candidate_coverage": true,
+        "candidate_only": true,
+        "rule_pack_integrity_verified": true
+      },
+      "governance": {
+        "rule_pack_id": "cn.drg_dip.risk_heuristics",
+        "rule_pack_version": "1.0.0-development",
+        "jurisdiction": "CN_GENERIC_DEVELOPMENT",
+        "authority_status": "experimental_unverified",
+        "license_status": "external_review_required",
+        "use_restriction": "development_risk_review_only_not_for_grouping_payment_or_settlement"
+      },
+      "evidence_items": [
+        {
+          "evidence_id": "drg-evidence-1",
+          "field": "review_purpose",
+          "label": "审核目的",
+          "text": "开发期DRG/DIP编码风险复核",
+          "char_span": [
+            5,
+            21
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-2",
+          "field": "diagnosis_coding_system",
+          "label": "诊断编码标准",
+          "text": "ICD-10-CN",
+          "char_span": [
+            29,
+            38
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-3",
+          "field": "diagnosis_coding_version",
+          "label": "诊断编码版本",
+          "text": "医院批准版2026.1",
+          "char_span": [
+            46,
+            57
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-4",
+          "field": "procedure_coding_system",
+          "label": "手术编码标准",
+          "text": "ICD-9-CM-3",
+          "char_span": [
+            65,
+            75
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-5",
+          "field": "procedure_coding_version",
+          "label": "手术编码版本",
+          "text": "医院批准版2026.1",
+          "char_span": [
+            83,
+            94
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-6",
+          "field": "patient_gender",
+          "label": "患者性别",
+          "text": "M",
+          "char_span": [
+            100,
+            101
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-7",
+          "field": "patient_age",
+          "label": "患者年龄",
+          "text": "58",
+          "char_span": [
+            107,
+            109
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-8",
+          "field": "primary_diagnosis",
+          "label": "primary_diagnosis",
+          "text": "I21.0 急性前壁心肌梗死",
+          "char_span": [
+            136,
+            150
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-9",
+          "field": "secondary_diagnosis",
+          "label": "secondary_diagnosis",
+          "text": "I10 原发性高血压",
+          "char_span": [
+            174,
+            184
+          ]
+        },
+        {
+          "evidence_id": "drg-evidence-10",
+          "field": "procedure",
+          "label": "procedure",
+          "text": "00.66 经皮冠状动脉介入治疗",
+          "char_span": [
+            215,
+            231
+          ]
+        }
+      ],
+      "missing_required_fields": [],
+      "input_conflicts": [],
+      "limitations": [
+        "仅处理编码员明确提供的结构化诊断/手术编码及逐字证据，不从自由文本提取或新增编码。",
+        "内置规则和术语映射未经官方来源、许可、地区版本或医院版本独立验证，仅供开发期风险复核。",
+        "候选 DRG 不是官方分组，不计算或输出权重、CMI、DIP 分值、支付或结算金额。",
+        "不判断诊断成立、编码正确性、临床合理性、医疗必要性或医保支付资格。",
+        "READY_FOR_CODER_REVIEW 只表示本地启发式运行完成，不表示可用于编码、报送、支付或结算。",
+        "结果必须由获授权的地区/医院分组器和人工编码员独立复核，禁止自动提交和写回。"
+      ],
+      "code_extraction_performed": false,
+      "code_assignment_performed": false,
+      "code_validation_performed": false,
+      "clinical_inference_performed": false,
+      "local_development_rules_used": true,
+      "official_grouping_performed": false,
+      "official_dip_scoring_performed": false,
+      "payment_calculation_performed": false,
+      "billing_authoritative": false,
+      "production_submission_blocked": true,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "sample-run",
+        "provider_trace_refs": [
+          "sample-run:governed-drg-dip-risk-review"
+        ]
+      }
+    }
+  ],
+  "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": "c391d8a96ffb34e4239638356504880e021d5e940804a748d591126030703add"
+    "sha256": "f58709564aca3f5b41cf5d7775c032a6fc39afeeb2584f67e04909bcca7d44b3"
   }
 }

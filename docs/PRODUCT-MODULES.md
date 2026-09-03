@@ -5,6 +5,29 @@
 
 # iCoDer — Clinical AI Platform (DEPRECATED)
 
+> **Phase 5 Track D (2026-07-11) — CORE_ENTRY_AGENT update**: CDI (Clinical Documentation Improvement) is now positioned as a Core Entry Agent, peer to Medical Coding. See [reports/phase5_track_d/CDI_DOCUMENTATION_REALIGNMENT_REPORT.md](../reports/phase5_track_d/CDI_DOCUMENTATION_REALIGNMENT_REPORT.md) for the full realignment.
+
+## Core Entry Agents (Phase 5 Track D)
+
+iCoDer has exactly **two CORE_ENTRY_AGENT**s:
+
+| # | Agent | Tier | Phase | Boundary |
+|---|---|---|---|---|
+| 1 | **Clinical Documentation Improvement (CDI)** | `CORE_ENTRY_AGENT` | Phase 5 Track D | 让临床事实被写清楚; NOT note-completeness; NOT discharge-structuring; NOT medical-coding |
+| 2 | **Medical Coding** | `CORE_ENTRY_AGENT` | Phase 4-F3 + Phase 5 Track C complete | 将已经写清楚的事实准确编码; 7-stage mainline live |
+
+All other agents are `SPECIALIZED_AGENT` or `ORCHESTRATED_CAPABILITY`:
+
+- `discharge-summary-structuring` — SPECIALIZED_AGENT (出院小结结构化抽取)
+- `note-completeness` — SPECIALIZED_AGENT (形式完整性检查)
+- `evidence-extractor` — ORCHESTRATED_CAPABILITY (Coding 主线 Stage 3)
+- `principal-diagnosis-review` — ORCHESTRATED_CAPABILITY (Coding 主线 Stage 2)
+- `code-validation` — ORCHESTRATED_CAPABILITY
+- `compliance-guardrail` — ORCHESTRATED_CAPABILITY
+- `drg-analyzer` — ORCHESTRATED_CAPABILITY
+- `procedure-extractor` — ORCHESTRATED_CAPABILITY
+- `documentation-gap` — CDI internal capability / result type (NOT a separate top-level agent)
+
 ## 产品定位
 
 iCoDer 是**Corti-competitive 临床 AI 平台**。预置编码审核、语音转录、文书生成、事实提取、嵌入助手等即开即用的临床 AI 能力，同时提供 Agent Runtime（多租户、Marketplace、合同强制工具系统、Deny-First 安全模型）、SDK/API、Web Components 供 HIS 厂商和第三方开发者深度集成与二次开发。
@@ -464,7 +487,7 @@ Encounter创建 → 9步编码审核管道 → Review → 人工审核 → ARCHI
 | 75 | 分歧分析 (analyze_disagreements) — AI vs 金标准 | ✅ |
 | 76 | 文档缺口分析 (DocumentationGapExpert) | ✅ |
 | 77 | DRG/DIP支付影响分析 | ✅ |
-| 78 | CDI临床文档改进审查 | ✅ |
+| 78 | CDI临床文档改进审查 (旧 metadata-only, Phase 5 Track D 升级为 CORE_ENTRY_AGENT) | ✅ |
 | 79 | 批量审核 — POST /api/icoder/agents/medcoder-coding-review/v1/message:send (Phase 2.1-B 起 /api/reviews/batch 删除) | ✅ |
 | 80 | 33,304 ICD-10-CN + 23,165 ICD-9-CM-3编码字典 | ✅ |
 | 81 | 模糊匹配编码搜索 (rapidfuzz) | ✅ |

@@ -1,0 +1,188 @@
+{
+  "phase": "A1C.2",
+  "title": "PostgreSQL 生产等价迁移验证",
+  "date": "2026-07-25",
+  "auditor_host": "Windows 10 Home China 10.0.19045 (huawei)",
+  "verdict": "PARTIAL_A1C_2_POSTGRESQL_MIGRATION_DELIVERABLES_AUTHORED_SQLITE_PARITY_VERIFIED_PG_ACTUAL_RUN_DEFERRED_TO_PILOT_ENV",
+  "honest_blocker": "docker / psql / podman CLI 不在审计主机;PostgreSQL 16 实际运行必须在试点环境执行",
+  "allowed_final_verdicts": [
+    "PASS_A1C_READY_FOR_CONTROLLED_HOSPITAL_PILOT_ENTRY",
+    "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+    "FAIL_A1C_HOSPITAL_PILOT_READINESS_NOT_DEMONSTRATED"
+  ],
+  "forbidden_verdicts_honoured": [
+    "PRODUCTION_READY",
+    "READY_FOR_HOSPITAL_DEPLOYMENT",
+    "POSTGRESQL_FULLY_VERIFIED_ON_HOST_BUT_DOCKER_ABSENT",
+    "HONEST_PASS_NO_BLOCKER_REMAINS"
+  ],
+  "scenarios": {
+    "S00_yaml_syntax": {
+      "executed_on_host": true,
+      "rc": 0,
+      "result": "PASSED — docker-compose.a1c-postgres.yml parses as valid YAML",
+      "verdict": "AUTHORED_AND_VALIDATED"
+    },
+    "S01_compose_pull_check": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S02_pg_empty_to_head": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S03_sqlite_empty_to_head": {
+      "executed_on_host": true,
+      "rc": 0,
+      "current_after_upgrade": "028 (head)",
+      "verdict": "SQLITE_PARITY_VERIFIED"
+    },
+    "S04_sqlite_downgrade_1": {
+      "executed_on_host": true,
+      "rc": 0,
+      "current_after_downgrade": "027",
+      "verdict": "SQLITE_PARITY_VERIFIED"
+    },
+    "S05_sqlite_upgrade_after_downgrade": {
+      "executed_on_host": true,
+      "rc": 0,
+      "current_after_upgrade": "028 (head)",
+      "verdict": "SQLITE_PARITY_VERIFIED"
+    },
+    "S06_sqlite_from_020_to_head": {
+      "executed_on_host": true,
+      "rc_upgrade_to_020": 0,
+      "current_at_020": "020",
+      "rc_upgrade_to_head": 0,
+      "current_after_head": "028 (head)",
+      "verdict": "SQLITE_PARITY_VERIFIED"
+    },
+    "S07_sqlite_from_024_to_head": {
+      "executed_on_host": true,
+      "rc_upgrade_to_024": 0,
+      "current_at_024": "024",
+      "rc_upgrade_to_head": 0,
+      "current_after_head": "028 (head)",
+      "verdict": "SQLITE_PARITY_VERITY_VERIFIED"
+    },
+    "S08_sqlite_from_025_to_head": {
+      "executed_on_host": true,
+      "rc_upgrade_to_025": 0,
+      "current_at_025": "025",
+      "rc_upgrade_to_head": 0,
+      "current_after_head": "028 (head)",
+      "verdict": "SQLITE_PARITY_VERIFIED"
+    },
+    "S09_sqlite_empty_to_026_subset": {
+      "executed_on_host": true,
+      "rc": 0,
+      "current_after_upgrade": "026",
+      "verdict": "SQLITE_PARITY_VERIFIED"
+    },
+    "S10_pg_empty_to_head": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S11_pg_downgrade_1": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S12_pg_upgrade_after_downgrade": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S13_pg_multi_version_020_to_head": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S14_pg_multi_version_024_to_head": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S15_pg_multi_version_025_to_head": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机"
+    },
+    "S16_sqlite_interrupted_recovery_with_DROP_IF_EXISTS": {
+      "executed_on_host": true,
+      "rc": 0,
+      "precondition": "stale _alembic_tmp_agents 表注入",
+      "postcondition": "alembic current = 028 (head);无遗留 _alembic_tmp_* 表",
+      "verdict": "SQLITE_INTERRUPTED_RECOVERY_VERIFIED"
+    },
+    "S17_pg_migration_027_batch_alter_string12": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机;Migration 027 在 PostgreSQL 走 ALTER COLUMN ... TYPE 路径 (无 batch_alter_table)"
+    },
+    "S18_pg_migration_028_aliases_not_null": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机;Migration 028 在 PostgreSQL 走 ALTER COLUMN ... SET NOT NULL 路径"
+    },
+    "S19_pg_constraint_introspection": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机;约束等价性已在 SQLite 通过 (POSTGRES_CONSTRAINT_REPORT.md §3)"
+    },
+    "S20_pg_schema_drift_zero": {
+      "executed_on_host": false,
+      "verdict": "BLOCKED_BY_ENVIRONMENT_FOR_REAL_PG_RUN",
+      "blocker": "docker CLI 不在审计主机;schema drift 在 SQLite 已为 0 (test_schema_drift.py PASSED)"
+    }
+  },
+  "migrations_in_scope": {
+    "head_at_a1c2_start": "026",
+    "head_after_a1c2": "028",
+    "new_migrations_authored": [
+      {
+        "revision": "027",
+        "file": "backend/alembic/versions/027_standardize_id_column_lengths.py",
+        "summary": "32 tables × 40 (id + FK) columns ALTER to String(12); DROP IF EXISTS _alembic_tmp_* interrupted-recovery guard at top of upgrade()",
+        "sqlite_verified": true,
+        "pg_path": "ALTER COLUMN ... TYPE VARCHAR(12) (no batch_alter_table needed)"
+      },
+      {
+        "revision": "028",
+        "file": "backend/alembic/versions/028_agents_aliases_not_null.py",
+        "summary": "agents.aliases backfill '[]' for NULL rows then ALTER COLUMN NOT NULL",
+        "sqlite_verified": true,
+        "pg_path": "UPDATE agents SET aliases='[]' WHERE aliases IS NULL; ALTER COLUMN ... SET NOT NULL"
+      }
+    ],
+    "expert_orm_server_defaults_added": [
+      "experts.origin: server_default='icoder_internal'",
+      "experts.corti_alignment: server_default='unknown'",
+      "mcp_servers.authorization_type: server_default='none'"
+    ]
+  },
+  "schema_drift_test_result": {
+    "test_file": "backend/tests/unit/scripts/test_schema_drift.py",
+    "status": "PASSED",
+    "drift_count": 0,
+    "sqlite_head": "028"
+  },
+  "pilot_env_required_runs": [
+    "S02 — docker compose up -d icoder-postgres-a1c2",
+    "S10 — DATABASE_URL=postgresql+asyncpg://... alembic upgrade head",
+    "S11 — alembic downgrade -1",
+    "S12 — alembic upgrade head",
+    "S13-S15 — alembic upgrade <target> && alembic upgrade head",
+    "S17 — 验证 027 在 PG 上无 batch_alter_table 路径",
+    "S18 — 验证 028 在 PG 上 SET NOT NULL 路径",
+    "S19 — psql introspection (backslash-d-plus) 对照 POSTGRES_CONSTRAINT_REPORT.md",
+    "S20 — pytest backend/tests/unit/scripts/test_schema_drift.py -DB PG"
+  ],
+  "charter_section_20_compliance": {
+    "verdict_honesty": "本 verdict 为 PARTIAL — PG 实际运行延后到试点环境, 符合 Charter §20 'BLOCKED_BY_ENVIRONMENT 诚实承认' 条款",
+    "no_forbidden_verdict": "未输出 POSTGRESQL_MIGRATION_VERIFIED; 未输出任何 8 个禁止 verdict"
+  }
+}

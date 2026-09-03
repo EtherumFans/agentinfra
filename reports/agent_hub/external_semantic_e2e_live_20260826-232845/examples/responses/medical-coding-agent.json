@@ -1,0 +1,84 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-51cd997a-352e-455b-a210-ae54d4c8d493",
+  "trace_id": "trace-f33631c2e2df4de6",
+  "trace_url": "/ai-studio/runs/run-51cd997a-352e-455b-a210-ae54d4c8d493/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 4076,
+  "cost": {},
+  "billing": {},
+  "summary": "编码推理失败: Medical coding inference did not complete.",
+  "result": {
+    "contract_output_suppressed": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787758979.0271099,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 28,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787758979.0271099,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787758979.0271099,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787758983.104815,
+      "duration_ms": 4076,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "error",
+      "ts": 1787758983.1053026,
+      "duration_ms": 4076,
+      "metadata": {
+        "reason": "schema_returned_error"
+      }
+    },
+    {
+      "step": "return",
+      "status": "error",
+      "ts": 1787758983.1053026,
+      "duration_ms": 4076,
+      "metadata": {
+        "reason": "schema_returned_error"
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "schema_returned_error",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.64
+}

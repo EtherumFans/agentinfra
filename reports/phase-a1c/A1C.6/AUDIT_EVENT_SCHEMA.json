@@ -1,0 +1,475 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://icoder.cloud/schemas/a1c6/audit-event.schema.json",
+  "title": "iCoDer Audit Event (A1C.6)",
+  "description": "PDF §十 mandatory audit event schema — 12 mandatory fields + optional LLM/agent delegation metadata. Maps to backend/app/models/audit_log.py AuditLog row.",
+  "type": "object",
+  "required": [
+    "actor",
+    "organization",
+    "patient_context",
+    "action",
+    "purpose",
+    "resource",
+    "result",
+    "timestamp",
+    "trace_id",
+    "source_ip",
+    "client",
+    "policy_decision"
+  ],
+  "properties": {
+    "actor": {
+      "description": "PDF §十 'actor' — who initiated the action. Composite key (user_id + username + delegated_by_user_id if agent-initiated). Maps to AuditLog.user_id + AuditLog.username + AuditLog.delegated_by_user_id + AuditLog.agent_id.",
+      "type": "object",
+      "required": ["user_id", "user_type"],
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "users.id (clinician/coder/admin/system) OR api_clients.id (integration account). NULL only for unauthenticated security events (e.g. invalid_client)."
+        },
+        "username": {
+          "type": ["string", "null"],
+          "maxLength": 64,
+          "description": "users.username at audit emit time; NULL for api_client actors."
+        },
+        "user_type": {
+          "type": "string",
+          "enum": ["human", "api_client", "agent", "system"],
+          "description": "human = JWT user; api_client = client_credentials; agent = Agent delegation; system = internal cron."
+        },
+        "agent_id": {
+          "type": ["string", "null"],
+          "maxLength": 128,
+          "description": "If action triggered via Agent delegation (Phase A1B-AE), the agent ID. NULL for direct human actions."
+        },
+        "delegated_by_user_id": {
+          "type": ["string", "null"],
+          "maxLength": 64,
+          "description": "If agent-initiated, the human user whose JWT authorized the agent run."
+        }
+      }
+    },
+    "organization": {
+      "description": "PDF §十 'organization' — tenant scope. Maps to AuditLog.organization_id.",
+      "type": "object",
+      "required": ["organization_id", "tenancy_classification"],
+      "properties": {
+        "organization_id": {
+          "type": ["string", "null"],
+          "maxLength": 12,
+          "description": "organizations.id (tenant slug). NULL only for MODERN_SYSTEM security events (e.g. invalid_client before tenant resolution) — never NULL for patient-data actions per A1A Gate 2 fail-closed guard."
+        },
+        "tenancy_classification": {
+          "type": "string",
+          "enum": [
+            "MODERN",
+            "MODERN_SYSTEM",
+            "LEGACY_TENANT_VERIFIED",
+            "LEGACY_TENANT_INFERRED",
+            "LEGACY_TENANT_AMBIGUOUS",
+            "LEGACY_TENANT_UNKNOWN",
+            "QUARANTINED"
+          ],
+          "description": "A1A Gate 3R 7-class evidence-based taxonomy."
+        },
+        "attribution_source": {
+          "type": ["string", "null"],
+          "enum": [
+            "modern_write_path",
+            "api_client_binding",
+            "session_binding",
+            "context_binding",
+            "request_correlation",
+            "user_membership_latest",
+            "user_membership_at_time",
+            "user_single_membership_history",
+            "security_event",
+            "no_user_id_no_candidate",
+            "user_id_no_membership",
+            null
+          ]
+        }
+      }
+    },
+    "patient_context": {
+      "description": "PDF §十 'patient context' — patient/encounter scope. NOTE: patient_id itself is PHI; stored REDACTED in audit_logs.details. Maps to AuditLog.details.patient_context_*.",
+      "type": "object",
+      "properties": {
+        "patient_context_id": {
+          "type": ["string", "null"],
+          "description": "patient_contexts.id (A1C.3). NULL for non-patient actions (user.login, organization.update)."
+        },
+        "encounter_id": {
+          "type": ["string", "null"],
+          "description": "encounters.id — operational identifier, allowed in audit."
+        },
+        "patient_id_redacted": {
+          "type": ["string", "null"],
+          "description": "REDACTED marker (literal string '<REDACTED>') IF patient_id was carried through; never the raw patient_id."
+        },
+        "department_id": {
+          "type": ["string", "null"],
+          "description": "patient_contexts.department_id — operational, allowed in audit."
+        }
+      }
+    },
+    "action": {
+      "description": "PDF §十 'action' — what the actor did. Verb-style dotted notation. Maps to AuditLog.action.",
+      "type": "string",
+      "maxLength": 128,
+      "examples": [
+        "user.login",
+        "user.logout",
+        "patient_context.create",
+        "patient_context.delete",
+        "documents.submit",
+        "agent_run.start",
+        "agent_run.complete",
+        "review.generate",
+        "code.confirm",
+        "code.reject",
+        "api_client.authentication_rejected",
+        "api_client.secret_rotated",
+        "preview_session.created"
+      ]
+    },
+    "purpose": {
+      "description": "PDF §十 'purpose' — why the action was taken (ABAC purpose_of_use). For human actions, derived from JWT scope or request body. For api_client actions, derived from client_credentials scope.",
+      "type": "string",
+      "enum": [
+        "treatment",
+        "payment",
+        "operations",
+        "healthcare_operations",
+        "coding_quality_audit",
+        "patient_safety",
+        "system_administration",
+        "security_audit",
+        "research_deidentified",
+        "break_glass"
+      ],
+      "description_property": "Used as ABAC dimension in addition to RBAC role."
+    },
+    "resource": {
+      "description": "PDF §十 'resource' — target object of the action. Maps to AuditLog.resource_type + AuditLog.resource_id.",
+      "type": "object",
+      "required": ["resource_type", "resource_id"],
+      "properties": {
+        "resource_type": {
+          "type": "string",
+          "maxLength": 64,
+          "enum": [
+            "user",
+            "organization",
+            "patient_context",
+            "encounter",
+            "document",
+            "agent_run",
+            "coding_review",
+            "api_client",
+            "preview_session",
+            "audit_log"
+          ]
+        },
+        "resource_id": {
+          "type": ["string", "null"],
+          "maxLength": 64,
+          "description": "Resource UUID/slug; NULL for list/create-failed actions."
+        }
+      }
+    },
+    "result": {
+      "description": "PDF §十 'result' — outcome of the action. Maps to AuditLog.status + AuditLog.error_message.",
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["success", "failure", "warning", "denied"],
+          "description": "Maps to AuditLog.status. 'denied' = authorization rejected (403/401); 'failure' = server-side error (5xx); 'warning' = partial success."
+        },
+        "http_status_code": {
+          "type": ["integer", "null"],
+          "enum": [200, 201, 204, 400, 401, 403, 404, 409, 422, 429, 500, 502, 503, 504, null],
+          "description": "HTTP response code emitted to caller."
+        },
+        "error_message": {
+          "type": ["string", "null"],
+          "description": "Short failure summary (PHI-redacted via audit_detail_redactor pre-INSERT). NULL on success."
+        }
+      }
+    },
+    "timestamp": {
+      "description": "PDF §十 'timestamp' — when the action occurred. ISO 8601 UTC. Maps to AuditLog.created_at (TimestampMixin).",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "trace_id": {
+      "description": "PDF §十 'trace_id' — run/trace correlation ID. Maps to RunTrace.trace_id (Phase 3 / A1A Gate 3R) OR AuditLog.details.trace_id for non-run actions.",
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{32}|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|tr_[A-Za-z0-9_-]+$",
+      "description": "UUID v4 or 32-char hex OR 'tr_…' prefix. NULL for non-run actions (user.login before any agent_run started)."
+    },
+    "source_ip": {
+      "description": "PDF §十 'source_ip' — caller IP. Maps to AuditLog.ip_address.",
+      "type": ["string", "null"],
+      "maxLength": 45,
+      "description": "IPv4 (xxx.xxx.xxx.xxx) or IPv6. NULL for system cron actions with no HTTP request."
+    },
+    "client": {
+      "description": "PDF §十 'client' — caller software identity. Maps to AuditLog.user_agent + AuditLog.details.client_kind.",
+      "type": "object",
+      "properties": {
+        "client_kind": {
+          "type": "string",
+          "enum": ["browser_spa", "mobile_app", "sdk", "api_client", "system"]
+        },
+        "api_client_id": {
+          "type": ["string", "null"],
+          "description": "api_clients.id for client_credentials callers; NULL for browser SPA."
+        },
+        "user_agent": {
+          "type": ["string", "null"],
+          "maxLength": 256,
+          "description": "Raw User-Agent header (truncated)."
+        },
+        "sdk_version": {
+          "type": ["string", "null"],
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-z0-9.]+)?$",
+          "description": "@icoder/sdk version (e.g. '1.0.0-beta.2') for SDK callers."
+        }
+      }
+    },
+    "policy_decision": {
+      "description": "PDF §十 'policy decision' — RBAC + ABAC decision. The authorization gate's allow/deny verdict + matched rule.",
+      "type": "object",
+      "required": ["decision"],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": ["allow", "deny", "allow_with_conditions"]
+        },
+        "decision_reason": {
+          "type": ["string", "null"],
+          "description": "Short reason code (e.g. 'rbac_role_allowed', 'abac_purpose_mismatch', 'tenant_isolation_violation')."
+        },
+        "rbac_role": {
+          "type": ["string", "null"],
+          "enum": ["clinician", "coder", "cdi_specialist", "medical_records_admin", "billing_admin", "organization_admin", "system_admin", "integration_service", null]
+        },
+        "abac_purpose_match": {
+          "type": ["boolean", "null"],
+          "description": "True if request-scoped purpose_of_use was within allowed set for this role+resource."
+        },
+        "tenant_match": {
+          "type": ["boolean", "null"],
+          "description": "True if resource.organization_id == actor.organization_id (Phase 7 tenant_isolation)."
+        }
+      }
+    }
+  },
+  "optional_llm_metadata": {
+    "description": "Present ONLY for actions involving LLM inference (agent_run.start, agent_run.complete). Maps to AuditLog.model_* + tokens_used.",
+    "type": "object",
+    "properties": {
+      "model_version": {
+        "type": ["string", "null"],
+        "maxLength": 64,
+        "examples": ["deepseek-v4-flash", "deepseek-v4-pro"]
+      },
+      "model_input_summary": {
+        "type": ["string", "null"],
+        "description": "PHI-redacted short summary (prompt length + first 100 chars of system message)."
+      },
+      "model_output_summary": {
+        "type": ["string", "null"],
+        "description": "PHI-redacted short summary (finish_reason + token counts)."
+      },
+      "tokens_used": {
+        "type": ["integer", "null"],
+        "minimum": 0
+      },
+      "tool_calls_made": {
+        "type": ["array", "null"],
+        "items": {
+          "type": "object",
+          "properties": {
+            "tool_name": {"type": "string"},
+            "success": {"type": "boolean"}
+          }
+        }
+      }
+    }
+  },
+  "examples": {
+    "patient_context_create_success": {
+      "actor": {
+        "user_id": "u-med-001",
+        "username": "dr_wang",
+        "user_type": "human",
+        "agent_id": null,
+        "delegated_by_user_id": null
+      },
+      "organization": {
+        "organization_id": "org-hospital-a",
+        "tenancy_classification": "MODERN",
+        "attribution_source": "modern_write_path"
+      },
+      "patient_context": {
+        "patient_context_id": "pc-2026-07-25-001",
+        "encounter_id": "enc-2026-07-25-001",
+        "patient_id_redacted": "<REDACTED>",
+        "department_id": "dept-cardiology"
+      },
+      "action": "patient_context.create",
+      "purpose": "treatment",
+      "resource": {
+        "resource_type": "patient_context",
+        "resource_id": "pc-2026-07-25-001"
+      },
+      "result": {
+        "status": "success",
+        "http_status_code": 201,
+        "error_message": null
+      },
+      "timestamp": "2026-07-25T09:14:22.482Z",
+      "trace_id": null,
+      "source_ip": "10.0.1.42",
+      "client": {
+        "client_kind": "browser_spa",
+        "api_client_id": null,
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "sdk_version": null
+      },
+      "policy_decision": {
+        "decision": "allow",
+        "decision_reason": "rbac_role_allowed",
+        "rbac_role": "clinician",
+        "abac_purpose_match": true,
+        "tenant_match": true
+      }
+    },
+    "agent_run_complete_with_llm": {
+      "actor": {
+        "user_id": "u-coder-002",
+        "username": "coder_lee",
+        "user_type": "agent",
+        "agent_id": "icoder/medical-coding-agent@1.0.0",
+        "delegated_by_user_id": "u-coder-002"
+      },
+      "organization": {
+        "organization_id": "org-hospital-a",
+        "tenancy_classification": "MODERN",
+        "attribution_source": "api_client_binding"
+      },
+      "patient_context": {
+        "patient_context_id": "pc-2026-07-25-001",
+        "encounter_id": "enc-2026-07-25-001",
+        "patient_id_redacted": "<REDACTED>",
+        "department_id": "dept-cardiology"
+      },
+      "action": "agent_run.complete",
+      "purpose": "coding_quality_audit",
+      "resource": {
+        "resource_type": "agent_run",
+        "resource_id": "run-2026-07-25-8842"
+      },
+      "result": {
+        "status": "success",
+        "http_status_code": 200,
+        "error_message": null
+      },
+      "timestamp": "2026-07-25T09:15:48.117Z",
+      "trace_id": "tr_8f7b3c2a-9e4d-4c1f-bb25-7c1f3a9d6e44",
+      "source_ip": "10.0.1.42",
+      "client": {
+        "client_kind": "browser_spa",
+        "api_client_id": null,
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "sdk_version": null
+      },
+      "policy_decision": {
+        "decision": "allow",
+        "decision_reason": "rbac_role_allowed",
+        "rbac_role": "coder",
+        "abac_purpose_match": true,
+        "tenant_match": true
+      },
+      "optional_llm_metadata": {
+        "model_version": "deepseek-v4-flash",
+        "model_input_summary": "prompt_length=8421 system=You are an ICD-10-CN coding assistant...",
+        "model_output_summary": "finish_reason=stop primary=S52.500x001 secondary=T14.90x051 tokens=2384",
+        "tokens_used": 2384,
+        "tool_calls_made": [
+          {"tool_name": "icd10_search", "success": true},
+          {"tool_name": "compliance_check", "success": true}
+        ]
+      }
+    },
+    "invalid_client_rejected": {
+      "actor": {
+        "user_id": null,
+        "username": null,
+        "user_type": "api_client",
+        "agent_id": null,
+        "delegated_by_user_id": null
+      },
+      "organization": {
+        "organization_id": null,
+        "tenancy_classification": "MODERN_SYSTEM",
+        "attribution_source": "security_event"
+      },
+      "patient_context": {
+        "patient_context_id": null,
+        "encounter_id": null,
+        "patient_id_redacted": null,
+        "department_id": null
+      },
+      "action": "api_client.authentication_rejected",
+      "purpose": "security_audit",
+      "resource": {
+        "resource_type": "api_client",
+        "resource_id": "client-unknown"
+      },
+      "result": {
+        "status": "denied",
+        "http_status_code": 401,
+        "error_message": "invalid_client: signature verification failed"
+      },
+      "timestamp": "2026-07-25T09:16:11.002Z",
+      "trace_id": null,
+      "source_ip": "203.0.113.42",
+      "client": {
+        "client_kind": "api_client",
+        "api_client_id": "client-unknown",
+        "user_agent": "axios/1.7.2",
+        "sdk_version": null
+      },
+      "policy_decision": {
+        "decision": "deny",
+        "decision_reason": "jwt_signature_invalid",
+        "rbac_role": null,
+        "abac_purpose_match": null,
+        "tenant_match": null
+      }
+    }
+  },
+  "schema_provenance": {
+    "phase": "A1C.6",
+    "pdf_reference": "§十",
+    "audit_log_model": "backend/app/models/audit_log.py:AuditLog",
+    "audit_middleware": "backend/app/middleware/audit.py:audit_middleware",
+    "redactor": "backend/app/services/audit_detail_redactor.py",
+    "tenant_classifier": "backend/app/services/legacy_tenancy_attribution.py",
+    "authz_gates": [
+      "backend/app/api/deps.py:get_current_user",
+      "backend/app/api/deps.py:get_current_organization",
+      "backend/app/api/deps.py:get_current_user_or_oauth_client",
+      "backend/app/services/data_policy.py:region_allowed_providers",
+      "backend/app/services/data_policy.py:egress_decision"
+    ]
+  }
+}

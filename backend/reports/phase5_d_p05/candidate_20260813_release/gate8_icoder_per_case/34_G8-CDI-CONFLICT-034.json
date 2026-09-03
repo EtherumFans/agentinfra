@@ -1,0 +1,343 @@
+{
+  "case_id": "CASE-b864a5304c22",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-b864a5304c22/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "出院诊断与入院诊断不一致，且未明确最终病因。入院诊断为胆源性胰腺炎，但MRI未见胆总管结石，出院诊断为特发性胰腺炎，但未解释为何排除胆源性及酒精性病因。",
+      "why_it_matters": "影响病因编码的准确性，特发性胰腺炎是排除性诊断，需明确排除其他病因，否则可能导致编码不准确或需要查询。",
+      "evidence_span": {
+        "document_id": "discharge_summary",
+        "quote": "入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-b864a5304c22/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "胰腺炎严重程度未明确（如轻症、中度重症、重症），也未提及并发症（如胰腺坏死、假性囊肿、器官衰竭等）。",
+      "why_it_matters": "严重程度和并发症是胰腺炎编码和DRG分组的关键要素，缺失可能导致编码不完整。",
+      "evidence_span": {
+        "document_id": "discharge_summary",
+        "quote": "急性胰腺炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-b864a5304c22/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "饮酒史与特发性胰腺炎诊断存在潜在矛盾，未明确酒精性病因是否被排除。",
+      "why_it_matters": "酒精性胰腺炎是常见病因，若未排除，特发性诊断不成立，影响病因编码。",
+      "evidence_span": {
+        "document_id": "discharge_summary",
+        "quote": "饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-b864a5304c22/Q-001",
+      "gap_id": "CASE-b864a5304c22/GAP-001",
+      "topic": "最终病因诊断",
+      "reason": "入院诊断为胆源性胰腺炎，但MRI未见胆总管结石，出院诊断为特发性胰腺炎，需明确最终病因。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+        "char_start": 17,
+        "char_end": 82,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+          "char_start": 17,
+          "char_end": 82,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据MRI未见胆总管结石及饮酒史，请明确本次胰腺炎发作的最终病因分类。",
+      "response_options": [
+        "A. 胆源性胰腺炎（存在胆道梗阻或结石证据）",
+        "B. 酒精性胰腺炎（饮酒为主要病因）",
+        "C. 特发性胰腺炎（已排除胆源性和酒精性病因）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-b864a5304c22/GAP-002",
+      "topic": "胰腺炎严重程度及并发症",
+      "reason": "病历未明确胰腺炎严重程度及并发症情况。",
+      "query_text": "请明确本次急性胰腺炎的严重程度分级及是否存在相关并发症。",
+      "response_options": [
+        "A. 轻症急性胰腺炎，无并发症",
+        "B. 中度重症急性胰腺炎（存在局部或全身并发症但无持续器官衰竭）",
+        "C. 重症急性胰腺炎（存在持续器官衰竭）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "急性胰腺炎",
+          "char_start": 11,
+          "char_end": 16,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 胰腺炎严重程度及并发症"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-b864a5304c22/GAP-003",
+      "topic": "酒精性病因排除情况",
+      "reason": "饮酒史与特发性胰腺炎诊断存在潜在矛盾，需明确酒精性病因是否被排除。",
+      "query_text": "鉴于患者有长期饮酒史，请明确酒精性胰腺炎是否已被排除。",
+      "response_options": [
+        "A. 酒精性胰腺炎已排除（有明确排除依据）",
+        "B. 酒精性胰腺炎不能排除（饮酒可能是病因）",
+        "C. 酒精性胰腺炎确诊（饮酒为主要病因）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+          "char_start": 49,
+          "char_end": 82,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 50岁, 急性胰腺炎。入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，50岁",
+      "急性胰腺炎",
+      "入院诊断：胆源性胰腺炎",
+      "MRI：未见胆总管结石，胰腺肿胀渗出",
+      "饮酒史：每日白酒100ml×10年",
+      "出院诊断：特发性胰腺炎"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "女性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "入院诊断胆源性胰腺炎与出院诊断特发性胰腺炎矛盾，且MRI未见胆总管结石，但未明确排除胆源性病因。"
+    },
+    {
+      "category": "unsupported_diagnosis",
+      "description": "出院诊断特发性胰腺炎缺乏支持证据，未记录排除其他病因的检查或临床推理。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinician must explicitly document the final etiology by ruling out alcohol-induced pancreatitis (given the significant daily alcohol intake) and biliary causes beyond MRI findings, such as sphincter of Oddi dysfunction or microlithiasis. Additionally, specify the severity (mild, moderately severe, or severe) and any local or systemic complications (e.g., necrosis, pseudocyst, organ failure) to reflect the true clinical course. Without this clarification, the discharge diagnosis of “idiopathic” remains unsupported and may lead to misclassification of the underlying condition.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3648,
+      "tokens": 328
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-443222739843",
+    "gap_identification": "run-587f9f577265",
+    "gap_identification_risk_flags": "emitted=2;quote_snapped=0",
+    "expert_consultation": "run-5bc69d478e35",
+    "query_generation": "run-17174b69f8be",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=出院诊断与入院诊断矛盾，且未明确胰腺炎严重程度、并发症及病因排除过程，特发性诊断缺乏支持，需进一步澄清。",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-550a60aade3c",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-28ba32c577e1",
+    "query_compliance_gate": ";passed=1;blocked=1",
+    "specialist_trace_emit": "run-4f5bb8593237"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-79c656de38ab",
+    "gap_identification": "trace-9292ea6d0c77",
+    "expert_consultation": "trace-fa3fe1f6f596",
+    "query_generation": "trace-07409b8598be",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-7c88791a4832",
+    "semantic_necessity_gate": "trace-915651224f49",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-4f50cc4f200e"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2553,
+      "prompt_tokens": 224,
+      "completion_tokens": 107,
+      "total_tokens": 331,
+      "run_id": "run-443222739843",
+      "trace_id": "trace-79c656de38ab",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6991,
+      "prompt_tokens": 1055,
+      "completion_tokens": 761,
+      "total_tokens": 1816,
+      "run_id": "run-587f9f577265",
+      "trace_id": "trace-9292ea6d0c77",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6943,
+      "prompt_tokens": 1321,
+      "completion_tokens": 775,
+      "total_tokens": 2096,
+      "run_id": "run-17174b69f8be",
+      "trace_id": "trace-07409b8598be",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3648,
+      "prompt_tokens": 213,
+      "completion_tokens": 115,
+      "total_tokens": 328,
+      "run_id": "run-8e81ddb94f57",
+      "trace_id": "trace-89ecbcebb8fe",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f2b16fc50b1a",
+      "trace_id": "trace-a3fa140f5cf8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-c1408daa6460",
+      "trace_id": "trace-e2955076918a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-fec82a6cd996",
+      "trace_id": "trace-6c45ab3b4723",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:02:35.990176Z"
+}

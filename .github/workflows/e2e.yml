@@ -30,6 +30,9 @@ jobs:
 
       - name: Start docker compose (local-dev only)
         run: |
+          # The bind mount is synthetic local/E2E state. Create it before
+          # Docker so the non-root backend user can populate fallback data.
+          install -d -m 0777 .data/icoder
           docker compose -f docker-compose.local-dev.yml up -d --build
           # Wait for backend healthcheck
           for i in $(seq 1 30); do

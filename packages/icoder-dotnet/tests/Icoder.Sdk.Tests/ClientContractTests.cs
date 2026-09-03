@@ -2982,6 +2982,22 @@ public sealed class ClientContractTests
     }
 
     [Fact]
+    public async Task OriginRelativeRequestPathsRemainValidAcrossOperatingSystems()
+    {
+        CapturedRequest? captured = null;
+        using var client = CreateClient(async request =>
+        {
+            captured = await CapturedRequest.FromAsync(request);
+            return Json(HttpStatusCode.OK, "{}");
+        });
+
+        await client.Platform.ListEnvironmentsAsync();
+
+        Assert.NotNull(captured);
+        Assert.Equal("/api/platform/environments", captured!.PathAndQuery);
+    }
+
+    [Fact]
     public async Task PerRequestOptionsFailClosedOnIdentityAndDomainCollisions()
     {
         var calls = 0;

@@ -862,7 +862,10 @@ public sealed class ICoDerClient : IDisposable
                 "SDK request paths must be same-origin paths without fragments.",
                 nameof(path));
         }
-        if (Uri.TryCreate(path, UriKind.Absolute, out var absolute))
+        var isOriginRelative = path.StartsWith("/", StringComparison.Ordinal) &&
+                               !path.StartsWith("//", StringComparison.Ordinal);
+        // On Unix, Uri.TryCreate(..., Absolute) classifies a leading slash as file:.
+        if (!isOriginRelative && Uri.TryCreate(path, UriKind.Absolute, out var absolute))
         {
             if (!string.Equals(absolute.Scheme, Options.BaseUri.Scheme, StringComparison.OrdinalIgnoreCase) ||
                 !string.Equals(absolute.Host, Options.BaseUri.Host, StringComparison.OrdinalIgnoreCase) ||
@@ -873,8 +876,7 @@ public sealed class ICoDerClient : IDisposable
                     "SDK request URLs must use the configured API origin.", nameof(path));
             }
         }
-        else if (!path.StartsWith("/", StringComparison.Ordinal) ||
-                 path.StartsWith("//", StringComparison.Ordinal))
+        else if (!isOriginRelative)
         {
             throw new ArgumentException(
                 "SDK request paths must be same-origin absolute paths.", nameof(path));

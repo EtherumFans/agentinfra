@@ -55,9 +55,12 @@ def _reject_unattributed(bind, tables: tuple[str, ...]) -> None:
 
 def upgrade() -> None:
     bind = op.get_bind()
+    inspector = sa.inspect(bind)
     for table in _CHILD_TABLES:
-        with op.batch_alter_table(table) as batch_op:
-            batch_op.add_column(sa.Column("organization_id", sa.String(12), nullable=True))
+        columns = {item["name"] for item in inspector.get_columns(table)}
+        if "organization_id" not in columns:
+            with op.batch_alter_table(table) as batch_op:
+                batch_op.add_column(sa.Column("organization_id", sa.String(12), nullable=True))
     for table, case_column in _CHILD_TABLES.items():
         bind.execute(sa.text(
             f"UPDATE {table} SET organization_id = "
@@ -73,7 +76,10 @@ def upgrade() -> None:
                 "organization_id", existing_type=sa.String(12), nullable=False
             )
     for table in _CHILD_TABLES:
-        op.create_index(f"ix_{table}_organization_id", table, ["organization_id"])
+        index_name = f"ix_{table}_organization_id"
+        existing_indexes = {item["name"] for item in sa.inspect(bind).get_indexes(table)}
+        if index_name not in existing_indexes:
+            op.create_index(index_name, table, ["organization_id"])
 
     for table in _WIDE_TENANT_TABLES:
         with op.batch_alter_table(table) as batch_op:

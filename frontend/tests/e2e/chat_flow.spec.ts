@@ -79,17 +79,17 @@ const MOCK_A2A_ENVELOPE = {
 
 async function mockBackend(page: Page) {
   // 1. Hub cards — keep the test independent from live readiness/assets.
-  const executionTarget = 'local_test';
+  const executionTarget = 'pure_llm';
   const runtimeReadiness = {
     structural_status: 'ready',
-    configuration_status: 'local_ready',
+    configuration_status: 'configured',
     run_action_enabled: true,
     reason: 'test_ready',
-    runtime_dependencies: [],
-    llm_required: false,
-    external_llm_required: false,
-    live_health_verified: false,
-    connectivity_status: 'not_applicable',
+    runtime_dependencies: ['llm_gateway'],
+    llm_required: true,
+    external_llm_required: true,
+    live_health_verified: true,
+    connectivity_status: 'verified',
     semantic_validation_status: 'not_verified',
     production_approval_status: 'not_approved',
   };
@@ -134,13 +134,13 @@ async function mockBackend(page: Page) {
           runtime_readiness: runtimeReadiness,
           evidence: {
             scope: 'tenant_configuration_and_connectivity',
-            selection_mode: 'inherit',
-            selection_version: 0,
-            deployment_id: null,
-            provider_id: null,
-            configuration_probe_status: 'not_applicable',
-            canary_checked_at: null,
-            canary_expires_at: null,
+            selection_mode: 'pinned',
+            selection_version: 1,
+            deployment_id: 'test-llm',
+            provider_id: 'test-llm',
+            configuration_probe_status: 'not_run',
+            canary_checked_at: new Date().toISOString(),
+            canary_expires_at: new Date(Date.now() + 60_000).toISOString(),
           },
         }],
         total: 1,

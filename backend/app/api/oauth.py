@@ -31,7 +31,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
 from app.middleware.audit import log_action
-from app.middleware.auth import get_current_organization, get_current_user
+from app.middleware.auth import (
+    get_current_organization,
+    get_current_user,
+    jwt_registered_claims,
+)
 from app.models.organization import Organization
 from app.models.oauth import OAuthClient, OAuthToken
 from app.services.database_tenancy import bind_tenant_to_transaction
@@ -139,6 +143,7 @@ def _create_oauth_token(
         "jti": secrets.token_urlsafe(16),
         "exp": expire,
         "iat": datetime.now(timezone.utc),
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -354,7 +359,8 @@ async def realm_discovery(realm: str):
     if not realm:
         raise HTTPException(status_code=400, detail="invalid_realm")
     return {
-        "issuer": f"local://icoder/realms/{realm}",
+        "issuer": settings.JWT_ISSUER,
+        "audience": settings.JWT_AUDIENCE,
         "token_endpoint": f"/api/oauth/realms/{realm}/token",
         "revocation_endpoint": "/api/oauth/token/revoke",
         "grant_types_supported": ["client_credentials"],

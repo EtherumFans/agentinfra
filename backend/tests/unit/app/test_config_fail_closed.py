@@ -65,6 +65,8 @@ CLOUD_KEYS = [
     "SEED_ON_STARTUP",
     "DEBUG",
     "ICODER_DATABASE_SQL_ECHO",
+    "JWT_ISSUER",
+    "JWT_AUDIENCE",
     "DATABASE_URL",
     "CORS_ORIGINS",
     "ICODER_PHI_REDACTION_MODE",
@@ -118,6 +120,8 @@ def _valid_cloud_env() -> dict[str, str]:
         "SEED_ON_STARTUP": "false",
         "DEBUG": "false",
         "ICODER_DATABASE_SQL_ECHO": "false",
+        "JWT_ISSUER": "https://auth.icoder.cloud",
+        "JWT_AUDIENCE": "https://api.icoder.cloud",
         # Phase A1D.5 — Gate 4 added ICODER_PHI_ENCRYPTION_KEY as a
         # cloud-mode requirement (Fernet envelope for at-rest PHI).
         # Gate 3R added RUNTRACE_DEPLOYMENT_PROFILE=BEST_EFFORT_DB as a
@@ -166,6 +170,24 @@ def test_cloud_mode_boots_with_all_required_vars(monkeypatch):
     cfg = _reload_settings(monkeypatch, _valid_cloud_env())
     assert cfg.settings.ICODER_DEPLOYMENT_MODE == "cloud"
     assert cfg.settings.ICODER_ENVIRONMENT == "cn"
+
+
+@pytest.mark.parametrize(
+    ("key", "value", "message"),
+    [
+        ("JWT_ISSUER", "", "JWT_ISSUER"),
+        ("JWT_AUDIENCE", "", "JWT_AUDIENCE"),
+        ("JWT_AUDIENCE", "https://auth.icoder.cloud", "must be distinct"),
+    ],
+)
+def test_cloud_mode_requires_distinct_jwt_trust_boundary(
+    monkeypatch, key, value, message,
+) -> None:
+    _clear_env(monkeypatch, CLOUD_KEYS)
+    env = _valid_cloud_env()
+    env[key] = value
+    with pytest.raises(RuntimeError, match=message):
+        _reload_settings(monkeypatch, env)
 
 
 @pytest.mark.parametrize(
@@ -325,7 +347,15 @@ def test_cloud_mode_refuses_weak_secret_change_me(monkeypatch):
     _clear_env(monkeypatch, CLOUD_KEYS)
     env = _valid_cloud_env()
     env["ICODER_SECRET_KEY"] = "change-me-in-production"
-    with pytest.raises(RuntimeError, match="SECRET_KEY is empty or a known-weak literal"):
+    with pytest.raises(RuntimeError, match="SECRET_KEY is empty, shorter than 32 bytes"):
+        _reload_settings(monkeypatch, env)
+
+
+def test_cloud_mode_refuses_short_hs256_secret(monkeypatch):
+    _clear_env(monkeypatch, CLOUD_KEYS)
+    env = _valid_cloud_env()
+    env["ICODER_SECRET_KEY"] = "unique-but-too-short"
+    with pytest.raises(RuntimeError, match="shorter than 32 bytes"):
         _reload_settings(monkeypatch, env)
 
 

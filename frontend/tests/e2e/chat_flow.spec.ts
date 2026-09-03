@@ -78,6 +78,17 @@ const MOCK_A2A_ENVELOPE = {
 };
 
 async function mockBackend(page: Page) {
+  // Keep application-shell polling (billing, notifications, etc.) isolated
+  // from the live backend. Playwright gives later registrations precedence,
+  // so the contract-specific routes below still validate the tested flow.
+  await page.route(/\/api\//, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: '{}',
+    }),
+  );
+
   // 1. Hub cards — keep the test independent from live readiness/assets.
   const executionTarget = 'pure_llm';
   const runtimeReadiness = {

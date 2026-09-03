@@ -10,6 +10,8 @@ import jwt
 import pytest
 from httpx import AsyncClient
 
+from app.config import settings
+
 
 @pytest.mark.asyncio
 async def test_token_endpoint_missing_grant_type(auth_client: AsyncClient):
@@ -190,6 +192,8 @@ async def test_p1_0_realm_discovery_doc(auth_client: AsyncClient):
     resp = await auth_client.get("/api/oauth/realms/base/.well-known/openid-configuration")
     assert resp.status_code == 200, resp.text
     body = resp.json()
+    assert body["issuer"] == settings.JWT_ISSUER
+    assert body["audience"] == settings.JWT_AUDIENCE
     assert body["token_endpoint"] == "/api/oauth/realms/base/token"
     assert "client_credentials" in body["grant_types_supported"]
     assert {"transcribe", "streams", "textgen", "facts"}.issubset(set(body["scopes_supported"]))

@@ -71,6 +71,11 @@ Environment 配置 declarative 在 [regions.yaml](../../deploy/cloud/regions.yam
 
 详细规范见 [API_CLIENT_MODEL.md](API_CLIENT_MODEL.md)。
 
+所有三段式 JWT（用户 access/refresh、Agent delegation、OAuth client_credentials）必须携带并严格
+校验部署配置的 `JWT_ISSUER` 与单值 `JWT_AUDIENCE`。签名正确但 issuer、audience 不匹配，或缺少
+必要 registered claims 的 token 一律拒绝；两段式 Console Runtime Token 使用独立格式和验证器。
+部署及轮换要求见 [JWT 信任边界](../security/JWT_TRUST_BOUNDARY.md)。
+
 ## 3. Region Routing & Data Residency
 
 详细 region → data-residency 映射、failover 语义、audit-log 复制规则见

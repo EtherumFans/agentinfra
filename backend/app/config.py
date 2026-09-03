@@ -67,12 +67,20 @@ class Settings(BaseSettings):
             return
         failures: list[str] = []
         sk = (self.SECRET_KEY or "").strip()
-        if sk.lower() in _WEAK_SECRET_KEY_LITERALS:
+        if sk.lower() in _WEAK_SECRET_KEY_LITERALS or len(sk.encode("utf-8")) < 32:
             failures.append(
-                "SECRET_KEY is empty or a known-weak literal "
+                "SECRET_KEY is empty, shorter than 32 bytes, or a known-weak literal "
                 f"({sk!r}); set ICODER_SECRET_KEY env var to a strong value "
                 "(generate: python -c \"import secrets; print(secrets.token_urlsafe(48))\")"
             )
+        jwt_issuer = (self.JWT_ISSUER or "").strip()
+        jwt_audience = (self.JWT_AUDIENCE or "").strip()
+        if not jwt_issuer:
+            failures.append("JWT_ISSUER is required in cloud mode")
+        if not jwt_audience:
+            failures.append("JWT_AUDIENCE is required in cloud mode")
+        if jwt_issuer and jwt_issuer == jwt_audience:
+            failures.append("JWT_ISSUER and JWT_AUDIENCE must be distinct")
         if not self.ICODER_HOSTED_URL:
             failures.append("ICODER_HOSTED_URL is empty; required in cloud mode")
         elif not self.ICODER_HOSTED_URL.lower().startswith("https://"):
@@ -501,6 +509,10 @@ class Settings(BaseSettings):
 
     # ── Auth ──────────────────────────────────────────────────────────────────
     JWT_ALGORITHM: str = "HS256"
+    # Registered claims bind every JWT to this issuer and API. Deployments
+    # sharing authentication infrastructure must assign distinct audiences.
+    JWT_ISSUER: str = "urn:icoder:auth"
+    JWT_AUDIENCE: str = "urn:icoder:api"
     JWT_EXPIRE_MINUTES: int = 480  # 8 hours (human user sessions — login)
     JWT_REFRESH_EXPIRE_DAYS: int = 7
 

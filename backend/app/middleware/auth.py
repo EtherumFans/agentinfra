@@ -115,6 +115,17 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
+def jwt_registered_claims() -> dict[str, str]:
+    """Return the exact issuer/audience binding for locally issued JWTs."""
+    issuer = str(settings.JWT_ISSUER or "").strip()
+    audience = str(settings.JWT_AUDIENCE or "").strip()
+    if not issuer or not audience:
+        raise RuntimeError("JWT issuer and audience must be configured")
+    if issuer == audience:
+        raise RuntimeError("JWT issuer and audience must be distinct")
+    return {"iss": issuer, "aud": audience}
+
+
 def create_access_token(user_id: str, username: str, role: str, org_id: str = "", token_version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload = {
@@ -126,6 +137,7 @@ def create_access_token(user_id: str, username: str, role: str, org_id: str = ""
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "access",
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -137,7 +149,9 @@ def create_refresh_token(user_id: str, org_id: str = "", token_version: int = 0)
         "org_id": org_id,
         "token_version": token_version,
         "exp": expire,
+        "iat": datetime.now(timezone.utc),
         "type": "refresh",
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -167,6 +181,7 @@ def create_delegation_token(
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "delegation",
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -198,7 +213,18 @@ def decode_token(token: str) -> dict:
             "preview_session_id": claims.get("s"),
         }
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        registered = jwt_registered_claims()
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM],
+            issuer=registered["iss"],
+            audience=registered["aud"],
+            options={
+                "require": ["iss", "aud", "sub", "exp", "iat", "type"],
+                "strict_aud": True,
+            },
+        )
         return payload
     except JWTError as e:
         raise HTTPException(

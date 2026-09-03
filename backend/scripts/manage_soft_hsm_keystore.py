@@ -312,10 +312,20 @@ def _audit_event(
 
 
 def _archive_is_required() -> bool:
-    configured = os.environ.get("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED", "").strip().lower()
-    return configured in {"1", "true", "yes", "on"} or (
-        os.environ.get("ICODER_DEPLOYMENT_MODE", "local").strip().lower() == "cloud"
-    )
+    # Immutable/WORM archival is an optional advanced product capability, not
+    # an implicit requirement of cloud mode. Keep the old variable as an
+    # explicit backwards-compatible opt-in for existing deployments.
+    enabled = os.environ.get(
+        "ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", "false"
+    ).strip().lower()
+    legacy_required = os.environ.get(
+        "ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED", "false"
+    ).strip().lower()
+    accepted = {"1", "true", "yes", "on"}
+    disabled = {"", "0", "false", "no", "off"}
+    if enabled not in accepted | disabled or legacy_required not in accepted | disabled:
+        raise RuntimeError("immutable audit archive feature flag is invalid")
+    return enabled in accepted or legacy_required in accepted
 
 
 def _replicate_audit_archive(

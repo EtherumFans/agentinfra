@@ -119,9 +119,9 @@ async def log_action(
             ),
         )
         db.add(log_entry)
-        # PostgreSQL production audit rows and their cryptographic archive
-        # envelopes are committed atomically. SQLite remains a lightweight
-        # local/test path and does not pretend to provide WORM guarantees.
+        # Standard audit rows are always written. The helper appends a
+        # cryptographic archive envelope atomically only when the optional
+        # advanced archive feature is enabled; SQLite remains lightweight.
         if db.get_bind().dialect.name == "postgresql":
             await db.flush()
             from app.services.audit_integrity import archive_audit_log

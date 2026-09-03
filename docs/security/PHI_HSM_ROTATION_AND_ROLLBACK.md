@@ -206,13 +206,17 @@ python scripts/verify_soft_hsm_ops_audit.py \
 
 ## Phase 7：不可变归档与签名轮换
 
-生产环境的密钥库突变必须设置 `ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true`。
+不可抵赖审计归档是可选高级合规功能，默认关闭。标准 `audit_logs` 和软件 HSM 本地签名操作链
+不受此开关影响。需要该能力的部署必须显式设置
+`ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED=true`；启用后，密钥库突变对外部归档继续 fail closed。
+旧变量 `ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true` 仅作为兼容性显式启用入口保留，新的部署
+不应继续使用。
 当前仓库提供 `local_worm_simulator` 用于 CI 和开发验收；它验证 create-only object、保留期、
 Legal Hold、独立 checkpoint、恢复和导出契约，但不能抵抗拥有主机管理员权限的人直接修改磁盘，
 不得作为真实生产 WORM 的替代品。
 
 ```text
-ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true
+ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED=true
 ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER=local_worm_simulator
 ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT=/var/lib/icoder-audit-worm
 ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY=<independent base64url 32+ bytes>
@@ -257,9 +261,10 @@ checkpoint key、audit key、bootstrap key、KEK、DEK、PHI、密文或数据�
 python scripts/export_soft_hsm_ops_audit.py --output /secure/export/hsm-audit-evidence.json
 ```
 
-真实生产适配器必须由选定云厂商或独立归档平台提供 compliance-mode object lock、独立 IAM、
-服务端 retention/Legal Hold 和跨区域复制，并通过与本地模拟器相同的契约测试。未完成真实适配器
-认证前，Phase 7 只能判定为“工程基线完成”，不能宣称生产 WORM 已上线。
+启用高级功能的真实生产部署必须由选定云厂商或独立归档平台提供 compliance-mode object lock、
+独立 IAM、服务端 retention/Legal Hold 和跨区域复制，并通过与本地模拟器相同的契约测试。未启用
+该功能不阻止标准产品部署，但产品界面、合同和合规声明不得宣称具备生产 WORM 或不可抵赖归档。
+完整产品边界见 `docs/security/IMMUTABLE_AUDIT_ARCHIVE_OPTIONAL_FEATURE.md`。
 
 ## Phase 7.1：AWS S3 Object Lock 生产适配器
 
@@ -269,7 +274,7 @@ COMPLIANCE，并使用独立的 SSE-KMS customer-managed key。
 
 ```text
 ICODER_DEPLOYMENT_MODE=cloud
-ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true
+ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED=true
 ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER=aws_s3_object_lock
 ICODER_SOFT_HSM_AUDIT_S3_REGION=ap-east-1
 ICODER_SOFT_HSM_AUDIT_S3_BUCKET=<dedicated audit bucket>

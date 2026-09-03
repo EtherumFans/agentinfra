@@ -249,6 +249,7 @@ def test_cloud_startup_does_not_use_metadata_create_all() -> None:
     assert "rolbypassrls" in database_source
     assert "pg_policies" in database_source
     assert "attnotnull" in database_source
+    assert "if settings.ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED:" in database_source
 
 
 def test_alembic_decouples_migrations_from_async_runtime_drivers() -> None:

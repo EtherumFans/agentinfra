@@ -14,7 +14,7 @@ from app.services.soft_hsm_audit_archive import (
     archive_from_environment,
 )
 from app.services.soft_hsm_ops_audit import append_event, key_store_identifier, verify_audit_file
-from scripts.manage_soft_hsm_keystore import _audited_mutation, create
+from scripts.manage_soft_hsm_keystore import _archive_is_required, _audited_mutation, create
 
 
 def _event(path, phase="started", outcome="pending") -> dict:
@@ -38,6 +38,19 @@ def _archive(tmp_path, *, legal_hold=False):
         checkpoint_key_id="checkpoint-v1",
         policy=ArchivePolicy(retention_days=30, legal_hold=legal_hold),
     )
+
+
+def test_legacy_required_flag_remains_an_explicit_opt_in(monkeypatch) -> None:
+    monkeypatch.delenv("ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", raising=False)
+    monkeypatch.setenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED", "true")
+    assert _archive_is_required() is True
+
+
+def test_invalid_advanced_archive_flag_fails_closed(monkeypatch) -> None:
+    monkeypatch.setenv("ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", "sometimes")
+    monkeypatch.delenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED", raising=False)
+    with pytest.raises(RuntimeError, match="feature flag is invalid"):
+        _archive_is_required()
 
 
 def test_archive_detects_tamper_missing_duplicate_and_reorder(tmp_path) -> None:
@@ -166,7 +179,8 @@ def test_archive_unavailable_blocks_key_store_mutation(tmp_path, monkeypatch) ->
     monkeypatch.setenv("ICODER_SOFT_HSM_OPS_AUDIT_PATH", str(audit_path))
     monkeypatch.setenv("ICODER_SOFT_HSM_OPS_AUDIT_KEY", base64.urlsafe_b64encode(audit_key).decode())
     monkeypatch.setenv("ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID", "audit-v1")
-    monkeypatch.setenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED", "true")
+    monkeypatch.setenv("ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE", "0")
+    monkeypatch.setenv("ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", "true")
     monkeypatch.setenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER", "local_worm_simulator")
     monkeypatch.setenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT", str(tmp_path / "missing"))
     monkeypatch.setenv(
@@ -184,7 +198,7 @@ def test_archive_unavailable_blocks_key_store_mutation(tmp_path, monkeypatch) ->
     assert not key_store.exists()
 
 
-def test_required_archive_is_replicated_before_and_after_mutation(tmp_path, monkeypatch) -> None:
+def test_enabled_archive_is_replicated_before_and_after_mutation(tmp_path, monkeypatch) -> None:
     key_store = (tmp_path / "software-hsm.keys").resolve()
     audit_path = (tmp_path / "ops.jsonl").resolve()
     archive_root = (tmp_path / "worm").resolve()
@@ -195,7 +209,7 @@ def test_required_archive_is_replicated_before_and_after_mutation(tmp_path, monk
         "ICODER_SOFT_HSM_OPS_AUDIT_PATH": str(audit_path),
         "ICODER_SOFT_HSM_OPS_AUDIT_KEY": base64.urlsafe_b64encode(audit_key).decode(),
         "ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID": "audit-v1",
-        "ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED": "true",
+        "ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED": "true",
         "ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER": "local_worm_simulator",
         "ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT": str(archive_root),
         "ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY": base64.urlsafe_b64encode(checkpoint_key).decode(),
@@ -217,6 +231,40 @@ def test_required_archive_is_replicated_before_and_after_mutation(tmp_path, monk
         archive_root, checkpoint_key=checkpoint_key, checkpoint_key_id="checkpoint-v1",
         policy=ArchivePolicy(retention_days=2555),
     ).verify(verification_keys={"audit-v1": audit_key}, minimum_sequence=2)["records"] == 2
+
+
+def test_cloud_mode_does_not_implicitly_enable_advanced_archive(
+    tmp_path, monkeypatch,
+) -> None:
+    key_store = (tmp_path / "software-hsm.keys").resolve()
+    audit_path = (tmp_path / "ops.jsonl").resolve()
+    audit_key = b"independent-audit-key-material-32!"
+    monkeypatch.setenv("ICODER_DEPLOYMENT_MODE", "cloud")
+    monkeypatch.setenv("ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", "false")
+    monkeypatch.delenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED", raising=False)
+    monkeypatch.setenv("ICODER_SOFT_HSM_OPS_AUDIT_PATH", str(audit_path))
+    monkeypatch.setenv(
+        "ICODER_SOFT_HSM_OPS_AUDIT_KEY", base64.urlsafe_b64encode(audit_key).decode(),
+    )
+    monkeypatch.setenv("ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID", "audit-v1")
+    monkeypatch.setenv("ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE", "0")
+    monkeypatch.setenv("ICODER_OPERATOR_IDENTITY", "cloud-operator")
+    monkeypatch.setenv("ICODER_DEPLOYMENT_ENVIRONMENT", "production")
+    monkeypatch.setenv("ICODER_RELEASE_VERSION", "optional-archive-test")
+    bootstrap = bytearray(b"bootstrap-test-key-material-32!!")
+
+    result = _audited_mutation(
+        operation="create", path=key_store, expected_generation=0,
+        change_ticket="SEC-7004", bootstrap_key=bootstrap,
+        callback=lambda: create(key_store, key_id="kek-v1", bootstrap_key=bootstrap),
+    )
+
+    assert result["audit_archive"] is None
+    assert key_store.exists()
+    assert verify_audit_file(
+        audit_path, audit_key=audit_key, signing_key_id="audit-v1",
+        minimum_sequence=2,
+    )["records"] == 2
 
 
 def test_local_worm_simulator_is_forbidden_in_cloud_mode(tmp_path, monkeypatch) -> None:

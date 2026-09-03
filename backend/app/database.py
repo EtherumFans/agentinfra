@@ -273,34 +273,35 @@ async def verify_production_database() -> None:
                 + ", ".join(missing_split_policies)
             )
 
-        archive_gate = (
-            await connection.execute(
-                text(
-                    "SELECT c.relrowsecurity, c.relforcerowsecurity, "
-                    "EXISTS (SELECT 1 FROM pg_policies p WHERE "
-                    "p.schemaname=current_schema() AND p.tablename=c.relname "
-                    "AND p.policyname='icoder_audit_archive_tenant_read' "
-                    "AND p.cmd='SELECT' AND p.qual IS NOT NULL), "
-                    "EXISTS (SELECT 1 FROM pg_trigger t WHERE t.tgrelid=c.oid "
-                    "AND t.tgname='trg_audit_archive_immutable' "
-                    "AND NOT t.tgisinternal) "
-                    "FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
-                    "WHERE n.nspname=current_schema() AND c.relname=:table"
-                ),
-                {"table": IMMUTABLE_AUDIT_ARCHIVE_TABLE},
-            )
-        ).one_or_none()
-        if archive_gate is None or tuple(bool(value) for value in archive_gate) != (
-            True, True, True, True,
-        ):
-            raise RuntimeError(
-                "audit integrity archive RLS/immutability enforcement is incomplete"
-            )
+        if settings.ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED:
+            archive_gate = (
+                await connection.execute(
+                    text(
+                        "SELECT c.relrowsecurity, c.relforcerowsecurity, "
+                        "EXISTS (SELECT 1 FROM pg_policies p WHERE "
+                        "p.schemaname=current_schema() AND p.tablename=c.relname "
+                        "AND p.policyname='icoder_audit_archive_tenant_read' "
+                        "AND p.cmd='SELECT' AND p.qual IS NOT NULL), "
+                        "EXISTS (SELECT 1 FROM pg_trigger t WHERE t.tgrelid=c.oid "
+                        "AND t.tgname='trg_audit_archive_immutable' "
+                        "AND NOT t.tgisinternal) "
+                        "FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+                        "WHERE n.nspname=current_schema() AND c.relname=:table"
+                    ),
+                    {"table": IMMUTABLE_AUDIT_ARCHIVE_TABLE},
+                )
+            ).one_or_none()
+            if archive_gate is None or tuple(bool(value) for value in archive_gate) != (
+                True, True, True, True,
+            ):
+                raise RuntimeError(
+                    "audit integrity archive RLS/immutability enforcement is incomplete"
+                )
 
-        # Resolve the signer before accepting traffic so cloud deployments
-        # cannot defer a missing signing key until the first audit event.
-        from app.services.audit_integrity import configured_audit_signer
-        configured_audit_signer()
+            # Advanced mode resolves the signer before accepting traffic so a
+            # missing key cannot be deferred until the first audit event.
+            from app.services.audit_integrity import configured_audit_signer
+            configured_audit_signer()
 
         phi_gate = (
             await connection.execute(

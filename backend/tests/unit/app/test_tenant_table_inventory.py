@@ -12,13 +12,31 @@ _INVENTORY_PATH = _BACKEND_ROOT / "docs" / "security" / "tenant_table_inventory.
 _ORM_TABLE_PATTERN = re.compile(r'__tablename__\s*=\s*["\']([^"\']+)["\']')
 
 _EXISTING_FORCE_RLS = {
+    "agent_task_feedback",
     "agent_connectors",
     "api_keys",
     "audit_logs",
+    "audit_integrity_archive",
+    "cdi_cases",
+    "cdi_clinician_responses",
+    "cdi_document_versions",
+    "cdi_documentation_gaps",
+    "cdi_notification_subscriptions",
+    "cdi_provider_queries",
+    "clinical_evidences",
+    "clinical_facts",
+    "code_candidates",
+    "coding_review_runs",
+    "coding_reviews",
     "connector_credentials",
     "connector_execution_audit",
     "contexts",
     "conversation_memories",
+    "documents",
+    "encounters",
+    "feedback_training_authorizations",
+    "guided_documents",
+    "guided_sections",
     "memory_consents",
     "oauth_clients",
     "oauth_tokens",
@@ -104,7 +122,7 @@ def test_inventory_is_complete_unique_and_sorted() -> None:
     rows = inventory["tables"]
     names = [row["name"] for row in rows]
 
-    assert len(names) == inventory["catalog_union_count"] == 83
+    assert len(names) == inventory["catalog_union_count"] == 84
     assert len(set(names)) == len(names)
     assert names == sorted(names)
     assert set(names) == _orm_table_names() | {"alembic_version"}
@@ -119,8 +137,8 @@ def test_inventory_declares_schema_drift_explicitly() -> None:
     assert {
         name for name, row in rows.items() if row["schema_presence"] == "database_only"
     } == {"alembic_version"}
-    assert sum(row["schema_presence"] != "orm_only" for row in rows.values()) == 82
-    assert sum(row["schema_presence"] != "database_only" for row in rows.values()) == 82
+    assert sum(row["schema_presence"] != "orm_only" for row in rows.values()) == 83
+    assert sum(row["schema_presence"] != "database_only" for row in rows.values()) == 83
 
 
 def test_inventory_summary_is_derived_from_table_rows() -> None:

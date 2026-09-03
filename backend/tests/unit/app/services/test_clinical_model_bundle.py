@@ -150,9 +150,10 @@ def test_tampered_content_and_manifest_fail_closed() -> None:
     [
         ("../escape.json", "BUNDLE_MEMBER_PATH_INVALID"),
         ("C:/escape.json", "BUNDLE_MEMBER_PATH_INVALID"),
-        # zipfile normalizes Windows separators to POSIX before verification;
-        # the normalized unexpected member is still rejected by exact inventory.
-        ("model\\escape.json", "BUNDLE_FILE_INVENTORY_MISMATCH"),
+        # Python's zipfile exposes this member as a raw invalid path on POSIX
+        # and as a normalized-but-undeclared member on Windows. Both outcomes
+        # reject the archive before any content is trusted.
+        ("model\\escape.json", "BUNDLE_(MEMBER_PATH_INVALID|FILE_INVENTORY_MISMATCH)"),
     ],
 )
 def test_archive_path_traversal_is_rejected(name: str, code: str) -> None:

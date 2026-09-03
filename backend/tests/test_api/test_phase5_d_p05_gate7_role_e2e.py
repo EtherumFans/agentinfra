@@ -104,6 +104,7 @@ def _seed_query(
             ))
             s.add(DocumentationGapModel(
                 id=gap_id,
+                organization_id="org_default1",
                 case_id=case_id,
                 gap_type="UNSPECIFIED_CLINICAL_DETAIL",
                 description="seed gap",
@@ -116,6 +117,7 @@ def _seed_query(
             ))
             s.add(ProviderQueryModel(
                 id=query_id,
+                organization_id="org_default1",
                 case_id=case_id,
                 gap_id=gap_id,
                 topic="seed topic",

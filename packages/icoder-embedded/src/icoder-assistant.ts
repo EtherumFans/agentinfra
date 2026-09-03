@@ -439,6 +439,10 @@ class iCoDerEmbedded extends HTMLElement {
     this._patientContext = ctx;
     this._contextId = ctx.encounterId || ctx.patientId || '';
     this._renderPatientBar();
+    this._emitEmbeddedEvent('patient.context.set', {
+      hasPatientId: Boolean(ctx.patientId),
+      hasEncounterId: Boolean(ctx.encounterId),
+    });
   }
 
   /**

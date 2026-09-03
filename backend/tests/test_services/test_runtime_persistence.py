@@ -302,7 +302,7 @@ class TestStateSync:
         db.commit = AsyncMock()
 
         synced = await runtime_state_sync.sync_review_status(
-            CaseState.REVIEW_REQUIRED, "REV-test", db,
+            CaseState.REVIEW_REQUIRED, "REV-test", "org_default1", db,
         )
         assert synced is True
         assert review_mock.human_review_status == "pending_review"
@@ -312,7 +312,7 @@ class TestStateSync:
         """sync_review_status returns False for non-trigger states."""
         db = AsyncMock()
         synced = await runtime_state_sync.sync_review_status(
-            CaseState.INGESTED, "REV-test", db,
+            CaseState.INGESTED, "REV-test", "org_default1", db,
         )
         assert synced is False
         assert not db.execute.called

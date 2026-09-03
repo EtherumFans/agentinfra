@@ -248,8 +248,8 @@ test.describe('Phase 3-B2 Loop 2 — Click-to-Chat UX', () => {
     );
 
     // 4. Chat page should render the agent name + description.
-    await expect(page.getByText('Medical Coding Agent')).toBeVisible();
-    await expect(page.getByText(/ICD-10-CN 诊断编码/)).toBeVisible();
+    await expect(page.getByText('Medical Coding Agent').first()).toBeVisible();
+    await expect(page.getByText(/ICD-10-CN 诊断编码/).first()).toBeVisible();
 
     // 5. Type into the input textarea.
     const textarea = page.locator('textarea').first();

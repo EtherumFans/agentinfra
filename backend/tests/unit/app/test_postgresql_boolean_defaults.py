@@ -19,7 +19,12 @@ def test_boolean_server_defaults_are_not_numeric_for_postgresql() -> None:
             if not isinstance(column.type, Boolean) or column.server_default is None:
                 continue
             checked += 1
-            rendered = str(column.server_default.arg.compile(dialect=dialect)).strip().lower()
+            expression = column.server_default.arg
+            rendered = str(
+                expression.compile(dialect=dialect)
+                if hasattr(expression, "compile")
+                else expression
+            ).strip().lower()
             if rendered in {"0", "1"}:
                 invalid.append(f"{table.name}.{column.name}=DEFAULT {rendered}")
 

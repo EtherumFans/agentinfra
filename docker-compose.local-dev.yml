@@ -106,6 +106,7 @@ services:
       # Explicit local/CI degraded mode; cloud fail-closed validation rejects
       # this deployment mode and still requires a managed credential.
       - ICODER_ALLOW_DEGRADED_NO_KEY=${ICODER_ALLOW_DEGRADED_NO_KEY:-1}
+      - ICODER_REGISTRY_DIR=/app/data/.icoder
       - LLM_BASE_URL=${LLM_BASE_URL:-https://api.deepseek.com/v1}
       # Optional isolated Linux BGE/FAISS worker. The base stack intentionally
       # leaves this URL empty. Use docker-compose.medcoder.yml to activate and

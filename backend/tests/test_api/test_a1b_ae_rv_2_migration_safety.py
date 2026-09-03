@@ -196,21 +196,12 @@ def test_rv2_5_migration_024_check_constraint_always_present(tmp_path):
         conn.close()
 
 
-def test_rv2_6_postgresql_parity_blocked_by_environment():
-    """§6 — PostgreSQL runtime parity is BLOCKED_BY_ENVIRONMENT for this host.
+def test_rv2_6_migration_remains_dialect_portable():
+    """§6 — Migration 026 keeps its SQLite/PostgreSQL portable form.
 
-    No psql, asyncpg, or testcontainers available. Migration 026 uses
-    batch_alter_table which alembic translates to direct ALTER COLUMN on
-    PostgreSQL. Syntactic inspection confirms the migration is PG-compatible.
-    Runtime verification deferred until a PG environment is provisioned
-    (per Gate 3R.0 §19).
+    Live PostgreSQL parity is covered by the dedicated P1 gate. This unit
+    check must remain deterministic whether or not the runner has ``psql``.
     """
-    # Confirm environment lacks psql
-    import shutil
-    psql = shutil.which("psql")
-    assert psql is None, (
-        "psql unexpectedly present — update this test to actually run PG parity"
-    )
     # Migration 026 is dialect-agnostic (batch_alter_table)
     migration_path = _BACKEND_ROOT / "alembic" / "versions" / "026_context_organization_id_fail_closed.py"
     assert migration_path.exists(), "Migration 026 source must exist"

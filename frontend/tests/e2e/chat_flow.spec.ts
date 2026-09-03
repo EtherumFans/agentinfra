@@ -78,7 +78,34 @@ const MOCK_A2A_ENVELOPE = {
 };
 
 async function mockBackend(page: Page) {
-  // 1. Clone endpoint — return mock CloneResponse.
+  // 1. Hub cards — keep the test independent from live readiness/assets.
+  await page.route('**/api/icoder/agents/hub*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        agents: [{
+          agent_id: AGENT_ID,
+          agent_ref: AGENT_REF,
+          name: MOCK_AGENT.name,
+          description: MOCK_AGENT.description,
+          version: MOCK_AGENT.version,
+          category: MOCK_AGENT.category,
+          runnable: true,
+          display_status: 'available',
+          display_badges: [],
+          runtime_readiness: {
+            run_action_enabled: true,
+            configuration_status: 'local_ready',
+            semantic_validation_status: 'not_verified',
+          },
+          red_lines: {},
+        }],
+      }),
+    }),
+  );
+
+  // 2. Clone endpoint — return mock CloneResponse.
   await page.route('**/api/icoder/agents/medical-coding-agent/clone', (route) =>
     route.fulfill({
       status: 201,
@@ -87,7 +114,7 @@ async function mockBackend(page: Page) {
     }),
   );
 
-  // 2. Agent definitions GET — return mock agent metadata.
+  // 3. Agent definitions GET — return mock agent metadata.
   await page.route(
     `**/api/rest/v1/agent_definitions/${PROJECT_AGENT_ID}`,
     (route) =>
@@ -98,7 +125,7 @@ async function mockBackend(page: Page) {
       }),
   );
 
-  // 3. A2A mainline POST — return mock JSON-RPC envelope.
+  // 4. A2A mainline POST — return mock JSON-RPC envelope.
   await page.route(
     '**/api/icoder/agents/medical-coding-agent/v1/message:send',
     (route) =>

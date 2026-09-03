@@ -252,6 +252,61 @@ def test_cloud_startup_does_not_use_metadata_create_all() -> None:
     assert "if settings.ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED:" in database_source
 
 
+def test_production_revision_matches_the_single_alembic_head() -> None:
+    """A new migration cannot silently make every cloud instance unbootable."""
+    versions = BACKEND_ROOT / "alembic" / "versions"
+    revisions: set[str] = set()
+    parent_revisions: set[str] = set()
+
+    for path in versions.glob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        assignments: dict[str, object] = {}
+        for node in tree.body:
+            if (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id in {"revision", "down_revision"}
+            ):
+                assignments[node.targets[0].id] = ast.literal_eval(node.value)
+            elif (
+                isinstance(node, ast.AnnAssign)
+                and isinstance(node.target, ast.Name)
+                and node.target.id in {"revision", "down_revision"}
+                and node.value is not None
+            ):
+                assignments[node.target.id] = ast.literal_eval(node.value)
+        revision = assignments.get("revision")
+        if revision is None:
+            assert path.name == "__init__.py"
+            continue
+        assert isinstance(revision, str) and revision, path.name
+        revisions.add(revision)
+        parent = assignments.get("down_revision")
+        if isinstance(parent, str):
+            parent_revisions.add(parent)
+        elif isinstance(parent, (tuple, list)):
+            parent_revisions.update(parent)
+        else:
+            assert parent is None, path.name
+
+    heads = revisions - parent_revisions
+    assert heads == {"073"}
+
+    database_tree = ast.parse(
+        (BACKEND_ROOT / "app" / "database.py").read_text(encoding="utf-8")
+    )
+    configured = next(
+        ast.literal_eval(node.value)
+        for node in database_tree.body
+        if isinstance(node, ast.Assign)
+        and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+        and node.targets[0].id == "PRODUCTION_SCHEMA_REVISION"
+    )
+    assert configured == heads.pop()
+
+
 def test_alembic_decouples_migrations_from_async_runtime_drivers() -> None:
     source = (BACKEND_ROOT / "alembic" / "env.py").read_text(encoding="utf-8")
     assert '"postgresql+asyncpg://", "postgresql+psycopg://"' in source

@@ -22,7 +22,7 @@ const AGENT_ID = 'medical-coding-agent';
 const MOCK_AGENT = {
   id: PROJECT_AGENT_ID,
   name: 'Medical Coding Agent',
-  description: 'iCoDer 官方医学编码 Agent (Corti-style MVP)',
+  description: 'iCoDer 官方医学编码 Agent，支持 ICD-10-CN 诊断编码 (Corti-style MVP)',
   version: '2.0.0',
   category: 'medical-coding',
   icon: 'Stethoscope',
@@ -160,13 +160,51 @@ async function mockBackend(page: Page) {
 
   // 3. Agent definitions GET — return mock agent metadata.
   await page.route(
-    `**/api/rest/v1/agent_definitions/${PROJECT_AGENT_ID}`,
+    new RegExp(`/api/rest/v1/agent_definitions/${PROJECT_AGENT_ID}/?(?:\\?.*)?$`),
     (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(MOCK_AGENT),
       }),
+  );
+
+  // Chat page hydrates recent runs eagerly; keep that background request from
+  // leaking to the static CI server.
+  await page.route(/\/api\/runtime\/runs\/history(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ items: [], total: 0 }),
+    }),
+  );
+
+  // The chat page now uses the unified Agent Run endpoint (not the legacy A2A
+  // endpoint) for both medical-coding and general agents.
+  await page.route(
+    `**/api/v1/agents/${PROJECT_AGENT_ID}/run`,
+    (route) => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        agent_id: PROJECT_AGENT_ID,
+        run_id: 'run-mock-1',
+        trace_id: 'trace-mock-1',
+        runtime_mode: 'corti_like_fast',
+        latency_ms: 25,
+        cost: {},
+        summary: '编码完成',
+        result: MOCK_A2A_ENVELOPE.result.parts[0].data,
+        schema_ref: 'icoder.medical-coding.result.v2',
+        result_attestation: 'test-attestation',
+        evidence: [],
+        warnings: [],
+        manual_review_required: true,
+        trace_events: [],
+        error: false,
+        error_reason: '',
+      }),
+    }),
   );
 
   // 4. A2A mainline POST — return mock JSON-RPC envelope.

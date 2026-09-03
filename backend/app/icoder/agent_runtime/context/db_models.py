@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    true,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -93,7 +94,7 @@ class ContextMessageRow(Base):
     parts_json: Mapped[str] = mapped_column(Text, nullable=False)
     timestamp: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     redacted: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True, server_default="1"
+        Boolean, nullable=False, default=True, server_default=true()
     )
     metadata_json: Mapped[str] = mapped_column(
         Text, nullable=False, default="{}", server_default="{}"

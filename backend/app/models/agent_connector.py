@@ -18,6 +18,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -60,7 +61,7 @@ class AgentConnector(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="", server_default="")
     enabled: Mapped[bool] = mapped_column(
-        Boolean, default=False, server_default="0", nullable=False, index=True,
+        Boolean, default=False, server_default=false(), nullable=False, index=True,
     )
     config_json: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     credential_ref: Mapped[str | None] = mapped_column(String(512), nullable=True)

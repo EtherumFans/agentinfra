@@ -90,7 +90,8 @@ def _normalize_server_default(value: Any) -> str | None:
 
     Semantic-equivalent defaults are unified:
       now() / CURRENT_TIMESTAMP / current_timestamp → "current_timestamp"
-      0 / '0' / "0" → "0"
+      false / 0 / '0' / "0" → "0"
+      true / 1 / '1' / "1" → "1"
       '' / "" → ""
     """
     if value is None:
@@ -107,9 +108,13 @@ def _normalize_server_default(value: Any) -> str | None:
     # Unify timestamp defaults
     if s in ("now()", "current_timestamp", "current_date", "current_time"):
         return "current_timestamp" if "timestamp" in s or s == "now()" else s
-    # Unify boolean/text defaults that are numeric strings
-    if s in ("0", "1"):
-        return s
+    # SQLAlchemy false()/true() compile to false/true for PostgreSQL and to
+    # 0/1 for SQLite. Treat these as the same semantic defaults so a fresh
+    # SQLite Alembic database does not report false-positive schema drift.
+    if s in ("false", "0"):
+        return "0"
+    if s in ("true", "1"):
+        return "1"
     return s
 
 

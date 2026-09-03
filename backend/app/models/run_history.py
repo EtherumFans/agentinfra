@@ -20,7 +20,7 @@ Indexes:
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -78,7 +78,7 @@ class RunHistoryModel(Base, TimestampMixin):
     output_summary: Mapped[str] = mapped_column(Text, default="")
 
     # Error tracking (so failed runs can surface in history list)
-    error: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    error: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     error_reason: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
     # ── Phase 7 Gate 4 §9.1: run lifecycle status ───────────────────

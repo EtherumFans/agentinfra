@@ -44,9 +44,9 @@ from sqlalchemy import (
     Index,
     String,
     Text,
+    false,
     func,
 )
-from sqlalchemy import text as _sa_text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -112,15 +112,15 @@ class CodingReviewRun(Base):
     )
     degraded: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False,
-        server_default=_sa_text("0"),
+        server_default=false(),
     )
     business_result_generated: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False,
-        server_default=_sa_text("0"),
+        server_default=false(),
     )
     manual_review_required: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False,
-        server_default=_sa_text("0"),
+        server_default=false(),
     )
     reason: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False, default="")
 

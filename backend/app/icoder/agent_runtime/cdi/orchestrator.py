@@ -2156,6 +2156,7 @@ class CDIOrchestrator:
         ev = gap_dict.get("evidence_span") or {}
         return DocumentationGap(
             gap_id=gap_dict.get("gap_id") or f"gap_{uuid.uuid4().hex[:8]}",
+            gap_type=gap_dict.get("gap_type", "unknown"),
             description=gap_dict.get("description", ""),
             why_it_matters=gap_dict.get("why_it_matters", ""),
             evidence_span=EvidenceSpan(

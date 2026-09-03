@@ -29,6 +29,21 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _crlf_bytes(path: Path) -> bytes | None:
+    """Return the historical Windows serialization for text artifacts.
+
+    The frozen manifest predates the repository LF policy. Git legitimately
+    normalizes these JSON files to LF, so integrity accepts either the checked
+    out bytes or their deterministic CRLF transport representation.
+    """
+    try:
+        raw = path.read_bytes()
+        raw.decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    return raw.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+
+
 def _safe_artifact_path(root: Path, relative_path: str) -> Path:
     if not relative_path or Path(relative_path).is_absolute():
         raise ValueError("artifact path must be non-empty and relative")
@@ -79,14 +94,21 @@ def _verify_file_entries(
             errors.append(f"{relative_path}: file is missing")
             continue
         expected_size = entry.get("size_bytes")
-        if expected_size != path.stat().st_size:
+        expected_hash = entry.get("sha256")
+        actual_hash = _sha256(path)
+        crlf = _crlf_bytes(path)
+        crlf_hash = hashlib.sha256(crlf).hexdigest() if crlf is not None else None
+        normalized_match = (
+            crlf is not None
+            and expected_size == len(crlf)
+            and expected_hash == crlf_hash
+        )
+        if expected_size != path.stat().st_size and not normalized_match:
             errors.append(
                 f"{relative_path}: size mismatch "
                 f"(manifest={expected_size}, actual={path.stat().st_size})"
             )
-        expected_hash = entry.get("sha256")
-        actual_hash = _sha256(path)
-        if expected_hash != actual_hash:
+        if expected_hash != actual_hash and not normalized_match:
             errors.append(f"{relative_path}: sha256 mismatch")
         verified.append(path)
     return verified

@@ -24,12 +24,17 @@ import logging
 import os
 import threading
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
-# Default location of the read-only iCoDerA DataAsset directory.
-DEFAULT_ASSET_DIR = r"E:\iCoDerA\DataAsset"
+# The repository-owned, integrity-pinned assets are also copied into the
+# backend image.  Explicit ICODER_DATA_ASSET_DIR overrides remain supported
+# for deployments that mount the legacy enriched catalog.
+DEFAULT_ASSET_DIR = str(
+    Path(__file__).resolve().parents[2] / "data" / "code_dicts" / "assets"
+)
 
 CATALOG_FILENAME = "icd10cn_code_catalog.json"
 SYNONYM_FILENAME = "icd10cn_synonym_map.json"
@@ -101,10 +106,8 @@ class ICD10CNLoader:
                 return self._stats
             cat_path = os.path.join(self._asset_dir, CATALOG_FILENAME)
             syn_path = os.path.join(self._asset_dir, SYNONYM_FILENAME)
-            if not os.path.isfile(cat_path):
-                raise FileNotFoundError(f"Catalog not found: {cat_path}")
-            if not os.path.isfile(syn_path):
-                raise FileNotFoundError(f"Synonym map not found: {syn_path}")
+            if not os.path.isfile(cat_path) or not os.path.isfile(syn_path):
+                return self._load_repository_catalog()
 
             logger.info("Loading ICD-10-CN catalog from %s", cat_path)
             with open(cat_path, encoding="utf-8") as f:
@@ -140,6 +143,78 @@ class ICD10CNLoader:
                 self._stats.term_index_size,
             )
             return self._stats
+
+    def _load_repository_catalog(self) -> LoaderStats:
+        """Load the image-owned normalized catalog when legacy files are absent."""
+        root = Path(self._asset_dir)
+        names_path = root / "icd10_cn_standard_names.json"
+        details_path = root / "icd10_opendrg_v1.json"
+        if not names_path.is_file() or not details_path.is_file():
+            raise FileNotFoundError(f"Catalog not found: {root / CATALOG_FILENAME}")
+
+        names_payload = json.loads(names_path.read_text(encoding="utf-8"))
+        details_payload = json.loads(details_path.read_text(encoding="utf-8"))
+        code_names = names_payload.get("code_names")
+        if not isinstance(code_names, dict) or not isinstance(details_payload, list):
+            raise ValueError("Repository ICD-10-CN catalog has an invalid shape")
+
+        details = {
+            str(row.get("icd10_code")): row
+            for row in details_payload
+            if isinstance(row, dict) and row.get("icd10_code")
+        }
+        entries: dict[str, ICDEntry] = {}
+        term_index: dict[str, list[str]] = {}
+        chapters: dict[str, dict] = {}
+        categories: dict[str, dict] = {}
+        for raw_code, raw_names in code_names.items():
+            code = str(raw_code).strip()
+            names = [str(item).strip() for item in raw_names if str(item).strip()]
+            if not code or not names:
+                continue
+            detail = details.get(code, {})
+            chinese = [name for name in names if any("\u4e00" <= ch <= "\u9fff" for ch in name)]
+            english = [name for name in names if name not in chinese]
+            chapter_no = str(detail.get("chapter") or "")
+            chapter_name = str(detail.get("chapter_name") or "")
+            category = str(detail.get("category") or "")
+            entry = ICDEntry(
+                code=code,
+                name_cn=chinese[0] if chinese else names[0],
+                name_en=english[0] if english else "",
+                synonyms_cn=tuple(chinese[1:]),
+                synonyms_en=tuple(english[1:]),
+                chapter_range="",
+                chapter_no=f"第{chapter_no}章" if chapter_no else "",
+                chapter_name=chapter_name,
+                category_code=code.split(".", 1)[0],
+                clinical_category=category,
+                is_extended="x" in code.casefold(),
+                is_generated_category="." not in code,
+            )
+            entries[code] = entry
+            category_key = chapter_no or "unknown"
+            categories.setdefault(category_key, {})[code] = names
+            if chapter_no or chapter_name:
+                chapters.setdefault(category_key, {
+                    "chapter_no": chapter_no,
+                    "chapter_name": chapter_name,
+                })
+            for name in names:
+                term_index.setdefault(name.casefold(), []).append(code)
+
+        self._codes_by_code = entries
+        self._chapters = chapters
+        self._synonyms_by_category = categories
+        self._term_index = term_index
+        self._stats = LoaderStats(
+            catalog_codes=len(entries),
+            synonym_categories=len(categories),
+            term_index_size=len(term_index),
+            loaded_from=self._asset_dir,
+        )
+        self._loaded = True
+        return self._stats
 
     def ensure_loaded(self) -> LoaderStats:
         with self._lock:

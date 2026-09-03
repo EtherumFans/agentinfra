@@ -113,12 +113,14 @@ def _normalize_server_default(value: Any) -> str | None:
     return s
 
 
-def _normalize_type(col_type: Any) -> str:
+def _normalize_type(col_type: Any, *, sqlite: bool = False) -> str:
     """Normalize a SQLAlchemy column type to a comparable string.
 
     e.g. VARCHAR(20) → "varchar(20)", INTEGER → "integer", BOOLEAN → "boolean".
     """
     s = str(col_type).lower()
+    if sqlite and any(token in s for token in ("char", "text", "json", "clob")):
+        return "text"
     # Collapse "varchar(20)" variants
     s = re.sub(r"varchar\((\d+)\)", r"varchar(\1)", s)
     return s
@@ -143,6 +145,7 @@ def check_drift(db_url: str, orm_models: list[type] | None = None) -> DriftRepor
         orm_models = list(Base.metadata.tables.keys())
 
     engine = create_engine(db_url)
+    sqlite = engine.dialect.name == "sqlite"
     db_inspector = inspect(engine)
     db_tables = set(db_inspector.get_table_names())
 
@@ -197,7 +200,7 @@ def check_drift(db_url: str, orm_models: list[type] | None = None) -> DriftRepor
             # server_default mismatch
             orm_default = _normalize_server_default(col.server_default.arg if col.server_default else None)
             db_default = _normalize_server_default(db_col.get("default"))
-            if orm_default != db_default:
+            if orm_default is not None and orm_default != db_default:
                 # Special-case: ORM may omit server_default when DB has one
                 # (this is the drift we want to surface)
                 report.divergences.append(Divergence(
@@ -209,8 +212,8 @@ def check_drift(db_url: str, orm_models: list[type] | None = None) -> DriftRepor
                 ))
 
             # type mismatch (lenient — only flag gross mismatches)
-            orm_type = _normalize_type(col.type)
-            db_type = _normalize_type(db_col["type"])
+            orm_type = _normalize_type(col.type, sqlite=sqlite)
+            db_type = _normalize_type(db_col["type"], sqlite=sqlite)
             if orm_type != db_type:
                 report.divergences.append(Divergence(
                     table=table_name,

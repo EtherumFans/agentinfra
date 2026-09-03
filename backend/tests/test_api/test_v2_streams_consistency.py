@@ -834,9 +834,19 @@ def test_isolated_decoder_failure_never_reaches_asr_or_retention(
     async def retention(*_args, **_kwargs):
         calls["retention"] += 1
 
+    async def initialize_without_checkpoint(_state):
+        # This decoder-isolation contract does not exercise the checkpoint
+        # repository. Avoid coupling its parametrized websocket teardown to
+        # SQLite writer scheduling from neighboring full-suite cases.
+        return None
+
     monkeypatch.setattr("app.api.v2_tools_streams.validate_stream_audio_decode", decoder)
     monkeypatch.setattr("app.api.v2_tools_streams.transcribe_stream_audio", asr)
     monkeypatch.setattr("app.api.v2_tools_streams._persist_recording", retention)
+    monkeypatch.setattr(
+        "app.api.v2_tools_streams._resume_or_initialize_checkpoint",
+        initialize_without_checkpoint,
+    )
 
     with icoder_client.websocket_connect(_url(_interaction_id())) as ws:
         ws.send_text(json.dumps(_config(retention="retain")))

@@ -163,6 +163,7 @@ _DEFAULT_AVAILABLE_TOOLS: dict[str, bool] = {
 
 
 _CODING_RELEVANT_GAP_TYPES: frozenset[GapType] = frozenset({
+    "unknown",
     "diagnostic_specificity",
     "etiology_unspecified",
     "severity_unspecified",

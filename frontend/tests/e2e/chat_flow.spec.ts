@@ -79,11 +79,46 @@ const MOCK_A2A_ENVELOPE = {
 
 async function mockBackend(page: Page) {
   // 1. Hub cards — keep the test independent from live readiness/assets.
-  await page.route('**/api/icoder/agents/hub*', (route) =>
-    route.fulfill({
+  await page.route('**/api/icoder/agents/hub*', (route) => {
+    const isReadiness = new URL(route.request().url()).pathname.endsWith('/readiness');
+    const executionTarget = 'local_test';
+    const runtimeReadiness = {
+      structural_status: 'ready',
+      configuration_status: 'local_ready',
+      run_action_enabled: true,
+      reason: 'test_ready',
+      runtime_dependencies: [],
+      llm_required: false,
+      external_llm_required: false,
+      live_health_verified: false,
+      connectivity_status: 'not_applicable',
+      semantic_validation_status: 'not_verified',
+      production_approval_status: 'not_approved',
+    };
+
+    return route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({
+      body: JSON.stringify(isReadiness ? {
+        schema_version: '1.0',
+        agents: [{
+          agent_id: AGENT_ID,
+          execution_target: executionTarget,
+          runtime_readiness: runtimeReadiness,
+          evidence: {
+            scope: 'tenant_configuration_and_connectivity',
+            selection_mode: 'inherit',
+            selection_version: 0,
+            deployment_id: null,
+            provider_id: null,
+            configuration_probe_status: 'not_applicable',
+            canary_checked_at: null,
+            canary_expires_at: null,
+          },
+        }],
+        total: 1,
+        generated_at: new Date().toISOString(),
+      } : {
         agents: [{
           agent_id: AGENT_ID,
           agent_ref: AGENT_REF,
@@ -92,18 +127,22 @@ async function mockBackend(page: Page) {
           version: MOCK_AGENT.version,
           category: MOCK_AGENT.category,
           runnable: true,
+          pack_status: 'executable',
+          launch_candidate_ready: true,
+          launch_candidate_blockers: [],
+          maturity: 'runnable',
+          a2a_endpoint: `/api/icoder/agents/${AGENT_ID}`,
+          run_url: MOCK_CLONE_RESPONSE.run_url,
+          clone_url: `/api/icoder/agents/${AGENT_ID}/clone`,
+          execution_target: executionTarget,
           display_status: 'available',
           display_badges: [],
-          runtime_readiness: {
-            run_action_enabled: true,
-            configuration_status: 'local_ready',
-            semantic_validation_status: 'not_verified',
-          },
+          runtime_readiness: runtimeReadiness,
           red_lines: {},
         }],
       }),
-    }),
-  );
+    });
+  });
 
   // 2. Clone endpoint — return mock CloneResponse.
   await page.route('**/api/icoder/agents/medical-coding-agent/clone', (route) =>

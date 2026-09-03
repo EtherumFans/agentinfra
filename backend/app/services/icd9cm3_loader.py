@@ -27,13 +27,16 @@ import logging
 import os
 import threading
 from dataclasses import dataclass
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 # Default location of the read-only iCoDerA DataAsset directory.
 # Inherits the same convention as icd10cn_loader so a single env var
 # points both loaders at the same asset root.
-DEFAULT_ASSET_DIR = r"E:\iCoDerA\DataAsset"
+DEFAULT_ASSET_DIR = str(
+    Path(__file__).resolve().parents[2] / "data" / "code_dicts" / "assets"
+)
 
 CATALOG_FILENAME = "icd9cm3_code_catalog.json"
 

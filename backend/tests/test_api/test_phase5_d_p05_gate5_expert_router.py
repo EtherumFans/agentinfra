@@ -352,9 +352,10 @@ class _MockLLM:
                 "gaps": [
                     {
                         "gap_id": "g1",
+                        "gap_type": "diagnostic_specificity",
                         "description": "肺炎病原体未明确",
                         "why_it_matters": "影响编码特异性",
-                        "evidence_span": {"document_id": "入院记录", "quote": "诊断: 肺炎"},
+                        "evidence_span": {"document_id": "入院记录", "quote": "诊断肺炎"},
                         "priority": "routine",
                     }
                 ]

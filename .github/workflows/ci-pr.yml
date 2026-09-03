@@ -214,7 +214,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install pytest build httpx pydantic
+      - run: pip install pytest pytest-asyncio==1.4.0 build httpx pydantic
       - run: python -m pytest -q
       - run: python -m build --wheel --outdir artifacts/ci
 

@@ -176,6 +176,8 @@ jobs:
   backend-unit:
     name: Backend (Unit)
     runs-on: ubuntu-latest
+    env:
+      ICODER_DATA_ASSET_DIR: ${{ github.workspace }}/backend/data/code_dicts/assets
     defaults:
       run:
         working-directory: backend
@@ -186,6 +188,8 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Install isolated ML unit-test dependencies
+        run: pip install -r requirements-ml.txt jsonschema==4.25.1
       - run: pip install pip-audit
       - run: python -m pip_audit -r requirements-api.txt
       # Phase A A5: unit tests only on PR. Integration/regression/e2e

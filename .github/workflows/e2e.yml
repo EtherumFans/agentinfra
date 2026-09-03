@@ -28,6 +28,19 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
+      - name: Build and serve embedded component examples
+        working-directory: packages/icoder-embedded
+        run: |
+          npm ci
+          npm run build
+          python -m http.server 8765 > "$RUNNER_TEMP/icoder-embedded-http.log" 2>&1 &
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8765/examples/index.html >/dev/null && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/icoder-embedded-http.log"
+          exit 1
+
       - name: Start docker compose (local-dev only)
         run: |
           # The bind mount is synthetic local/E2E state. Create it before

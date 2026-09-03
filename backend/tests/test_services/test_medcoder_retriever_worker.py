@@ -28,12 +28,19 @@ class FakeRetriever:
     parent after pickling).
     """
 
-    def __init__(self, responses_by_disease: dict | None = None, raise_on: str | None = None):
+    def __init__(
+        self,
+        responses_by_disease: dict | None = None,
+        raise_on: str | None = None,
+        *,
+        context=None,
+    ):
         self._responses = responses_by_disease or {}
         self._raise_on = raise_on
+        shared_context = context or multiprocessing
         # Shared counters so the parent can observe worker activity.
-        self._ensure_loaded_counter = multiprocessing.Value("i", 0)
-        self._retrieve_counter = multiprocessing.Value("i", 0)
+        self._ensure_loaded_counter = shared_context.Value("i", 0)
+        self._retrieve_counter = shared_context.Value("i", 0)
         # Per-process call log (worker's view only — useful for debugging).
         self._retrieve_calls: list[tuple[str, int | None]] = []
 
@@ -257,7 +264,14 @@ def test_worker_exits_when_parent_watch_pipe_closes():
     watch_recv, watch_send = context.Pipe(duplex=False)
     proc = context.Process(
         target=MedCodERRetrieverWorker.run,
-        args=(q_in, q_out, "unused", FakeRetriever({}), None, watch_recv),
+        args=(
+            q_in,
+            q_out,
+            "unused",
+            FakeRetriever({}, context=context),
+            None,
+            watch_recv,
+        ),
         daemon=True,
     )
     proc.start()

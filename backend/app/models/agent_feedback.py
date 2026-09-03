@@ -12,6 +12,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -63,7 +64,7 @@ class AgentTaskFeedback(Base):
     labels_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]", server_default="[]")
     reason_encrypted: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     reason_redacted: Mapped[bool] = mapped_column(
-        nullable=False, default=False, server_default="0",
+        nullable=False, default=False, server_default=false(),
     )
     safe_metadata_json: Mapped[str] = mapped_column(
         Text, nullable=False, default="{}", server_default="{}",

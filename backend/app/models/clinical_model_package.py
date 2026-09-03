@@ -19,6 +19,7 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+    false,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -140,19 +141,19 @@ class ClinicalModelPackage(Base):
         server_default="external_review_required",
     )
     redistribution_authorized: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0",
+        Boolean, nullable=False, default=False, server_default=false(),
     )
     cloud_use_authorized: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0",
+        Boolean, nullable=False, default=False, server_default=false(),
     )
     hospital_use_authorized: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0",
+        Boolean, nullable=False, default=False, server_default=false(),
     )
     independent_gold_validated: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0",
+        Boolean, nullable=False, default=False, server_default=false(),
     )
     independent_reviewer_approved: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0",
+        Boolean, nullable=False, default=False, server_default=false(),
     )
     status: Mapped[str] = mapped_column(
         String(16), nullable=False, default="draft", server_default="draft",
@@ -538,7 +539,7 @@ class ClinicalModelShadowEvaluationJob(Base):
     )
     error_code: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     rollback_performed: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0",
+        Boolean, nullable=False, default=False, server_default=false(),
     )
     created_by_user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id"), nullable=False,

@@ -97,6 +97,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     bind = op.get_bind()
+    # PostgreSQL already owned these columns at revision 073 via the RLS
+    # migrations; 074 only converges constraints and must not drop policy-bound
+    # columns when an operator rolls back to 073.
+    if bind.dialect.name != "sqlite":
+        return
     if bind.dialect.name == "sqlite":
         for table in _WIDE_TENANT_TABLES:
             with op.batch_alter_table(table) as batch_op:

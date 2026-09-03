@@ -101,7 +101,15 @@ def _ensure_role(
             ).format(identifier)
         )
     if password is not None:
-        cursor.execute(sql.SQL("ALTER ROLE {} PASSWORD %s").format(identifier), (password,))
+        # PostgreSQL utility statements do not accept bind parameters here.
+        # psycopg's Literal still performs server-compatible quoting without
+        # interpolating the password into an untrusted SQL string.
+        cursor.execute(
+            sql.SQL("ALTER ROLE {} PASSWORD {}").format(
+                identifier,
+                sql.Literal(password),
+            )
+        )
 
 
 def _transfer_object_ownership(cursor: Any, spec: RoleSpec) -> None:

@@ -33,6 +33,7 @@ from sqlalchemy import (
     JSON,
     String,
     Text,
+    true,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -270,7 +271,7 @@ class ClinicianResponseModel(Base, TimestampMixin):
     response_metadata: Mapped[dict] = mapped_column(EncryptedPHIJSON(), default=dict)
 
     # Whether this response is the latest (for fast lookup)
-    is_latest: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1", index=True)
+    is_latest: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true(), index=True)
 
     # Audit
     clinician_user_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
@@ -353,7 +354,7 @@ class CDINotificationSubscriptionModel(Base):
     target_url: Mapped[str] = mapped_column(Text, nullable=False, default="")
     secret_encrypted: Mapped[str] = mapped_column(Text, nullable=False, default="")
     active: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True, server_default="1", index=True,
+        Boolean, nullable=False, default=True, server_default=true(), index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(),

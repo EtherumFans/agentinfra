@@ -81,25 +81,31 @@ def upgrade() -> None:
         if index_name not in existing_indexes:
             op.create_index(index_name, table, ["organization_id"])
 
-    for table in _WIDE_TENANT_TABLES:
-        with op.batch_alter_table(table) as batch_op:
-            batch_op.alter_column(
-                "organization_id",
-                existing_type=sa.String(64),
-                type_=sa.String(12),
-                nullable=False,
-            )
+    # PostgreSQL RLS policies already bind these tenant columns and String(64)
+    # is a safe superset there. SQLite has no RLS dependency, so normalize its
+    # reflected type to the ORM declaration for deterministic drift checks.
+    if bind.dialect.name == "sqlite":
+        for table in _WIDE_TENANT_TABLES:
+            with op.batch_alter_table(table) as batch_op:
+                batch_op.alter_column(
+                    "organization_id",
+                    existing_type=sa.String(64),
+                    type_=sa.String(12),
+                    nullable=False,
+                )
 
 
 def downgrade() -> None:
-    for table in _WIDE_TENANT_TABLES:
-        with op.batch_alter_table(table) as batch_op:
-            batch_op.alter_column(
-                "organization_id",
-                existing_type=sa.String(12),
-                type_=sa.String(64),
-                nullable=False,
-            )
+    bind = op.get_bind()
+    if bind.dialect.name == "sqlite":
+        for table in _WIDE_TENANT_TABLES:
+            with op.batch_alter_table(table) as batch_op:
+                batch_op.alter_column(
+                    "organization_id",
+                    existing_type=sa.String(12),
+                    type_=sa.String(64),
+                    nullable=False,
+                )
     for table in _EXISTING_TENANT_TABLES:
         with op.batch_alter_table(table) as batch_op:
             batch_op.alter_column(

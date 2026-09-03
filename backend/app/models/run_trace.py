@@ -41,7 +41,7 @@ class RunTraceEventModel(Base, TimestampMixin):
     actor_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     agent_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
     step: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default="ok", server_default=text("ok"))
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="ok", server_default="ok")
     duration_ms: Mapped[float] = mapped_column(Float, default=0.0, server_default=text("0"))
     ts: Mapped[float] = mapped_column(Float, default=0.0, server_default=text("0"))  # epoch seconds
     safe_metadata_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)

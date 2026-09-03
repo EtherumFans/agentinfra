@@ -1,4 +1,4 @@
-"""OAuth 2.0 endpoints — Client Credentials + Authorization Code + PKCE.
+"""OAuth 2.0 endpoints — governed Client Credentials only.
 
 Corti parity (2026-06-30, Phase 1.0): implements the four enforcement points
 documented in ``docs/corti-reverse-engineered/SUMMARY.md`` §13.2:
@@ -19,12 +19,10 @@ containing ``client_id``, ``reason``, source IP, and user-agent. Audit
 failure is swallowed (never blocks the rejection).
 """
 import hashlib
-import base64
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Form, Request, Query
-from fastapi.responses import RedirectResponse
 import jwt
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -101,16 +99,6 @@ async def _emit_auth_rejection(
             await db.rollback()
         except Exception:
             pass
-
-# In-memory authorization code store (production: use DB)
-_auth_codes: dict[str, dict] = {}
-
-
-def _pkce_challenge(verifier: str) -> str:
-    """Compute PKCE S256 code_challenge from code_verifier."""
-    digest = hashlib.sha256(verifier.encode()).digest()
-    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
-
 
 def _create_oauth_token(
     client_id: str,
@@ -209,23 +197,23 @@ async def token_endpoint(
     grant_type: str = Form(...),
     client_id: str = Form(...),
     client_secret: str = Form(""),
-    code: str = Form(""),
-    code_verifier: str = Form(""),
-    redirect_uri: str = Form(""),
     scope: str = Form("api:read api:write"),
     db: AsyncSession = Depends(get_db),
 ):
     """OAuth 2.0 Token Endpoint.
 
-    Supports three grant types:
-    - client_credentials (RFC 6749 §4.4): M2M authentication
-    - authorization_code (RFC 6749 §4.1): SPA/user authentication
-    - authorization_code + PKCE (RFC 7636): SPA with code challenge
+    Supports only client_credentials (RFC 6749 §4.4).  The former incomplete
+    authorization-code endpoint minted codes without an authenticated resource
+    owner or registered redirect URI.  Keep unsupported grants fail-closed
+    until a complete authorization-server design is implemented.
 
     The ``Tenant-Name`` (or ``X-Tenant``) header is honored when present;
     mismatches with the bearer JWT's ``org_id`` claim return HTTP 400
     ``tenant_header_mismatch`` (see ``TenantHeaderMiddleware``).
     """
+    if grant_type != "client_credentials":
+        raise HTTPException(status_code=400, detail="unsupported_grant_type")
+
     organization_id = await _resolve_and_bind_client_tenant(
         db, client_id=client_id,
     )
@@ -244,49 +232,12 @@ async def token_endpoint(
         )
         raise HTTPException(status_code=401, detail="invalid_client")
 
-    if grant_type == "client_credentials":
-        # RFC 6749 §4.4 — Client Credentials
-        if not client_secret or not OAuthClient.verify_secret(client_secret, client.client_secret_hash):
-            await _emit_auth_rejection(
-                db, client_id=client_id, reason="secret_mismatch_or_empty", request=request,
-            )
-            raise HTTPException(status_code=401, detail="invalid_client")
-        return await _handle_client_credentials(client, scope, db, realm="")
-
-    elif grant_type == "authorization_code":
-        # RFC 6749 §4.1 + RFC 7636 PKCE
-        if not code or code not in _auth_codes:
-            raise HTTPException(status_code=400, detail="invalid_grant")
-
-        stored = _auth_codes.pop(code)
-
-        # Verify client match
-        if stored["client_id"] != client_id:
-            raise HTTPException(status_code=400, detail="invalid_grant")
-
-        # PKCE verification (if code_challenge was used)
-        if stored.get("code_challenge"):
-            if not code_verifier:
-                raise HTTPException(status_code=400, detail="code_verifier_required")
-            expected = _pkce_challenge(code_verifier)
-            if expected != stored["code_challenge"]:
-                raise HTTPException(status_code=400, detail="invalid_grant")
-
-        # Generate token for the user (also uses the short-lived TTL)
-        ttl = _default_oauth_ttl()
-        effective_scope = _intersect_scopes(stored.get("scope", scope), client.granted_scopes())
-        access_token = _create_oauth_token(
-            client_id, effective_scope, client.owner_id, ttl
+    if not client_secret or not OAuthClient.verify_secret(client_secret, client.client_secret_hash):
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="secret_mismatch_or_empty", request=request,
         )
-        return {
-            "access_token": access_token,
-            "token_type": "Bearer",
-            "expires_in": ttl,
-            "scope": effective_scope,
-            "refresh_token": secrets.token_urlsafe(32),  # For SPA refresh
-        }
-
-    raise HTTPException(status_code=400, detail="unsupported_grant_type")
+        raise HTTPException(status_code=401, detail="invalid_client")
+    return await _handle_client_credentials(client, scope, db, realm="")
 
 
 # === Realm-based token URL (Corti parity) =====================================
@@ -366,47 +317,6 @@ async def realm_discovery(realm: str):
         "grant_types_supported": ["client_credentials"],
         "token_endpoint_auth_methods_supported": ["client_secret_post"],
         "scopes_supported": sorted({"api:read", "api:write", *getattr(settings, "OAUTH_CAPABILITY_SCOPES", [])}),
-    }
-
-
-@router.get("/authorize")
-async def authorize_endpoint(
-    response_type: str = "code",
-    client_id: str = "",
-    redirect_uri: str = "",
-    scope: str = "api:read",
-    code_challenge: str = "",  # PKCE S256
-    code_challenge_method: str = "S256",
-    state: str = "",
-):
-    """OAuth 2.0 Authorization Endpoint.
-
-    For SPAs: redirects user to login, then back with authorization code.
-    PKCE: client sends code_challenge, later exchanges code with code_verifier.
-    """
-    if response_type != "code":
-        raise HTTPException(status_code=400, detail="unsupported_response_type")
-
-    # Generate authorization code
-    code = secrets.token_urlsafe(32)
-    _auth_codes[code] = {
-        "client_id": client_id,
-        "redirect_uri": redirect_uri,
-        "scope": scope,
-        "code_challenge": code_challenge,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-
-    # In production, redirect to a login page. Here we return the code directly.
-    redirect = f"{redirect_uri or '/callback'}?code={code}"
-    if state:
-        redirect += f"&state={state}"
-
-    return {
-        "authorization_code": code,
-        "redirect": redirect,
-        "expires_in": 600,  # 10 minutes
-        "pkce_enabled": bool(code_challenge),
     }
 
 

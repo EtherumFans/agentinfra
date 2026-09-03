@@ -97,6 +97,35 @@ async def test_unsupported_grant_type(auth_client: AsyncClient):
         "client_secret": client_secret,
     })
     assert resp.status_code == 400
+    assert resp.json()["detail"] == "unsupported_grant_type"
+
+
+@pytest.mark.asyncio
+async def test_authorization_code_flow_is_fail_closed(auth_client: AsyncClient):
+    """An anonymous caller cannot mint or exchange an authorization code."""
+    authorize = await auth_client.get(
+        "/api/oauth/authorize",
+        params={
+            "response_type": "code",
+            "client_id": "public-client-id",
+            "redirect_uri": "https://attacker.invalid/callback",
+            "code_challenge": "attacker-controlled",
+        },
+    )
+    assert authorize.status_code == 404
+
+    exchange = await auth_client.post(
+        "/api/oauth/token",
+        data={
+            "grant_type": "authorization_code",
+            "client_id": "public-client-id",
+            "code": "attacker-controlled",
+            "code_verifier": "attacker-controlled",
+            "redirect_uri": "https://attacker.invalid/callback",
+        },
+    )
+    assert exchange.status_code == 400
+    assert exchange.json()["detail"] == "unsupported_grant_type"
 
 
 # ────────────────────────────────────────────────────────────────────────────

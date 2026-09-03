@@ -474,6 +474,15 @@ export default function AgentChatPage() {
               className="flex-1 text-sm bg-transparent border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-ring/40 leading-relaxed disabled:opacity-50"
               disabled={loading}
             />
+            <button
+              type="button"
+              onClick={onSubmit}
+              disabled={loading || !input.trim()}
+              className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading && <Loader2 size={13} className="animate-spin" />}
+              <span>{loading ? t.agentChatRunning : t.agentChatRun}</span>
+            </button>
           </div>
           {/* Helper text - "Messaging an agent consumes credits" + Ctrl+Enter hint */}
           <div className="flex items-center justify-between mt-1.5">

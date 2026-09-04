@@ -472,8 +472,12 @@ async def test_feedback_scope_caller_isolation_and_retention(client) -> None:
         row.retention_until = datetime.now(timezone.utc) - timedelta(seconds=1)
         await db.commit()
     async with database.AsyncSessionLocal() as db:
-        assert await purge_expired_agent_feedback(db, dry_run=True) == 1
-        assert await purge_expired_agent_feedback(db) == 1
+        assert await purge_expired_agent_feedback(
+            db, dry_run=True, organization_id="org_default1"
+        ) == 1
+        assert await purge_expired_agent_feedback(
+            db, organization_id="org_default1"
+        ) == 1
     async with database.AsyncSessionLocal() as db:
         assert (await db.execute(select(AgentTaskFeedback).where(
             AgentTaskFeedback.context_id == context_id
@@ -502,7 +506,8 @@ async def test_agent_usage_is_tenant_scoped_exclusive_and_always_daily(client) -
                 run_id=f"usage-{ordinal}-{uuid.uuid4()}", trace_id="", runtime_mode="mock",
                 latency_ms=1, cost_usd=0.0, input_text="safe", output_summary="safe",
                 error=False, status="COMPLETED", tenancy_classification=classification,
-                created_at=created, updated_at=created,
+                created_at=created.replace(tzinfo=None),
+                updated_at=created.replace(tzinfo=None),
             ))
         await db.commit()
 

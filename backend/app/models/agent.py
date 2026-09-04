@@ -24,6 +24,8 @@ from ``name`` (slugified) when the caller doesn't supply one. This
 keeps every row queryable by canonical_key without forcing every
 caller to compute the slug.
 """
+import uuid
+
 from sqlalchemy import (
     Boolean,
     ForeignKey,
@@ -83,6 +85,12 @@ class Agent(Base, TimestampMixin):
         ),
     )
 
+    # Stable public Agent keys (for example ``medical-coding-agent``) are
+    # valid identifiers and intentionally exceed the legacy 12-char UUID
+    # prefix used by most internal entities.
+    id: Mapped[str] = mapped_column(
+        String(128), primary_key=True, default=lambda: uuid.uuid4().hex[:12],
+    )
     organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text, default="")

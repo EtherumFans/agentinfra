@@ -24,6 +24,11 @@ A promoted test must:
 | Wave 1 | 13 A2A context/task/artifact, observability, feedback, retention, and tenant-isolation contracts | `test_agentic_context_resources.py`, `test_agentic_observability_feedback.py` |
 | Wave 2 | 37 Connector CRUD, execution-policy, transport, audit, and graph-runtime contracts | `test_agent_connectors.py`, `test_connector_executor.py`, `test_connector_graph_runtime.py` |
 
+Wave 2 also aligns the persisted Agent identifier contract with public stable
+keys: `agents.id` and every relational Agent reference use `VARCHAR(128)`.
+This is required for built-in identifiers such as `medical-coding-agent`,
+whose length SQLite accepted despite the former `VARCHAR(12)` declaration.
+
 ## Next candidates
 
 Context repository unit-integration modules are the next database-heavy

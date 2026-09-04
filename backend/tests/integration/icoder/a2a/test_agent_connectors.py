@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 import pytest_asyncio
 from fastapi import HTTPException
@@ -23,6 +25,10 @@ from app.services.retention import purge_expired_conversation_memory
 SOURCE = "agt-src-001"
 TARGET = "agt-dst-001"
 OTHER = "agt-oth-001"
+TEST_USER_ID = os.environ.get("ICODER_TEST_USER_ID", "u-test-bypass")
+
+
+pytestmark = pytest.mark.postgresql_compat
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -55,9 +61,9 @@ async def connector_rows():
                         aliases=[],
                     )
                 )
-        if await db.get(User, "u-test-bypass") is None:
+        if await db.get(User, TEST_USER_ID) is None:
             db.add(User(
-                id="u-test-bypass",
+                id=TEST_USER_ID,
                 username="connector-memory-user",
                 email="connector-memory@example.test",
                 hashed_password="not-used",
@@ -67,11 +73,11 @@ async def connector_rows():
                 is_verified=True,
             ))
         await db.execute(delete(ConversationMemory).where(
-            ConversationMemory.user_id == "u-test-bypass",
+            ConversationMemory.user_id == TEST_USER_ID,
             ConversationMemory.agent_id == SOURCE,
         ))
         await db.execute(delete(MemoryConsent).where(
-            MemoryConsent.user_id == "u-test-bypass",
+            MemoryConsent.user_id == TEST_USER_ID,
             MemoryConsent.agent_id == SOURCE,
         ))
         await db.commit()
@@ -95,7 +101,7 @@ def memory_invocation(operation: str, arguments: dict, **overrides) -> Connector
         "data_classification": "deidentified",
         "purpose_of_use": "treatment",
         "actor_type": "user",
-        "actor_id": "u-test-bypass",
+        "actor_id": TEST_USER_ID,
     }
     values.update(overrides)
     return ConnectorInvocation(**values)
@@ -165,7 +171,7 @@ async def test_persistent_memory_consent_encryption_isolation_expiry_and_revoke(
         assert is_encrypted_value(row.content)
         assert "13800138000" not in row.content
         assert row.consent_id == grant.json()["id"]
-        assert row.actor_id == "u-test-bypass"
+        assert row.actor_id == TEST_USER_ID
 
         readiness = await client.get(
             f"/api/v2/agentic/agents/{SOURCE}/memory-readiness",
@@ -224,7 +230,7 @@ async def test_persistent_memory_consent_encryption_isolation_expiry_and_revoke(
                 memory_invocation(
                     "recall", {"query": "中文编码"},
                     actor_type="api_client", actor_id="client-1",
-                    delegated_subject_id="u-test-bypass",
+                    delegated_subject_id=TEST_USER_ID,
                     granted_scopes=frozenset({"agents:run", "memory:recall"}),
                     granted_purposes=frozenset({"treatment"}),
                 ),
@@ -247,8 +253,12 @@ async def test_persistent_memory_consent_encryption_isolation_expiry_and_revoke(
             memory_invocation("recall", {"query": "中文编码"}),
         )
         assert expired["returned"] == 0
-        assert await purge_expired_conversation_memory(db, dry_run=True) >= 1
-        assert await purge_expired_conversation_memory(db) >= 1
+        assert await purge_expired_conversation_memory(
+            db, dry_run=True, organization_id="org_default1"
+        ) >= 1
+        assert await purge_expired_conversation_memory(
+            db, organization_id="org_default1"
+        ) >= 1
         db.expire_all()
         assert await db.get(ConversationMemory, remembered["memory_id"]) is None
 

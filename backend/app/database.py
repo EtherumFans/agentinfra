@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Production schema changes are applied exclusively through Alembic.  Keeping
 # the expected revision explicit makes an application image fail closed when
 # it is started before (or against a database behind) its migration job.
-PRODUCTION_SCHEMA_REVISION = "074"
+PRODUCTION_SCHEMA_REVISION = "075"
 TENANT_POLICY_NAME = "icoder_tenant_isolation"
 PROTECTED_TENANT_TABLES = (
     "patient_contexts",
@@ -96,10 +97,10 @@ if _is_sqlite:
         "timeout": 30,
     }
 else:
-    _engine_kwargs["pool_size"] = 20
-    _engine_kwargs["max_overflow"] = 10
-    _engine_kwargs["pool_recycle"] = 3600
-    _engine_kwargs["pool_pre_ping"] = True
+    # Synchronous A2A adapters execute bounded async database work on worker
+    # thread event loops. asyncpg pooled connections are loop-affine, so they
+    # must not be reused by those short-lived loops.
+    _engine_kwargs["poolclass"] = NullPool
 
 engine = create_async_engine(settings.DATABASE_URL, **_engine_kwargs)
 
@@ -123,7 +124,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 logger.info(f"Database: {'SQLite' if _is_sqlite else 'PostgreSQL'}")
 if not _is_sqlite:
-    logger.info(f"Connection pool: size=20, overflow=10, recycle=3600s")
+    logger.info("PostgreSQL connections: NullPool (cross-event-loop safe)")
 
 
 class Base(DeclarativeBase):

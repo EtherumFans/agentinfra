@@ -55,7 +55,7 @@ class AgentConnector(Base, TimestampMixin):
         String(12), ForeignKey("organizations.id"), nullable=False, index=True,
     )
     agent_id: Mapped[str] = mapped_column(
-        String(12), nullable=False, index=True,
+        String(128), nullable=False, index=True,
     )
     type: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -66,7 +66,7 @@ class AgentConnector(Base, TimestampMixin):
     config_json: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     credential_ref: Mapped[str | None] = mapped_column(String(512), nullable=True)
     target_agent_id: Mapped[str | None] = mapped_column(
-        String(12), nullable=True, index=True,
+        String(128), nullable=True, index=True,
     )
     normalized_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     schema_ref: Mapped[str | None] = mapped_column(String(512), nullable=True)

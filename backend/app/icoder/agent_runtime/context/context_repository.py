@@ -46,6 +46,11 @@ def _as_utc(dt: datetime) -> datetime:
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
+def _as_db_timestamp(dt: datetime) -> datetime:
+    """Store UTC in the schema's timezone-naive timestamp columns."""
+    return _as_utc(dt).astimezone(timezone.utc).replace(tzinfo=None)
+
+
 class ContextRepository:
     """Mandatory-contextId data access layer."""
 
@@ -89,9 +94,9 @@ class ContextRepository:
         await self._require_valid_id(ctx.id)
         row = ContextRow(
             id=ctx.id,
-            created_at=ctx.created_at,
-            updated_at=ctx.updated_at,
-            expires_at=ctx.expires_at,
+            created_at=_as_db_timestamp(ctx.created_at),
+            updated_at=_as_db_timestamp(ctx.updated_at),
+            expires_at=_as_db_timestamp(ctx.expires_at),
             agent_id=ctx.agent_id,
             organization_id=ctx.organization_id,
             status=ctx.status.value,
@@ -120,9 +125,9 @@ class ContextRepository:
         row = await self._session.get(ContextRow, context_id)
         assert row is not None
         row.status = status.value
-        row.updated_at = updated_at or datetime.now(timezone.utc)
+        row.updated_at = _as_db_timestamp(updated_at or datetime.now(timezone.utc))
         if expires_at is not None:
-            row.expires_at = expires_at
+            row.expires_at = _as_db_timestamp(expires_at)
         await self._session.commit()
 
     async def delete_context(self, context_id: str) -> None:
@@ -408,7 +413,7 @@ class ContextRepository:
                     parts_json=encrypt_phi(
                         json.dumps(message.parts, ensure_ascii=False)
                     ),
-                    timestamp=message.timestamp,
+                    timestamp=_as_db_timestamp(message.timestamp),
                     redacted=message.redacted,
                     metadata_json=message.metadata.model_dump_json()
                     if hasattr(message.metadata, "model_dump_json")
@@ -417,7 +422,9 @@ class ContextRepository:
             )
         context_row = await self._session.get(ContextRow, context_id)
         if context_row is not None:
-            context_row.updated_at = max(message.timestamp for message in messages)
+            context_row.updated_at = _as_db_timestamp(
+                max(message.timestamp for message in messages)
+            )
         await self._session.commit()
         return messages
 
@@ -446,8 +453,11 @@ class ContextRepository:
             organization_id=context.organization_id,
             task_id=task_ref.task_id,
             state=task_ref.state,
-            started_at=task_ref.started_at,
-            completed_at=task_ref.completed_at,
+            started_at=_as_db_timestamp(task_ref.started_at),
+            completed_at=(
+                _as_db_timestamp(task_ref.completed_at)
+                if task_ref.completed_at else None
+            ),
         )
         self._session.add(row)
         await self._session.commit()

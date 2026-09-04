@@ -94,14 +94,47 @@ jobs:
           tests/integration/test_run_trace_postgres_cross_process.py
           -v --tb=short
 
-      - name: PostgreSQL compatibility waves 1–2 — A2A resources and connectors
+      - name: PostgreSQL compatibility wave 1 — A2A context and feedback
         env:
           ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
           ICODER_TEST_USER_ID: "u-test-user1"
         run: >-
           python -m pytest
-          tests/integration/icoder/a2a
-          -m postgresql_compat
+          tests/integration/icoder/a2a/test_agentic_context_resources.py
+          tests/integration/icoder/a2a/test_agentic_observability_feedback.py
+          -o asyncio_default_test_loop_scope=session
+          -v --tb=short
+
+      - name: PostgreSQL compatibility wave 2 — Connector CRUD
+        timeout-minutes: 8
+        env:
+          ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
+          ICODER_TEST_USER_ID: "u-test-user1"
+        run: >-
+          python -m pytest
+          tests/integration/icoder/a2a/test_agent_connectors.py
+          -o asyncio_default_test_loop_scope=session
+          -v --tb=short
+
+      - name: PostgreSQL compatibility wave 2 — Connector Executor
+        timeout-minutes: 8
+        env:
+          ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
+          ICODER_TEST_USER_ID: "u-test-user1"
+        run: >-
+          python -m pytest
+          tests/integration/icoder/a2a/test_connector_executor.py
+          -o asyncio_default_test_loop_scope=session
+          -v --tb=short
+
+      - name: PostgreSQL compatibility wave 2 — Connector Graph Runtime
+        timeout-minutes: 12
+        env:
+          ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
+          ICODER_TEST_USER_ID: "u-test-user1"
+        run: >-
+          python -m pytest
+          tests/integration/icoder/a2a/test_connector_graph_runtime.py
           -o asyncio_default_test_loop_scope=session
           -v --tb=short
 

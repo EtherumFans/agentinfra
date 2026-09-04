@@ -46,6 +46,9 @@ CONNECTOR_IDS = {
 }
 
 
+pytestmark = pytest.mark.postgresql_compat
+
+
 def _configs() -> dict[str, dict]:
     return {
         "registry": {
@@ -777,7 +780,8 @@ async def test_timeout_and_target_agent_are_revalidated_at_execution_time():
         agent_config = dict(agent.config_json)
         agent_config["target_agent_id"] = "agt-miss-001"
         agent.config_json = normalize_config("agent", agent_config, enabled=True).config
-        agent.target_agent_id = "agt-miss-001"
+        # Keep the indexed FK projection valid while simulating a stale
+        # configuration target. Execution must revalidate the config value.
         await db.flush()
 
         with pytest.raises(ConnectorExecutionError) as timeout:

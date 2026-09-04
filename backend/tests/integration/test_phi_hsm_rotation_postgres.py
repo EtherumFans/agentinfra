@@ -83,8 +83,8 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(
                 revision = str(cursor.fetchone()[0])
         if revision == "070":
             backfill(MIGRATION_URL, execute=True)
-        if revision != "074":
-            _alembic("074")
+        if revision != "075":
+            _alembic("075")
         with psycopg.connect(_raw(APP_URL)) as connection:
             with connection.cursor() as cursor:
                 _set_tenant(cursor, organization_id)
@@ -105,7 +105,7 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(
     with psycopg.connect(_raw(MIGRATION_URL)) as connection:
         with connection.cursor() as cursor:
             cursor.execute("SELECT version_num FROM alembic_version")
-            assert cursor.fetchone()[0] == "074"
+            assert cursor.fetchone()[0] == "075"
             cursor.execute(
                 "INSERT INTO organizations (id,name,slug,plan,settings,is_active) "
                 "VALUES (%s,%s,%s,'free','{}'::json,true)",
@@ -233,7 +233,7 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(
 
     migrated = backfill(MIGRATION_URL, execute=True)
     assert migrated["updated_values"] >= 3
-    _alembic("074")
+    _alembic("075")
     assert rotate(MIGRATION_URL, target="v2", execute=True, batch_size=2)["values"] >= 3
 
     with psycopg.connect(_raw(APP_URL)) as connection:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -27,6 +28,10 @@ AGENT_ID = "agt-graph001"
 OTHER_AGENT = "agt-graph002"
 CONNECTOR_ID = "con-graph001"
 PARALLEL_CONNECTOR_ID = "con-graph002"
+TEST_USER_ID = os.environ.get("ICODER_TEST_USER_ID", "u-test-bypass")
+
+
+pytestmark = pytest.mark.postgresql_compat
 
 
 @pytest_asyncio.fixture(scope="module", loop_scope="session")
@@ -448,8 +453,8 @@ async def test_authenticated_machine_identity_and_scopes_reach_connector_not_bod
         {
             "token_type": "client_credentials",
             "client_id": "client-authoritative",
-            "owner_id": "u-test-bypass",
-            "delegated_subject_id": "u-test-bypass",
+            "owner_id": TEST_USER_ID,
+            "delegated_subject_id": TEST_USER_ID,
             "org_id": ORG,
             "scopes": ["agents:run", "coding:validate"],
             "allowed_agent_ids": [AGENT_ID],
@@ -477,7 +482,7 @@ async def test_authenticated_machine_identity_and_scopes_reach_connector_not_bod
     invocation = connector_invocations[0]
     assert invocation.actor_type == "api_client"
     assert invocation.actor_id == "client-authoritative"
-    assert invocation.delegated_subject_id == "u-test-bypass"
+    assert invocation.delegated_subject_id == TEST_USER_ID
     assert invocation.granted_scopes == frozenset({"agents:run", "coding:validate"})
     assert invocation.granted_purposes == frozenset({"treatment"})
 
@@ -859,7 +864,7 @@ async def test_required_graph_failure_marks_v1_task_failed_without_artifacts(
     )
     context_id = str(uuid.uuid4())
     task_id = f"graph-task-{uuid.uuid4()}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     async with database.AsyncSessionLocal() as db:
         agent = await db.get(Agent, AGENT_ID)
         agent.config = {"connector_graph": _graph(required=True)}
@@ -875,8 +880,10 @@ async def test_required_graph_failure_marks_v1_task_failed_without_artifacts(
             redacted_input_hash="",
             original_input_ref="",
         ))
+        await db.flush()
         db.add(ContextTaskRefRow(
             context_id=context_id,
+            organization_id=ORG,
             task_id=task_id,
             state="working",
             started_at=now,

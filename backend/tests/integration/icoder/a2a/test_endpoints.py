@@ -1355,7 +1355,7 @@ def test_v1_return_immediately_is_durable_auditable_and_resumable(client, monkey
 def test_v1_submitted_async_task_can_be_canceled_without_execution(client):
     runtime = client.app.state.a2a_task_runtime
     original_schedule = runtime.schedule
-    runtime.schedule = lambda _app, _task_id: None
+    runtime.schedule = lambda _app, _task_id, _organization_id: None
     response = client.post(
         "/api/v2/agentic/agents/medcoder-coding-review/message:send",
         headers=_v1_header(),
@@ -1391,7 +1391,7 @@ def test_v1_submitted_async_task_can_be_canceled_without_execution(client):
 def test_v1_startup_recovers_a_persisted_submitted_task(client):
     runtime = client.app.state.a2a_task_runtime
     original_schedule = runtime.schedule
-    runtime.schedule = lambda _app, _task_id: None
+    runtime.schedule = lambda _app, _task_id, _organization_id: None
     response = client.post(
         "/api/v2/agentic/agents/medcoder-coding-review/message:send",
         headers=_v1_header(),
@@ -1425,7 +1425,7 @@ def test_v1_working_async_task_is_not_falsely_reported_canceled(client):
 
     runtime = client.app.state.a2a_task_runtime
     original_schedule = runtime.schedule
-    runtime.schedule = lambda _app, _task_id: None
+    runtime.schedule = lambda _app, _task_id, _organization_id: None
     response = client.post(
         "/api/v2/agentic/agents/medcoder-coding-review/message:send",
         headers=_v1_header(),

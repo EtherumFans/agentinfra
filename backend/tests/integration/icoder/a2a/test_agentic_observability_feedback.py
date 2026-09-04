@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -30,6 +31,7 @@ from app.services.retention import purge_expired_agent_feedback
 
 
 pytestmark = pytest.mark.postgresql_compat
+TEST_USER_ID = os.environ.get("ICODER_TEST_USER_ID", "u-test-bypass")
 
 
 async def _seed() -> tuple[str, str, str]:
@@ -44,9 +46,9 @@ async def _seed() -> tuple[str, str, str]:
                 slug="observability-test-org", plan="free", settings={}, is_active=True,
             ))
             await db.flush()
-        if await db.get(User, "u-test-bypass") is None:
+        if await db.get(User, TEST_USER_ID) is None:
             db.add(User(
-                id="u-test-bypass",
+                id=TEST_USER_ID,
                 username="observability-test-user",
                 email="observability-test@example.invalid",
                 hashed_password="not-used",
@@ -59,12 +61,12 @@ async def _seed() -> tuple[str, str, str]:
             await db.flush()
         member = (await db.execute(select(OrganizationMember).where(
             OrganizationMember.organization_id == "org_default1",
-            OrganizationMember.user_id == "u-test-bypass",
+            OrganizationMember.user_id == TEST_USER_ID,
         ))).scalar_one_or_none()
         if member is None:
             db.add(OrganizationMember(
                 organization_id="org_default1",
-                user_id="u-test-bypass",
+                user_id=TEST_USER_ID,
                 role=OrgRole.OWNER,
                 is_default=True,
             ))
@@ -77,6 +79,7 @@ async def _seed() -> tuple[str, str, str]:
             organization_id="org_default1", status="active", metadata_json="{}",
             redacted_input_hash="", original_input_ref="",
         ))
+        await db.flush()
         db.add(ContextTaskRefRow(
             context_id=context_id, task_id=task_id, state="completed",
             started_at=now, completed_at=now,
@@ -306,7 +309,7 @@ async def test_feedback_training_authorization_is_independent_bounded_and_revoke
         ))).scalar_one_or_none() is None
         member = (await db.execute(select(OrganizationMember).where(
             OrganizationMember.organization_id == "org_default1",
-            OrganizationMember.user_id == "u-test-bypass",
+            OrganizationMember.user_id == TEST_USER_ID,
         ))).scalar_one()
         member.role = OrgRole.MEMBER
         await db.commit()
@@ -325,7 +328,7 @@ async def test_feedback_training_authorization_is_independent_bounded_and_revoke
     async with database.AsyncSessionLocal() as db:
         member = (await db.execute(select(OrganizationMember).where(
             OrganizationMember.organization_id == "org_default1",
-            OrganizationMember.user_id == "u-test-bypass",
+            OrganizationMember.user_id == TEST_USER_ID,
         ))).scalar_one()
         member.role = OrgRole.OWNER
         await db.commit()
@@ -353,7 +356,7 @@ async def test_feedback_training_authorization_is_independent_bounded_and_revoke
             FeedbackTrainingAuthorization.feedback_id == feedback_id
         ))).scalar_one()
         assert row.status == "active"
-        assert row.authorized_by_user_id == "u-test-bypass"
+        assert row.authorized_by_user_id == TEST_USER_ID
         assert len(row.approval_reference_hash) == 64
         assert "qi-review" not in row.approval_reference_hash
 

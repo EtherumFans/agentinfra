@@ -177,14 +177,19 @@ async def setup_db():
         if _dev_db.exists() else None
     )
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+    from sqlalchemy.pool import NullPool
 
     # Dispose the dev engine and rebuild against the test URL
     await _db_module.engine.dispose()
-    _test_engine = create_async_engine(
-        _test_db_url,
-        echo=False,
-        connect_args={"check_same_thread": False} if "sqlite" in _test_db_url else {},
-    )
+    test_engine_kwargs = {
+        "echo": False,
+        "connect_args": (
+            {"check_same_thread": False} if "sqlite" in _test_db_url else {}
+        ),
+    }
+    if _parsed_test_db_url.get_backend_name() == "postgresql":
+        test_engine_kwargs["poolclass"] = NullPool
+    _test_engine = create_async_engine(_test_db_url, **test_engine_kwargs)
     _db_module.engine = _test_engine
     _db_module.AsyncSessionLocal = async_sessionmaker(
         _test_engine,

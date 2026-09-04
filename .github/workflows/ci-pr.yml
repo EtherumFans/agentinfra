@@ -51,11 +51,30 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      - name: Validate bounded network retry behavior
+        run: |
+          probe="$RUNNER_TEMP/icoder-network-retry-probe"
+          rm -f "$probe"
+          CI_NETWORK_RETRY_ATTEMPTS=2 \
+          CI_NETWORK_RETRY_INITIAL_DELAY_SECONDS=0 \
+            bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" \
+            bash -c 'if [ ! -f "$1" ]; then touch "$1"; echo ETIMEDOUT >&2; exit 8; fi' \
+            -- "$probe"
+          rm -f "$probe"
+
+          set +e
+          CI_NETWORK_RETRY_ATTEMPTS=2 \
+          CI_NETWORK_RETRY_INITIAL_DELAY_SECONDS=0 \
+            bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" \
+            bash -c 'echo lockfile-invalid >&2; exit 7'
+          status=$?
+          set -e
+          test "$status" -eq 7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
       - name: Generate job-scoped encryption and audit keys
         run: |
           python - <<'PY'
@@ -168,8 +187,8 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-      - run: npm audit --audit-level=high
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm ci
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm audit --audit-level=high
       - run: npx tsc --noEmit
       - run: npx vite build
 
@@ -187,11 +206,11 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
       - name: Install isolated ML unit-test dependencies
-        run: pip install -r requirements-ml.txt jsonschema==4.25.1
-      - run: pip install pip-audit
-      - run: python -m pip_audit -r requirements-api.txt
+        run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements-ml.txt jsonschema==4.25.1
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install pip-audit
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip_audit -r requirements-api.txt
       # Phase A A5: unit tests only on PR. Integration/regression/e2e
       # moved to ci-integration.yml.
       - name: Unit tests (excludes integration / e2e / regression / e2e_product)
@@ -216,8 +235,8 @@ jobs:
           node-version: "20.19"
           cache: npm
           cache-dependency-path: packages/icoder-sdk/package-lock.json
-      - run: npm ci
-      - run: npm audit --audit-level=high
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm ci
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm audit --audit-level=high
       - run: npm test
 
   sdk-python:
@@ -232,7 +251,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install pytest pytest-asyncio==1.4.0 build httpx pydantic
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install pytest pytest-asyncio==1.4.0 build httpx pydantic
       - run: python -m pytest -q
       - run: python -m build --wheel --outdir artifacts/ci
 
@@ -283,9 +302,9 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
-      - run: pip install pip-audit
-      - run: python -m pip_audit -r requirements-api.txt
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install pip-audit
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip_audit -r requirements-api.txt
       - name: Cross-language release version contract
         run: |
           python ../scripts/release/validate_release_candidate.py \
@@ -306,5 +325,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm install
       - run: npx tsc --noEmit

@@ -46,6 +46,9 @@ CONNECTOR_IDS = {
 }
 
 
+pytestmark = pytest.mark.postgresql_compat
+
+
 def _configs() -> dict[str, dict]:
     return {
         "registry": {

@@ -87,9 +87,22 @@ jobs:
         run: python -m alembic upgrade head
 
       - name: PostgreSQL cross-process RunTrace contract
+        env:
+          ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
         run: >-
           python -m pytest
           tests/integration/test_run_trace_postgres_cross_process.py
+          -v --tb=short
+
+      - name: PostgreSQL compatibility wave 1 — A2A context and feedback
+        env:
+          ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
+          ICODER_TEST_USER_ID: "u-test-user1"
+        run: >-
+          python -m pytest
+          tests/integration/icoder/a2a
+          -m postgresql_compat
+          -o asyncio_default_test_loop_scope=session
           -v --tb=short
 
       - name: Integration tests

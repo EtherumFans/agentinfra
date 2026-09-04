@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -29,11 +30,19 @@ from app.services.phi_encryption import is_encrypted_value
 from app.services.retention import purge_expired_agent_feedback
 
 
+pytestmark = pytest.mark.postgresql_compat
+TEST_USER_ID = os.environ.get("ICODER_TEST_USER_ID", "u-test-bypass")
+
+
 async def _seed() -> tuple[str, str, str]:
     context_id = str(uuid.uuid4())
+    seed_nonce = uuid.uuid4().hex
     task_id = f"task-{uuid.uuid4().hex}"
     message_id = f"agent-{uuid.uuid4()}"
-    now = datetime.now(timezone.utc)
+    # Context and legacy TimestampMixin columns intentionally store UTC without
+    # timezone metadata; asyncpg rejects aware values for those PostgreSQL
+    # ``timestamp without time zone`` columns.
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     async with database.AsyncSessionLocal() as db:
         if await db.get(Organization, "org_default1") is None:
             db.add(Organization(
@@ -41,9 +50,9 @@ async def _seed() -> tuple[str, str, str]:
                 slug="observability-test-org", plan="free", settings={}, is_active=True,
             ))
             await db.flush()
-        if await db.get(User, "u-test-bypass") is None:
+        if await db.get(User, TEST_USER_ID) is None:
             db.add(User(
-                id="u-test-bypass",
+                id=TEST_USER_ID,
                 username="observability-test-user",
                 email="observability-test@example.invalid",
                 hashed_password="not-used",
@@ -56,12 +65,12 @@ async def _seed() -> tuple[str, str, str]:
             await db.flush()
         member = (await db.execute(select(OrganizationMember).where(
             OrganizationMember.organization_id == "org_default1",
-            OrganizationMember.user_id == "u-test-bypass",
+            OrganizationMember.user_id == TEST_USER_ID,
         ))).scalar_one_or_none()
         if member is None:
             db.add(OrganizationMember(
                 organization_id="org_default1",
-                user_id="u-test-bypass",
+                user_id=TEST_USER_ID,
                 role=OrgRole.OWNER,
                 is_default=True,
             ))
@@ -74,12 +83,15 @@ async def _seed() -> tuple[str, str, str]:
             organization_id="org_default1", status="active", metadata_json="{}",
             redacted_input_hash="", original_input_ref="",
         ))
+        await db.flush()
         db.add(ContextTaskRefRow(
-            context_id=context_id, task_id=task_id, state="completed",
+            context_id=context_id, organization_id="org_default1",
+            task_id=task_id, state="completed",
             started_at=now, completed_at=now,
         ))
         db.add(ContextMessageRow(
-            context_id=context_id, message_id=message_id, role="agent",
+            context_id=context_id, organization_id="org_default1",
+            message_id=message_id, role="agent",
             parts_json='[{"kind":"text","text":"safe"}]', timestamp=now,
             redacted=True,
             metadata_json=json.dumps({"a2a_v1_task_id": task_id}),
@@ -90,7 +102,7 @@ async def _seed() -> tuple[str, str, str]:
             db.add(RunHistoryModel(
                 organization_id="org_default1", user_id=None,
                 agent_id="medcoder-coding-review", context_id=context_id,
-                run_id=run_id, trace_id=f"source-{ordinal}", runtime_mode="mock",
+                run_id=run_id, trace_id=f"source-{seed_nonce}-{ordinal}", runtime_mode="mock",
                 latency_ms=10 + ordinal, cost_usd=0.0,
                 input_text="患者姓名：张三，身份证号：110101199001011234",
                 output_summary="sensitive output must never be exported",
@@ -105,8 +117,8 @@ async def _seed() -> tuple[str, str, str]:
                     "input.value": "must-not-export",
                     "authorization": "must-not-export",
                 },
-                event_id=f"event-{ordinal}", sequence_number=1,
-                trace_id=f"source-{ordinal}", identity_source="test",
+                event_id=f"event-{seed_nonce}-{ordinal}", sequence_number=1,
+                trace_id=f"source-{seed_nonce}-{ordinal}", identity_source="test",
                 created_at=created, updated_at=created,
             ))
             db.add(RunTraceEventModel(
@@ -128,8 +140,8 @@ async def _seed() -> tuple[str, str, str]:
                     "input.value": "must-not-export",
                     "output.value": "must-not-export",
                 },
-                event_id=f"llm-event-{ordinal}", sequence_number=2,
-                trace_id=f"source-{ordinal}", identity_source="test",
+                event_id=f"llm-{seed_nonce}-{ordinal}", sequence_number=2,
+                trace_id=f"source-{seed_nonce}-{ordinal}", identity_source="test",
                 created_at=created, updated_at=created,
             ))
         await db.commit()
@@ -303,7 +315,7 @@ async def test_feedback_training_authorization_is_independent_bounded_and_revoke
         ))).scalar_one_or_none() is None
         member = (await db.execute(select(OrganizationMember).where(
             OrganizationMember.organization_id == "org_default1",
-            OrganizationMember.user_id == "u-test-bypass",
+            OrganizationMember.user_id == TEST_USER_ID,
         ))).scalar_one()
         member.role = OrgRole.MEMBER
         await db.commit()
@@ -322,7 +334,7 @@ async def test_feedback_training_authorization_is_independent_bounded_and_revoke
     async with database.AsyncSessionLocal() as db:
         member = (await db.execute(select(OrganizationMember).where(
             OrganizationMember.organization_id == "org_default1",
-            OrganizationMember.user_id == "u-test-bypass",
+            OrganizationMember.user_id == TEST_USER_ID,
         ))).scalar_one()
         member.role = OrgRole.OWNER
         await db.commit()
@@ -350,7 +362,7 @@ async def test_feedback_training_authorization_is_independent_bounded_and_revoke
             FeedbackTrainingAuthorization.feedback_id == feedback_id
         ))).scalar_one()
         assert row.status == "active"
-        assert row.authorized_by_user_id == "u-test-bypass"
+        assert row.authorized_by_user_id == TEST_USER_ID
         assert len(row.approval_reference_hash) == 64
         assert "qi-review" not in row.approval_reference_hash
 
@@ -460,8 +472,12 @@ async def test_feedback_scope_caller_isolation_and_retention(client) -> None:
         row.retention_until = datetime.now(timezone.utc) - timedelta(seconds=1)
         await db.commit()
     async with database.AsyncSessionLocal() as db:
-        assert await purge_expired_agent_feedback(db, dry_run=True) == 1
-        assert await purge_expired_agent_feedback(db) == 1
+        assert await purge_expired_agent_feedback(
+            db, dry_run=True, organization_id="org_default1"
+        ) == 1
+        assert await purge_expired_agent_feedback(
+            db, organization_id="org_default1"
+        ) == 1
     async with database.AsyncSessionLocal() as db:
         assert (await db.execute(select(AgentTaskFeedback).where(
             AgentTaskFeedback.context_id == context_id
@@ -490,7 +506,8 @@ async def test_agent_usage_is_tenant_scoped_exclusive_and_always_daily(client) -
                 run_id=f"usage-{ordinal}-{uuid.uuid4()}", trace_id="", runtime_mode="mock",
                 latency_ms=1, cost_usd=0.0, input_text="safe", output_summary="safe",
                 error=False, status="COMPLETED", tenancy_classification=classification,
-                created_at=created, updated_at=created,
+                created_at=created.replace(tzinfo=None),
+                updated_at=created.replace(tzinfo=None),
             ))
         await db.commit()
 

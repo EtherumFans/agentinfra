@@ -31,6 +31,9 @@ from app.models.organization import Organization
 from app.services.phi_encryption import encrypt_phi
 
 
+pytestmark = pytest.mark.postgresql_compat
+
+
 async def _seed_context(
     *,
     organization_id: str = "org_default1",
@@ -39,7 +42,7 @@ async def _seed_context(
     task_count: int = 2,
 ) -> tuple[str, list[str]]:
     context_id = str(uuid.uuid4())
-    created = created_at or datetime.now(timezone.utc)
+    created = (created_at or datetime.now(timezone.utc)).replace(tzinfo=None)
     task_ids: list[str] = []
     async with database.AsyncSessionLocal() as db:
         if await db.get(Organization, organization_id) is None:
@@ -68,6 +71,9 @@ async def _seed_context(
                 original_input_ref="",
             )
         )
+        # PostgreSQL cannot infer flush ordering without ORM relationships;
+        # persist the FK parent before task/message/artifact children.
+        await db.flush()
         for ordinal in range(task_count):
             task_id = f"task-{uuid.uuid4().hex}"
             task_ids.append(task_id)
@@ -99,6 +105,7 @@ async def _seed_context(
             db.add(
                 ContextTaskRefRow(
                     context_id=context_id,
+                    organization_id=organization_id,
                     task_id=task_id,
                     state="completed",
                     started_at=started,
@@ -126,6 +133,7 @@ async def _seed_context(
                 [
                     ContextMessageRow(
                         context_id=context_id,
+                        organization_id=organization_id,
                         message_id=user_message_id,
                         role="user",
                         parts_json=encrypt_phi(
@@ -142,6 +150,7 @@ async def _seed_context(
                     ),
                     ContextMessageRow(
                         context_id=context_id,
+                        organization_id=organization_id,
                         message_id=agent_message_id,
                         role="agent",
                         parts_json=encrypt_phi(

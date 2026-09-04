@@ -29,6 +29,9 @@ from app.services.phi_encryption import is_encrypted_value
 from app.services.retention import purge_expired_agent_feedback
 
 
+pytestmark = pytest.mark.postgresql_compat
+
+
 async def _seed() -> tuple[str, str, str]:
     context_id = str(uuid.uuid4())
     task_id = f"task-{uuid.uuid4().hex}"

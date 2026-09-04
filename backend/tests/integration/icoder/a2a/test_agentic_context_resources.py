@@ -31,6 +31,9 @@ from app.models.organization import Organization
 from app.services.phi_encryption import encrypt_phi
 
 
+pytestmark = pytest.mark.postgresql_compat
+
+
 async def _seed_context(
     *,
     organization_id: str = "org_default1",

@@ -38,7 +38,10 @@ async def _seed() -> tuple[str, str, str]:
     context_id = str(uuid.uuid4())
     task_id = f"task-{uuid.uuid4().hex}"
     message_id = f"agent-{uuid.uuid4()}"
-    now = datetime.now(timezone.utc)
+    # Context and legacy TimestampMixin columns intentionally store UTC without
+    # timezone metadata; asyncpg rejects aware values for those PostgreSQL
+    # ``timestamp without time zone`` columns.
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     async with database.AsyncSessionLocal() as db:
         if await db.get(Organization, "org_default1") is None:
             db.add(Organization(

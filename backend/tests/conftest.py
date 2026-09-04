@@ -75,7 +75,7 @@ def _make_mock_user(role: str = "admin"):
             # Identity kept stable as "testuser" so existing auth_client-based
             # tests (which expect username=testuser) keep passing. The role
             # is parameterizable for RBAC-specific tests.
-            self.id = "u-test-bypass"
+            self.id = os.environ.get("ICODER_TEST_USER_ID", "u-test-bypass")
             self.username = "testuser"
             self.email = "testuser@example.com"
             self.full_name = "Test User (bypass)"

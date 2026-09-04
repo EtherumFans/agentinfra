@@ -71,6 +71,9 @@ async def _seed_context(
                 original_input_ref="",
             )
         )
+        # PostgreSQL cannot infer flush ordering without ORM relationships;
+        # persist the FK parent before task/message/artifact children.
+        await db.flush()
         for ordinal in range(task_count):
             task_id = f"task-{uuid.uuid4().hex}"
             task_ids.append(task_id)

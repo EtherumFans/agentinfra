@@ -84,11 +84,13 @@ async def _seed() -> tuple[str, str, str]:
         ))
         await db.flush()
         db.add(ContextTaskRefRow(
-            context_id=context_id, task_id=task_id, state="completed",
+            context_id=context_id, organization_id="org_default1",
+            task_id=task_id, state="completed",
             started_at=now, completed_at=now,
         ))
         db.add(ContextMessageRow(
-            context_id=context_id, message_id=message_id, role="agent",
+            context_id=context_id, organization_id="org_default1",
+            message_id=message_id, role="agent",
             parts_json='[{"kind":"text","text":"safe"}]', timestamp=now,
             redacted=True,
             metadata_json=json.dumps({"a2a_v1_task_id": task_id}),

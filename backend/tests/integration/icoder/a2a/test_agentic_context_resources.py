@@ -105,6 +105,7 @@ async def _seed_context(
             db.add(
                 ContextTaskRefRow(
                     context_id=context_id,
+                    organization_id=organization_id,
                     task_id=task_id,
                     state="completed",
                     started_at=started,
@@ -132,6 +133,7 @@ async def _seed_context(
                 [
                     ContextMessageRow(
                         context_id=context_id,
+                        organization_id=organization_id,
                         message_id=user_message_id,
                         role="user",
                         parts_json=encrypt_phi(
@@ -148,6 +150,7 @@ async def _seed_context(
                     ),
                     ContextMessageRow(
                         context_id=context_id,
+                        organization_id=organization_id,
                         message_id=agent_message_id,
                         role="agent",
                         parts_json=encrypt_phi(

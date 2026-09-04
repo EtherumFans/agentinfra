@@ -9,6 +9,7 @@ import pytest_asyncio
 
 from app.icoder.agent_runtime.context import (
     Context,
+    ContextAudit,
     ContextLifecycle,
     ContextLifecycleError,
     ContextMessage,
@@ -262,15 +263,12 @@ async def test_destroy_expired_cascades_children_but_keeps_audit(repo):
 
     from app.icoder.agent_runtime.context.db_models import OriginalInputAuditRow
 
-    audit = OriginalInputAuditRow(
-        id="audit-1",
-        context_id=ctx.id,
-        original_input="raw PHI",
-        created_at=_now(),
-        retention_until=_now() + timedelta(days=90),
+    await ContextAudit(lc._repo._session).record_original_input(
+        ctx.id,
+        "raw PHI",
+        audit_id="audit-1",
+        now=now_fn(),
     )
-    lc._repo._session.add(audit)
-    await lc._repo._session.commit()
 
     advance(11)
     await lc.expire_if_overdue(ctx.id)

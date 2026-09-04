@@ -36,6 +36,7 @@ TEST_USER_ID = os.environ.get("ICODER_TEST_USER_ID", "u-test-bypass")
 
 async def _seed() -> tuple[str, str, str]:
     context_id = str(uuid.uuid4())
+    seed_nonce = uuid.uuid4().hex
     task_id = f"task-{uuid.uuid4().hex}"
     message_id = f"agent-{uuid.uuid4()}"
     # Context and legacy TimestampMixin columns intentionally store UTC without
@@ -101,7 +102,7 @@ async def _seed() -> tuple[str, str, str]:
             db.add(RunHistoryModel(
                 organization_id="org_default1", user_id=None,
                 agent_id="medcoder-coding-review", context_id=context_id,
-                run_id=run_id, trace_id=f"source-{ordinal}", runtime_mode="mock",
+                run_id=run_id, trace_id=f"source-{seed_nonce}-{ordinal}", runtime_mode="mock",
                 latency_ms=10 + ordinal, cost_usd=0.0,
                 input_text="患者姓名：张三，身份证号：110101199001011234",
                 output_summary="sensitive output must never be exported",
@@ -116,8 +117,8 @@ async def _seed() -> tuple[str, str, str]:
                     "input.value": "must-not-export",
                     "authorization": "must-not-export",
                 },
-                event_id=f"event-{ordinal}", sequence_number=1,
-                trace_id=f"source-{ordinal}", identity_source="test",
+                event_id=f"event-{seed_nonce}-{ordinal}", sequence_number=1,
+                trace_id=f"source-{seed_nonce}-{ordinal}", identity_source="test",
                 created_at=created, updated_at=created,
             ))
             db.add(RunTraceEventModel(
@@ -139,8 +140,8 @@ async def _seed() -> tuple[str, str, str]:
                     "input.value": "must-not-export",
                     "output.value": "must-not-export",
                 },
-                event_id=f"llm-event-{ordinal}", sequence_number=2,
-                trace_id=f"source-{ordinal}", identity_source="test",
+                event_id=f"llm-{seed_nonce}-{ordinal}", sequence_number=2,
+                trace_id=f"source-{seed_nonce}-{ordinal}", identity_source="test",
                 created_at=created, updated_at=created,
             ))
         await db.commit()

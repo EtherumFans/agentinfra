@@ -42,7 +42,7 @@ async def _seed_context(
     task_count: int = 2,
 ) -> tuple[str, list[str]]:
     context_id = str(uuid.uuid4())
-    created = created_at or datetime.now(timezone.utc)
+    created = (created_at or datetime.now(timezone.utc)).replace(tzinfo=None)
     task_ids: list[str] = []
     async with database.AsyncSessionLocal() as db:
         if await db.get(Organization, organization_id) is None:

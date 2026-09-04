@@ -21,7 +21,7 @@ A promoted test must:
 | Wave | Coverage | Test modules |
 | --- | --- | --- |
 | Foundational | role provisioning, Alembic schema, cross-process trace persistence | dedicated PostgreSQL contract tests |
-| Wave 1 | A2A context/task/artifact resources, observability, feedback, retention, tenant isolation | `test_agentic_context_resources.py`, `test_agentic_observability_feedback.py` |
+| Wave 1 | 13 A2A context/task/artifact, observability, feedback, retention, and tenant-isolation contracts | `test_agentic_context_resources.py`, `test_agentic_observability_feedback.py` |
 
 ## Next candidates
 

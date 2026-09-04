@@ -147,7 +147,7 @@ def reset_rate_limiter():
     yield
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session", loop_scope="session", autouse=True)
 async def setup_db():
     """Initialize database once for the test session.
 

@@ -22,9 +22,10 @@ A promoted test must:
 | --- | --- | --- |
 | Foundational | role provisioning, Alembic schema, cross-process trace persistence | dedicated PostgreSQL contract tests |
 | Wave 1 | 13 A2A context/task/artifact, observability, feedback, retention, and tenant-isolation contracts | `test_agentic_context_resources.py`, `test_agentic_observability_feedback.py` |
+| Wave 2 | 37 Connector CRUD, execution-policy, transport, audit, and graph-runtime contracts | `test_agent_connectors.py`, `test_connector_executor.py`, `test_connector_graph_runtime.py` |
 
 ## Next candidates
 
-Connector CRUD and execution are the next database-heavy candidates. Context
-repository unit-integration modules remain intentionally SQLite-specific until
-their in-memory engine fixtures are parameterized.
+Context repository unit-integration modules are the next database-heavy
+candidates. They remain intentionally SQLite-specific until their in-memory
+engine fixtures are parameterized.

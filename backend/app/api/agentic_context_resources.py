@@ -223,6 +223,11 @@ def _utc(value: datetime) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
+def _db_timestamp(value: datetime) -> datetime:
+    """Convert an API timestamp to the schema's UTC-naive representation."""
+    return _utc(value).astimezone(timezone.utc).replace(tzinfo=None)
+
+
 def _iso(value: datetime | None) -> str | None:
     if value is None:
         return None
@@ -300,7 +305,7 @@ def _parse_cursor_time(value: Any) -> datetime:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
         raise HTTPException(status_code=400, detail="pageToken anchor is invalid") from exc
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return _db_timestamp(parsed)
 
 
 async def _require_context(
@@ -533,9 +538,9 @@ async def list_contexts(
     if agent_id:
         predicates.append(ContextRow.agent_id == agent_id)
     if from_time:
-        predicates.append(ContextRow.created_at >= from_time)
+        predicates.append(ContextRow.created_at >= _db_timestamp(from_time))
     if to_time:
-        predicates.append(ContextRow.created_at < to_time)
+        predicates.append(ContextRow.created_at < _db_timestamp(to_time))
 
     total_size = int(
         (

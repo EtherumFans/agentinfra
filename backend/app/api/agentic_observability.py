@@ -346,6 +346,11 @@ def _utc(value: datetime) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
+def _db_timestamp(value: datetime) -> datetime:
+    """Convert an API timestamp to the schema's UTC-naive representation."""
+    return _utc(value).astimezone(timezone.utc).replace(tzinfo=None)
+
+
 def _event_attributes(event: RunTraceEventModel) -> dict[str, Any]:
     metadata = event.safe_metadata_json if isinstance(event.safe_metadata_json, dict) else {}
 
@@ -578,14 +583,15 @@ async def get_agent_usage(
         db, organization_id=organization.id, agent_id=agent_id,
     )
     start, end = _usage_window(from_time, to_time)
+    db_start, db_end = _db_timestamp(start), _db_timestamp(end)
 
     from app.services.tenant_read_policy import apply_tenant_visibility_filter
 
     base_filters = (
         RunHistoryModel.organization_id == organization.id,
         RunHistoryModel.agent_id == agent_id,
-        RunHistoryModel.created_at >= start,
-        RunHistoryModel.created_at < end,
+        RunHistoryModel.created_at >= db_start,
+        RunHistoryModel.created_at < db_end,
     )
     totals_stmt = select(
         func.count(RunHistoryModel.run_id).label("invocations"),
@@ -671,7 +677,9 @@ async def export_context_trace(
             page_token, organization_id=organization.id, context_id=context_id,
         )
         try:
-            cursor_time = datetime.fromisoformat(str(cursor["created_at"]).replace("Z", "+00:00"))
+            cursor_time = _db_timestamp(
+                datetime.fromisoformat(str(cursor["created_at"]).replace("Z", "+00:00"))
+            )
             cursor_run = str(cursor["run_id"])
         except Exception as exc:
             raise HTTPException(status_code=400, detail="pageToken payload is invalid") from exc

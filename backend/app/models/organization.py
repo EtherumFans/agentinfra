@@ -13,6 +13,12 @@ class OrgRole(str, enum.Enum):
     VIEWER = "viewer"
 
 
+ORG_ROLE_ENUM = Enum(
+    OrgRole,
+    values_callable=lambda enum_type: [role.value for role in enum_type],
+)
+
+
 class Organization(Base, TimestampMixin):
     __tablename__ = "organizations"
 
@@ -29,7 +35,7 @@ class OrganizationMember(Base, TimestampMixin):
 
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-    role: Mapped[OrgRole] = mapped_column(Enum(OrgRole), default=OrgRole.MEMBER, nullable=False)
+    role: Mapped[OrgRole] = mapped_column(ORG_ROLE_ENUM, default=OrgRole.MEMBER, nullable=False)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
@@ -38,7 +44,7 @@ class OrganizationInvite(Base, TimestampMixin):
 
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(128), nullable=False)
-    role: Mapped[OrgRole] = mapped_column(Enum(OrgRole), default=OrgRole.MEMBER, nullable=False)
+    role: Mapped[OrgRole] = mapped_column(ORG_ROLE_ENUM, default=OrgRole.MEMBER, nullable=False)
     # SHA-256 digest of the bearer invitation credential. The raw token is
     # returned once in local development and must never be persisted/logged.
     token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)

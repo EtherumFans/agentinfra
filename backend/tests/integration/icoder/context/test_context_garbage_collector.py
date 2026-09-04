@@ -7,13 +7,6 @@ from datetime import datetime, timedelta, timezone
 import asyncio
 
 import pytest
-import pytest_asyncio
-import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
 
 from app.icoder.agent_runtime.context import (
     ContextAudit,
@@ -22,32 +15,7 @@ from app.icoder.agent_runtime.context import (
     ContextRepository,
     ContextStatus,
 )
-from app.icoder.agent_runtime.context.db_models import ContextRow
-
-pytestmark = pytest.mark.asyncio
-
-
-@pytest_asyncio.fixture
-async def engine():
-    eng = create_async_engine("sqlite+aiosqlite:///:memory:")
-
-    @sa.event.listens_for(eng.sync_engine, "connect")
-    def _enable_sqlite_fk(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
-
-    async with eng.begin() as conn:
-        await conn.run_sync(ContextRow.metadata.create_all)
-    yield eng
-    await eng.dispose()
-
-
-@pytest_asyncio.fixture
-async def session(engine) -> AsyncSession:
-    maker = async_sessionmaker(engine, expire_on_commit=False)
-    async with maker() as s:
-        yield s
+pytestmark = [pytest.mark.asyncio, pytest.mark.postgresql_compat]
 
 
 def _clock():
@@ -113,7 +81,8 @@ async def test_run_once_prunes_old_audit(session):
     lc = ContextLifecycle(repo, ttl_seconds=3600, now_fn=now_fn)
     cid = "550e8400-e29b-41d4-a716-4466554400aa"
     await audit.record_original_input(
-        cid, "ancient", retention_days=1, now=now_fn() - timedelta(days=2)
+        cid, "ancient", organization_id="test-org",
+        retention_days=1, now=now_fn() - timedelta(days=2)
     )
 
     gc = ContextGarbageCollector(lc, audit, now_fn=now_fn)
@@ -129,7 +98,8 @@ async def test_run_once_audit_prune_disabled(session):
     lc = ContextLifecycle(repo, ttl_seconds=3600, now_fn=now_fn)
     cid = "550e8400-e29b-41d4-a716-4466554400ab"
     await audit.record_original_input(
-        cid, "ancient", retention_days=1, now=now_fn() - timedelta(days=2)
+        cid, "ancient", organization_id="test-org",
+        retention_days=1, now=now_fn() - timedelta(days=2)
     )
 
     gc = ContextGarbageCollector(

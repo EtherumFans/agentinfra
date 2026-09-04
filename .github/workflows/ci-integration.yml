@@ -77,7 +77,7 @@ jobs:
 
       - name: Install official A2A JavaScript interoperability dependency
         working-directory: packages/icoder-sdk
-        run: npm ci
+        run: npm ci && npm run build
 
       - name: Apply PostgreSQL schema for cross-process trace contract
         env:
@@ -92,19 +92,30 @@ jobs:
 
       - name: Integration tests
         run: python -m pytest tests/integration -v --tb=short
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///./data/test.db
+          ICODER_DATABASE_URL: sqlite+aiosqlite:///./data/test.db
 
       - name: Regression tests
         run: python -m pytest tests/regression -v --tb=short
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///./data/test.db
+          ICODER_DATABASE_URL: sqlite+aiosqlite:///./data/test.db
 
       - name: Backend e2e tests
         run: python -m pytest tests/e2e -v --tb=short
         env:
+          DATABASE_URL: sqlite+aiosqlite:///./data/test.db
+          ICODER_DATABASE_URL: sqlite+aiosqlite:///./data/test.db
           # The live DeepSeek test skips explicitly when this secret is absent;
           # all other e2e failures remain blocking.
           ICODER_CREDENTIAL_LLM: ${{ secrets.ICODER_CREDENTIAL_LLM || '' }}
 
       - name: e2e_product tests
         run: python -m pytest tests/e2e_product -v --tb=short
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///./data/test.db
+          ICODER_DATABASE_URL: sqlite+aiosqlite:///./data/test.db
 
       - name: Upload coverage report
         if: always()

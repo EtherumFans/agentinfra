@@ -22,7 +22,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm ci
 
       - name: Install Playwright browsers
         working-directory: frontend
@@ -31,7 +31,7 @@ jobs:
       - name: Build and serve embedded component examples
         working-directory: packages/icoder-embedded
         run: |
-          npm ci
+          bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm ci
           npm run build
           python -m http.server 8765 > "$RUNNER_TEMP/icoder-embedded-http.log" 2>&1 &
           for i in $(seq 1 15); do

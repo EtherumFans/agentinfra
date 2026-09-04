@@ -65,7 +65,7 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: packages/icoder-sdk/package-lock.json
-      - run: pip install -r requirements.txt
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
 
       - name: PostgreSQL least-privilege role provisioning contract
         env:
@@ -77,7 +77,9 @@ jobs:
 
       - name: Install official A2A JavaScript interoperability dependency
         working-directory: packages/icoder-sdk
-        run: npm ci && npm run build
+        run: |
+          bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm ci
+          npm run build
 
       - name: Apply PostgreSQL schema for cross-process trace contract
         env:
@@ -138,7 +140,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
 
       - name: FAISS index health check (no actual retrieval — just structural)
         run: |
@@ -198,7 +200,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
 
       - name: Validate all Hub-visible Packs without network access
         run: |

@@ -189,8 +189,10 @@ async def record_run_start(
         # Python-side timestamp with microsecond precision so two runs
         # landing in the same second still order deterministically by
         # created_at DESC (SQLite's CURRENT_TIMESTAMP is 1-second res).
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        # TimestampMixin uses ``timestamp without time zone``. Persist UTC in
+        # that representation so asyncpg does not reject aware datetimes.
+        created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        updated_at=datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
     try:

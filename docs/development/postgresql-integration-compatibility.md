@@ -23,6 +23,7 @@ A promoted test must:
 | Foundational | role provisioning, Alembic schema, cross-process trace persistence | dedicated PostgreSQL contract tests |
 | Wave 1 | 13 A2A context/task/artifact, observability, feedback, retention, and tenant-isolation contracts | `test_agentic_context_resources.py`, `test_agentic_observability_feedback.py` |
 | Wave 2 | 37 Connector CRUD, execution-policy, transport, audit, and graph-runtime contracts | `test_agent_connectors.py`, `test_connector_executor.py`, `test_connector_graph_runtime.py` |
+| Wave 3 | 62 Context repository, lifecycle, garbage-collection, audit-retention, and isolation contracts | `test_context_repository.py`, `test_context_lifecycle.py`, `test_context_garbage_collector.py`, `test_context_audit.py` |
 
 Wave 2 also aligns the persisted Agent identifier contract with public stable
 keys: `agents.id` and every relational Agent reference use `VARCHAR(128)`.
@@ -31,6 +32,6 @@ whose length SQLite accepted despite the former `VARCHAR(12)` declaration.
 
 ## Next candidates
 
-Context repository unit-integration modules are the next database-heavy
-candidates. They remain intentionally SQLite-specific until their in-memory
-engine fixtures are parameterized.
+Context schema and local-expert memory integration modules are the next
+database-heavy candidates. They remain intentionally SQLite-specific until
+their fixtures and tenant-owned seed data are parameterized.

@@ -35,6 +35,11 @@ class ContextAudit:
     def _as_utc(dt: datetime) -> datetime:
         return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
+    @classmethod
+    def _as_db_timestamp(cls, dt: datetime) -> datetime:
+        """Store UTC in the Context schema's timezone-naive columns."""
+        return cls._as_utc(dt).astimezone(timezone.utc).replace(tzinfo=None)
+
     async def record_original_input(
         self,
         context_id: str,
@@ -55,13 +60,17 @@ class ContextAudit:
                 f"context_id must be canonical UUID v4: {context_id!r}",
                 context_id=context_id,
             )
-        now = now or datetime.now(timezone.utc)
+        now = self._as_utc(now or datetime.now(timezone.utc))
         context = await self._session.get(ContextRow, context_id)
         resolved_organization_id = (
             organization_id
             if organization_id is not None
             else context.organization_id if context is not None else None
         )
+        if not resolved_organization_id:
+            raise ValueError(
+                "organization_id is required when the Context row does not exist"
+            )
         row = OriginalInputAuditRow(
             # Wall-clock timestamps are not unique identifiers.  In particular,
             # Windows may return the same ``datetime.now`` value for consecutive
@@ -72,8 +81,10 @@ class ContextAudit:
             context_id=context_id,
             organization_id=resolved_organization_id,
             original_input=original_input,
-            created_at=now,
-            retention_until=now + timedelta(days=retention_days),
+            created_at=self._as_db_timestamp(now),
+            retention_until=self._as_db_timestamp(
+                now + timedelta(days=retention_days)
+            ),
         )
         self._session.add(row)
         await self._session.commit()
@@ -93,7 +104,7 @@ class ContextAudit:
 
     async def prune_expired(self, *, now: datetime | None = None) -> list[str]:
         """Delete audit rows past their retention_until. Returns deleted IDs."""
-        now = self._as_utc(now or datetime.now(timezone.utc))
+        now = self._as_db_timestamp(now or datetime.now(timezone.utc))
         stmt = select(OriginalInputAuditRow).where(
             OriginalInputAuditRow.retention_until <= now
         )

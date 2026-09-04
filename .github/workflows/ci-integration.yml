@@ -138,6 +138,20 @@ jobs:
           -o asyncio_default_test_loop_scope=session
           -v --tb=short
 
+      - name: PostgreSQL compatibility wave 3 — Context Repository
+        timeout-minutes: 12
+        env:
+          ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
+          ICODER_TEST_USER_ID: "u-test-user1"
+        run: >-
+          python -m pytest
+          tests/integration/icoder/context/test_context_repository.py
+          tests/integration/icoder/context/test_context_lifecycle.py
+          tests/integration/icoder/context/test_context_garbage_collector.py
+          tests/integration/icoder/context/test_context_audit.py
+          -o asyncio_default_test_loop_scope=session
+          -v --tb=short
+
       - name: Integration tests
         run: python -m pytest tests/integration -v --tb=short
         env:

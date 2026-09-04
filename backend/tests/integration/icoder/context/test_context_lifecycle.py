@@ -6,12 +6,6 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 import pytest_asyncio
-import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
 
 from app.icoder.agent_runtime.context import (
     Context,
@@ -21,32 +15,7 @@ from app.icoder.agent_runtime.context import (
     ContextRepository,
     ContextStatus,
 )
-from app.icoder.agent_runtime.context.db_models import ContextRow
-
-pytestmark = pytest.mark.asyncio
-
-
-@pytest_asyncio.fixture
-async def engine():
-    eng = create_async_engine("sqlite+aiosqlite:///:memory:")
-
-    @sa.event.listens_for(eng.sync_engine, "connect")
-    def _enable_sqlite_fk(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
-
-    async with eng.begin() as conn:
-        await conn.run_sync(ContextRow.metadata.create_all)
-    yield eng
-    await eng.dispose()
-
-
-@pytest_asyncio.fixture
-async def session(engine) -> AsyncSession:
-    maker = async_sessionmaker(engine, expire_on_commit=False)
-    async with maker() as s:
-        yield s
+pytestmark = [pytest.mark.asyncio, pytest.mark.postgresql_compat]
 
 
 @pytest_asyncio.fixture

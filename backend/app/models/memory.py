@@ -25,7 +25,7 @@ class MemoryConsent(Base, TimestampMixin):
         String(12), ForeignKey("users.id"), nullable=False, index=True,
     )
     agent_id: Mapped[str] = mapped_column(
-        String(12), ForeignKey("agents.id"), nullable=False, index=True,
+        String(128), ForeignKey("agents.id"), nullable=False, index=True,
     )
     purpose_of_use: Mapped[str] = mapped_column(String(32), nullable=False)
     legal_basis: Mapped[str] = mapped_column(
@@ -55,7 +55,7 @@ class ConversationMemory(Base, TimestampMixin):
     organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
     user_id: Mapped[str] = mapped_column(String(12), ForeignKey("users.id"), nullable=False, index=True)
     expert_id: Mapped[str | None] = mapped_column(String(12), ForeignKey("experts.id"), nullable=True, index=True)
-    agent_id: Mapped[str | None] = mapped_column(String(12), ForeignKey("agents.id"), nullable=True, index=True)
+    agent_id: Mapped[str | None] = mapped_column(String(128), ForeignKey("agents.id"), nullable=True, index=True)
     session_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     role: Mapped[str] = mapped_column(String(16), nullable=False)  # user / assistant / system
     content: Mapped[str] = mapped_column(Text, nullable=False)

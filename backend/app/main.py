@@ -943,9 +943,7 @@ async def lifespan(app: FastAPI):
             def handle(self, agent_id: str, request):
                 import asyncio as _asyncio
                 from app.icoder.agent_runtime.a2a_facade import (
-                    dispatch_medical_coding_fast,
-                    build_medical_coding_inbound_response,
-                    persist_trace_events,
+                    run_medical_coding_a2a,
                 )
                 from app.icoder.agent_runtime.orchestrator.inbound_handler import (
                     InboundResponse,
@@ -1112,92 +1110,40 @@ async def lifespan(app: FastAPI):
                                     separators=(",", ":"),
                                 )
                             )
-                        try:
-                            result, out_run_id, out_trace_id = (
-                                _asyncio.new_event_loop().run_until_complete(
-                                    dispatch_medical_coding_fast(
-                                        agent_id=public_agent_id,
-                                        input_text=input_text,
-                                        extra={
-                                            **data_input,
-                                            "documents": source_document_payload,
-                                            "upstream_results": upstream_results,
-                                        } or None,
-                                        runtime_mode=runtime_mode,
-                                        include_trace=meta.get("include_trace", True),
-                                        include_evidence=meta.get("include_evidence", True),
-                                        run_id=meta.get("run_id") or "",
-                                        trace_id=meta.get("trace_id") or "",
-                                        user_id=meta.get("user_id", ""),
-                                        tenant_id=execution_tenant_id,
-                                        project_policy=(
-                                            project_policy_token.instructions
-                                            if is_dedicated_project_clone
-                                            else ""
-                                        ),
-                                        project_policy_metadata=(
-                                            {
-                                                **project_policy_token.safe_metadata(),
-                                                "source_runtime_agent_id": source_runtime_agent_id,
-                                            }
-                                            if is_dedicated_project_clone
-                                            else None
-                                        ),
-                                    )
-                                )
-                            )
-                        except Exception as e:
-                            from app.icoder.agent_runtime.orchestrator.run_trace import (
-                                RunTraceStep, RunTraceStatus, emit_trace_event,
-                            )
-                            emit_trace_event(
-                                meta.get("run_id") or "",
-                                RunTraceStep.COMPLETION,
-                                status=RunTraceStatus.FAILED,
-                                safe_metadata={
-                                    "agent_id": agent_id,
-                                    "error": type(e).__name__,
+                        return _asyncio.run(run_medical_coding_a2a(
+                            dispatch_input={
+                                "agent_id": public_agent_id,
+                                "input_text": input_text,
+                                "extra": {
+                                    **data_input,
+                                    "documents": source_document_payload,
+                                    "upstream_results": upstream_results,
                                 },
-                            )
-                            return InboundResponse(
-                                kind="error",
-                                context_id=meta.get("context_id", ""),
-                                metadata={
-                                    "run_id": meta.get("run_id", ""),
-                                    "trace_id": meta.get("trace_id", ""),
-                                    "agent_id": agent_id,
-                                    "phi_redacted": True,
-                                },
-                                error={
-                                    "code": "INTERNAL_ERROR",
-                                    "message": f"Medical coding execution failed ({type(e).__name__}).",
-                                },
-                                http_status=500,
-                                redacted_input=input_text,
-                            )
-                        # Persist trace_events so /runs/{run_id}/trace works.
-                        if result.trace_events and not result.error:
-                            persist_trace_events(
-                                run_id=out_run_id,
-                                trace_events=list(result.trace_events),
-                                agent_id=public_agent_id,
-                                runtime_mode=result.runtime_mode,
-                                trace_id=out_trace_id,
-                                organization_id=execution_tenant_id,
-                                user_id=meta.get("user_id", ""),
-                                actor_id=meta.get("user_id", ""),
-                            )
-                        return build_medical_coding_inbound_response(
-                            result=result,
-                            run_id=out_run_id,
-                            trace_id=out_trace_id,
+                                "runtime_mode": runtime_mode,
+                                "include_trace": meta.get("include_trace", True),
+                                "include_evidence": meta.get("include_evidence", True),
+                                "run_id": meta.get("run_id") or "",
+                                "trace_id": meta.get("trace_id") or "",
+                                "user_id": meta.get("user_id", ""),
+                                "tenant_id": execution_tenant_id,
+                                "project_policy": (
+                                    project_policy_token.instructions
+                                    if is_dedicated_project_clone else ""
+                                ),
+                                "project_policy_metadata": (
+                                    {
+                                        **project_policy_token.safe_metadata(),
+                                        "source_runtime_agent_id": source_runtime_agent_id,
+                                    }
+                                    if is_dedicated_project_clone else None
+                                ),
+                            },
                             context_id=meta.get("context_id") or "",
                             interaction_id=request.message.interaction_id,
                             source_text=primary_text,
                             source_documents=source_document_payload,
                             upstream_results=upstream_results,
-                            organization_id=attestation_org_id,
-                        )
+                        ))
 
                 # medcoder_deep or non-medical-coding: pass through to InboundHandler.
                 response = self._inner.handle(agent_id, request)

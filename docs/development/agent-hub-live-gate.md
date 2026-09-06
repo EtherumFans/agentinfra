@@ -31,6 +31,14 @@ E2E invoked the obsolete `medcoder-coding-review` provider-backed route.
 - The existing 26 happy cases, 26 adversarial cases, two-round stability,
   reference semantics and evidence bundle remain blocking and unchanged.
   Model-independent governed Agents do not thereby become real-LLM claims.
+- Medical Coding A2A commits a tenant-owned RUNNING record before dispatch,
+  retains success/failure traces and finalizes the audit before publishing a
+  result. Audit persistence failures withhold results. Console/partner/SSE
+  orphan-run and cross-tenant denial rules are unchanged; tests must not seed
+  an artificial run record to claim successful A2A trace retrieval.
+- PHI rotation/rewrap explicitly accept revision 076; unknown future schema
+  revisions remain rejected. Human review is required in the signed domain
+  result, not assumed from an optional duplicate envelope metadata field.
 
 ## Local verification
 

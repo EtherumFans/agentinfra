@@ -4,6 +4,7 @@ iCoDer Agentic Framework equivalent: memory-expert + Context & Memory management
 Local sentence-transformers are optional and fail closed on known-crashing
 Windows native stacks. PHI-bearing fields use the platform encryption service.
 """
+import hashlib
 import json
 import logging
 from datetime import datetime, timedelta, UTC
@@ -18,6 +19,12 @@ from icoder_runtime.providers.medical_coding.runtime_safety import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _bounded_context_session_key(value: str) -> str:
+    """Preserve short legacy keys and fit long Context keys into VARCHAR(64)."""
+    return value if len(value) <= 64 else hashlib.sha256(value.encode("utf-8")).hexdigest()
+
 
 # Lazy-load embedding model (80MB, CPU-friendly)
 _embedding_model = None
@@ -178,7 +185,11 @@ class MemoryExpert:
         conditions = [
             ConversationMemory.organization_id == organization_id,
             ConversationMemory.user_id == user_id,
-            ConversationMemory.created_at >= datetime.now(UTC) - timedelta(days=30),
+            # TimestampMixin persists naive UTC, not TIMESTAMPTZ. asyncpg
+            # rejects an aware bound parameter against this legacy column.
+            ConversationMemory.created_at >= (
+                datetime.now(UTC).replace(tzinfo=None) - timedelta(days=30)
+            ),
             ConversationMemory.importance >= 0.3,
         ]
         if expert_id:
@@ -258,7 +269,9 @@ class MemoryExpert:
             .where(
                 ConversationMemory.organization_id == organization_id,
                 ConversationMemory.user_id == user_id,
-                ConversationMemory.session_id == session_id,
+                ConversationMemory.session_id.in_({
+                    session_id, _bounded_context_session_key(session_id),
+                }),
             )
             .order_by(ConversationMemory.created_at)
             .limit(limit)
@@ -288,11 +301,12 @@ class MemoryExpert:
         Called by A1B-AE-R.4.b — wires the persistent memory store to the
         A2A Context. Reads every ContextMessageRow for the given context,
         extracts plain-text content from parts_json, and saves one
-        ConversationMemory row per message (de-duplicated by session_id
-        = context_id + message_id).
+        ConversationMemory row per message. Short session keys retain the
+        legacy context_id:message_id form; long keys use a SHA-256 digest to
+        fit VARCHAR(64), with the original IDs retained in encrypted metadata.
 
-        Returns the number of memories saved. Skips messages already
-        ingested (idempotent per session_id+content hash).
+        Returns the number of memories saved. Sequential replays skip messages
+        already ingested for this tenant/user. This is not a concurrent upsert.
         """
         from app.icoder.agent_runtime.context.db_models import ContextMessageRow, ContextRow
 
@@ -316,7 +330,8 @@ class MemoryExpert:
 
         saved = 0
         for m in messages:
-            session_key = f"{context_id}:{m.message_id}"
+            legacy_session_key = f"{context_id}:{m.message_id}"
+            session_key = _bounded_context_session_key(legacy_session_key)
             try:
                 stored_parts = decrypt_phi(m.parts_json) if m.parts_json else ""
                 parts = json.loads(stored_parts) if stored_parts else []
@@ -350,7 +365,10 @@ class MemoryExpert:
                 .where(
                     ConversationMemory.organization_id == organization_id,
                     ConversationMemory.user_id == user_id,
-                    ConversationMemory.session_id == session_key,
+                    # SQLite historically accepted overlong VARCHAR values.
+                    # Recognize those rows as well; do not duplicate them on
+                    # the first replay after upgrading the application.
+                    ConversationMemory.session_id.in_({session_key, legacy_session_key}),
                 )
                 .limit(1)
             )

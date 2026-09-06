@@ -38,7 +38,10 @@ async def test_record_writes_row_with_90d_retention(session):
     assert row.original_input == "raw PHI text"
     expected_min = (before + timedelta(days=90)).timestamp()
     expected_max = (after + timedelta(days=90)).timestamp()
-    assert expected_min <= row.retention_until.timestamp() <= expected_max + 1
+    # The persisted column is naive UTC; timestamp() alone interprets it in
+    # the host timezone (and fails on non-UTC developer machines).
+    retention_timestamp = row.retention_until.replace(tzinfo=timezone.utc).timestamp()
+    assert expected_min <= retention_timestamp <= expected_max + 1
 
 
 async def test_record_with_custom_retention(session):

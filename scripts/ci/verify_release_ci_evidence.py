@@ -22,7 +22,10 @@ from urllib.request import Request, urlopen
 SCHEMA = "icoder/release-ci-evidence/v1"
 REQUIRED_JOBS = {
     "ci-pr.yml": {
-        "P1 PHI / Multi-tenant Release Gate": ["Run PHI, RLS, migration, rotation and artifact gates"],
+        "P1 PHI / Multi-tenant Release Gate": [
+            "PostgreSQL Wave 4 application-role contracts",
+            "Run PHI, RLS, migration, rotation and artifact gates",
+        ],
         "Frontend (TS + Build)": ["Frontend unit tests"],
         "Backend (Unit)": ["Unit tests (excludes integration / e2e / regression / e2e_product)"],
         "JS SDK": [],
@@ -32,7 +35,10 @@ REQUIRED_JOBS = {
         "Web Components": [],
     },
     "ci-integration.yml": {
-        "Integration / Regression / E2E": ["Integration tests", "Regression tests", "Backend e2e tests", "e2e_product tests"],
+        "Integration / Regression / E2E": [
+            "PostgreSQL compatibility wave 4 — Context Schema and Local Expert Memory",
+            "Integration tests", "Regression tests", "Backend e2e tests", "e2e_product tests",
+        ],
         "MedCodER registry / index smoke (no quality claim)": [],
         "Agent Hub offline contracts (no live claim)": ["Validate all Hub-visible Packs without network access"],
         "Agent Hub 26-Agent live E2E": [

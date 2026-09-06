@@ -6,6 +6,7 @@ name: CI — PR (unit + frontend build)
 # manually.
 
 on:
+  workflow_dispatch:
   push:
     branches: [main, master]
   pull_request:
@@ -189,8 +190,18 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm ci
       - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm audit --audit-level=high
+      - name: Frontend unit tests
+        run: npm test -- --run --reporter=default --reporter=junit --outputFile=test-results/frontend-unit.xml
       - run: npx tsc --noEmit
       - run: npx vite build
+      - name: Upload frontend unit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-unit-evidence
+          path: frontend/test-results/frontend-unit.xml
+          if-no-files-found: error
+          retention-days: 14
 
   backend-unit:
     name: Backend (Unit)
@@ -309,7 +320,7 @@ jobs:
         run: |
           python ../scripts/release/validate_release_candidate.py \
             --output ../reports/release-candidate/ci-version-manifest.json
-          python -m pytest -q ../tests/test_release_candidate_validator.py
+          python -m pytest -q ../tests/test_release_candidate_validator.py ../tests/test_ci_evidence.py
       - run: python scripts/export_openapi.py --check
       - run: python scripts/corti_parity/validate_deployment_candidate.py --output-dir ../reports/deployment/ci-preflight
       - run: python -m pytest -q tests/unit/app/test_config_fail_closed.py tests/unit/corti_parity/test_deployment_candidate_preflight.py

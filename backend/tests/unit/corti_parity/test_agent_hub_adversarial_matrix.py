@@ -76,12 +76,14 @@ def test_live_agent_hub_ci_is_credential_gated_and_failure_blocking() -> None:
     workflow = (
         REPO_ROOT / ".github" / "workflows" / "ci-integration.yml"
     ).read_text(encoding="utf-8")
-    job = workflow.split("  agent-hub-live-e2e:", 1)[1]
+    job = workflow.split("  agent-hub-live-e2e:", 1)[1].split("  ci-evidence:", 1)[0]
 
     assert "ICODER_CREDENTIAL_LLM" in job
     assert "DATABASE_URL: postgresql+asyncpg://" in job
     assert "ICODER_DATABASE_URL" not in job
-    assert "if: env.ICODER_CREDENTIAL_LLM != ''" in job
+    assert "needs: agent-hub-offline" in job
+    assert "if: needs.agent-hub-offline.outputs.live_enabled == 'true'" in job
+    assert "Record explicit live-E2E skip" not in job
     assert "run_agent_hub_examples_e2e.py" in job
     assert "run_agent_hub_adversarial_e2e.py" in job
     assert "run_agent_hub_stability_benchmark.py" in job

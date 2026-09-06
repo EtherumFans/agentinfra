@@ -14,8 +14,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ci-evidence:
+    name: Required same-commit CI evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Require successful offline, frontend, browser and live Agent gates
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/ci/verify_release_ci_evidence.py --output release-ci-evidence.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-ci-evidence
+          path: release-ci-evidence.json
+          if-no-files-found: error
+          retention-days: 30
+
   version-contract:
     name: SDK version contract
+    needs: ci-evidence
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,9 +56,9 @@ jobs:
             command+=(--expected-version "${GITHUB_REF_NAME#rc-v}")
           fi
           "${command[@]}"
-      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install pytest
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install pytest PyYAML
       - name: Test release validator
-        run: python -m pytest -q tests/test_release_candidate_validator.py
+        run: python -m pytest -q tests/test_release_candidate_validator.py tests/test_ci_evidence.py
       - uses: actions/upload-artifact@v4
         with:
           name: release-version-contract
@@ -167,7 +192,16 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" npm ci
-      - run: npm test -- --run
+      - name: Frontend unit tests
+        run: npm test -- --run --reporter=default --reporter=junit --outputFile=test-results/frontend-unit.xml
+      - name: Upload frontend unit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-frontend-unit-evidence
+          path: frontend/test-results/frontend-unit.xml
+          if-no-files-found: error
+          retention-days: 30
       - run: npm run build
       - name: Archive the exact production bundle
         run: tar -czf "${{ runner.temp }}/icoder-console-${{ github.sha }}.tgz" -C dist .
@@ -224,6 +258,7 @@ jobs:
   assemble:
     name: Assemble reviewable release candidate
     needs:
+      - ci-evidence
       - javascript-sdk
       - browser-packages
       - python-sdk
@@ -240,6 +275,9 @@ jobs:
           merge-multiple: true
       - name: Generate SHA-256 release manifest and enforce expected outputs
         run: |
+          python scripts/ci/verify_release_ci_evidence.py \
+            --input release-candidate/artifacts/release-ci-evidence.json \
+            --output release-candidate/verified-ci-evidence.json
           python scripts/release/validate_release_candidate.py \
             --artifact-dir release-candidate/artifacts \
             --output release-candidate/RELEASE_MANIFEST.json \
@@ -250,7 +288,9 @@ jobs:
             --require 'icoder_sdk-*.tar.gz' \
             --require 'iCoDer.Sdk.*.nupkg' \
             --require 'iCoDer.Sdk.*.snupkg' \
-            --require 'icoder-console-*.tgz'
+            --require 'icoder-console-*.tgz' \
+            --require 'frontend-unit.xml' \
+            --require 'release-ci-evidence.json'
       - uses: actions/upload-artifact@v4
         with:
           name: icoder-release-candidate-${{ github.sha }}

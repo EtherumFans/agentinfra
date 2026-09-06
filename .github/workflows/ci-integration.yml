@@ -188,7 +188,7 @@ jobs:
           retention-days: 7
 
   medcoder-validation:
-    name: MedCodER 4-variant regression (smoke)
+    name: MedCodER registry / index smoke (no quality claim)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -216,10 +216,8 @@ jobs:
               print('SMOKE OK: empty index dir correctly reports degraded')
           "
 
-      - name: MedCodER 4-variant ablation smoke (5 cases only)
-        # CI smoke — runs against icoder_201 fixture but limits to 5 cases
-        # so the wall time is bounded. Real full ablation runs nightly on
-        # a runner with pre-built FAISS index.
+      - name: MedCodER mode registry smoke (no model inference)
+        # This enumerates registered modes; no clinical cases are evaluated.
         run: |
           python -c "
           from official_agents.medical_coding.modes import Mode, MEDCODER_MODES
@@ -228,8 +226,57 @@ jobs:
           print('MODE_REGISTRY_OK')
           "
 
+  agent-hub-offline:
+    name: Agent Hub offline contracts (no live claim)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      live_enabled: ${{ steps.availability.outputs.live_enabled }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Determine live credential availability
+        id: availability
+        env:
+          ICODER_CREDENTIAL_LLM: ${{ secrets.ICODER_CREDENTIAL_LLM || '' }}
+        run: |
+          if [ -n "$ICODER_CREDENTIAL_LLM" ]; then
+            echo "live_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "live_enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+      - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
+      - name: Validate all Hub-visible Packs without network access
+        env:
+          LLM_PROVIDER: mock
+          ICODER_ALLOW_EXTERNAL_LLM: "false"
+        run: |
+          python scripts/corti_parity/build_agent_hub_runtime_matrix.py \
+            --output-dir "$RUNNER_TEMP/agent-hub-offline/runtime" \
+            --assert-visible-ready
+          python -m pytest -q \
+            tests/unit/corti_parity/test_agent_hub_adversarial_matrix.py \
+            tests/unit/corti_parity/test_agent_hub_semantic_evidence_bundle.py \
+            tests/unit/icoder_runtime/test_agent_hub_runtime_matrix.py \
+            tests/unit/icoder_runtime/test_visible_agent_safety_properties.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-hub-offline-evidence
+          path: ${{ runner.temp }}/agent-hub-offline
+          if-no-files-found: error
+          retention-days: 14
+
   agent-hub-live-e2e:
     name: Agent Hub 26-Agent live E2E
+    needs: agent-hub-offline
+    if: needs.agent-hub-offline.outputs.live_enabled == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -262,33 +309,15 @@ jobs:
           cache: pip
       - run: bash "$GITHUB_WORKSPACE/scripts/ci/retry_network_command.sh" python -m pip install -r requirements.txt
 
-      - name: Validate all Hub-visible Packs without network access
-        run: |
-          python scripts/corti_parity/build_agent_hub_runtime_matrix.py \
-            --output-dir "$RUNNER_TEMP/agent-hub-live/runtime" \
-            --assert-visible-ready
-          python -m pytest -q \
-            tests/unit/corti_parity/test_agent_hub_adversarial_matrix.py \
-            tests/unit/corti_parity/test_agent_hub_semantic_evidence_bundle.py \
-            tests/unit/icoder_runtime/test_agent_hub_runtime_matrix.py \
-            tests/unit/icoder_runtime/test_visible_agent_safety_properties.py
-
-      - name: Record explicit live-E2E skip when no credential is configured
-        if: env.ICODER_CREDENTIAL_LLM == ''
-        run: |
-          echo "Agent Hub live E2E was not executed because ICODER_CREDENTIAL_LLM is unavailable." \
-            | tee "$RUNNER_TEMP/agent-hub-live/LIVE_E2E_SKIPPED.txt"
-
       - name: Generate job-scoped result-attestation key
-        if: env.ICODER_CREDENTIAL_LLM != ''
         run: |
           attestation_key="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
           echo "::add-mask::$attestation_key"
           echo "ICODER_SECRET_KEY=$attestation_key" >> "$GITHUB_ENV"
 
       - name: Start single-worker API for live Agent E2E
-        if: env.ICODER_CREDENTIAL_LLM != ''
         run: |
+          mkdir -p "$RUNNER_TEMP/agent-hub-live"
           python -m alembic upgrade head
           python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 \
             > "$RUNNER_TEMP/agent-hub-live/uvicorn.out.log" \
@@ -304,7 +333,6 @@ jobs:
           exit 1
 
       - name: Run 26 happy-path and 26 adversarial Agent cases
-        if: env.ICODER_CREDENTIAL_LLM != ''
         run: |
           python scripts/corti_parity/run_agent_hub_examples_e2e.py \
             --out-dir "$RUNNER_TEMP/agent-hub-live/examples" \
@@ -314,7 +342,6 @@ jobs:
             --delay 0.5 --timeout 150 --force --allow-self-register
 
       - name: Run two-round Agent stability benchmark
-        if: env.ICODER_CREDENTIAL_LLM != ''
         run: |
           python scripts/corti_parity/run_agent_hub_stability_benchmark.py \
             --out-dir "$RUNNER_TEMP/agent-hub-live/stability" \
@@ -323,7 +350,6 @@ jobs:
             --repetitions 2 --delay 0.5 --timeout 150 --allow-self-register
 
       - name: Validate reference semantics and assemble live evidence bundle
-        if: env.ICODER_CREDENTIAL_LLM != ''
         run: |
           python scripts/corti_parity/run_agent_hub_reference_quality_replay.py \
             --responses-dir "$RUNNER_TEMP/agent-hub-live/examples/responses" \
@@ -341,7 +367,7 @@ jobs:
             --assert-visible-ready
 
       - name: Stop live-E2E API
-        if: always() && env.ICODER_CREDENTIAL_LLM != ''
+        if: always()
         run: |
           if [ -f "$RUNNER_TEMP/agent-hub-live/uvicorn.pid" ]; then
             kill "$(cat "$RUNNER_TEMP/agent-hub-live/uvicorn.pid")" || true
@@ -353,4 +379,28 @@ jobs:
         with:
           name: agent-hub-live-e2e
           path: ${{ runner.temp }}/agent-hub-live
+          if-no-files-found: error
+          retention-days: 14
+
+  ci-evidence:
+    name: CI evidence summary (live status explicit)
+    if: always()
+    needs: [integration, medcoder-validation, agent-hub-offline, agent-hub-live-e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Record execution evidence
+        env:
+          CI_NEEDS_JSON: ${{ toJSON(needs) }}
+        run: python scripts/ci/summarize_integration_evidence.py --output ci-evidence/integration.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-execution-evidence
+          path: ci-evidence/integration.json
+          if-no-files-found: error
           retention-days: 14

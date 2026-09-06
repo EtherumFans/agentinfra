@@ -71,13 +71,19 @@ def test_canonical_a2a_rejects_errors_and_degraded_results(monkeypatch):
         "kind": "message", "role": "agent", "messageId": "m", "contextId": "c",
         "metadata": {"agent_id": module.AGENT_ID, "run_id": "r",
                      "manual_review_required": True, "production_writeback_blocked": True},
-        "parts": [{"kind": "data", "data": {"value": "x"},
+        "parts": [{"kind": "data", "data": {"value": "x", "human_review": {"review_required": True}},
                    "metadata": {"schema_ref": "test/v1", "result_attestation": "test-proof"}}],
     }}
     monkeypatch.setattr(module, "result_attestation_evidence", lambda *a, **k: {
         "claims_bound": True, "signature_verified": True,
     })
-    assert module.validate_result(good, pack)[0]["result"] == {"value": "x"}
+    assert module.validate_result(good, pack)[0]["result"]["value"] == "x"
+    nested_only = copy.deepcopy(good)
+    del nested_only["result"]["metadata"]["manual_review_required"]
+    module.validate_result(nested_only, pack)
+    nested_only["result"]["parts"][0]["data"]["human_review"]["review_required"] = False
+    with pytest.raises(AssertionError):
+        module.validate_result(nested_only, pack)
     for field, value in [("degraded", True), ("error", True),
                          ("manual_review_required", False), ("production_writeback_blocked", False),
                          ("agent_id", "medcoder-coding-review")]:

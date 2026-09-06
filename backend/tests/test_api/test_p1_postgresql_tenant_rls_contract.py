@@ -291,7 +291,7 @@ def test_production_revision_matches_the_single_alembic_head() -> None:
             assert parent is None, path.name
 
     heads = revisions - parent_revisions
-    assert heads == {"075"}
+    assert heads == {"076"}
 
     database_tree = ast.parse(
         (BACKEND_ROOT / "app" / "database.py").read_text(encoding="utf-8")

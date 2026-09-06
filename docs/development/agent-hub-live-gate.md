@@ -39,6 +39,8 @@ E2E invoked the obsolete `medcoder-coding-review` provider-backed route.
 - Revision 077 widens audit `run_history.runtime_mode` from 48 to 128 for
   full governed-provider identifiers. Downgrade refuses truncation. Live
   preflight checks both expert and runtime identifier widths before calls.
+  SQLite retry removes only an empty batch shadow when the main table exists;
+  populated shadows or missing authoritative tables require manual recovery.
 - PHI rotation/rewrap explicitly accept revisions 076/077; unknown future schema
   revisions remain rejected. Human review is required in the signed domain
   result, not assumed from an optional duplicate envelope metadata field.

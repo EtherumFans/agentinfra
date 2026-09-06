@@ -301,11 +301,11 @@ def test_interrupted_recovery_completes_on_retry(tmp_path) -> None:
 
     We simulate this by:
       1. Upgrade to head
-      2. Downgrade to 019
+      2. Downgrade one revision from the current head
       3. Manually create a stale _alembic_tmp_run_history table
-      4. Re-run upgrade head — must succeed (the migration code
-         doesn't explicitly handle this; alembic's batch_alter_table
-         DROP IF EXISTS handles it automatically)
+      4. Re-run upgrade head — the migration must explicitly recover
+         the empty scaffold; Alembic does not drop it automatically.
+         Populated shadow tables require separate lossless recovery.
     """
     db_path = str(tmp_path / "interrupted.db")
     up1 = _run_alembic(db_path, "upgrade", "head")

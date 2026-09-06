@@ -10,6 +10,20 @@ depends_on = None
 
 def _resize(source: int, target: int) -> None:
     if op.get_bind().dialect.name == "sqlite":
+        # A process interrupted before batch-copy may leave an empty shadow
+        # table. Only discard that empty scaffold while the authoritative
+        # table still exists; preserve ambiguous/populated recovery state.
+        inspector = sa.inspect(op.get_bind())
+        if inspector.has_table("_alembic_tmp_run_history"):
+            shadow_rows = op.get_bind().execute(sa.text(
+                "SELECT COUNT(*) FROM _alembic_tmp_run_history"
+            )).scalar_one()
+            if shadow_rows or not inspector.has_table("run_history"):
+                raise RuntimeError(
+                    "cannot resume 077: preserved SQLite batch shadow "
+                    "requires manual recovery"
+                )
+            op.drop_table("_alembic_tmp_run_history")
         with op.batch_alter_table("run_history") as batch:
             batch.alter_column(
                 "runtime_mode", existing_type=sa.String(source),

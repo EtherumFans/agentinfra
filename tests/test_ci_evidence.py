@@ -281,3 +281,30 @@ def test_live_is_a_real_skipped_job_and_release_cannot_bypass_gate():
     assert "--require 'release-ci-evidence.json'" in assemble
     assert "--require 'frontend-unit.xml'" in assemble
     assert "--input release-candidate/artifacts/release-ci-evidence.json" in assemble
+
+
+@pytest.mark.parametrize("workflow_name,job_id,step_name", [
+    ("ci-pr.yml", "phi-security-release-gate", "PostgreSQL Wave 4 application-role contracts"),
+    ("ci-integration.yml", "integration",
+     "PostgreSQL compatibility wave 4 — Context Schema and Local Expert Memory"),
+])
+def test_wave4_requires_app_role_and_retains_evidence(workflow_name, job_id, step_name):
+    job = workflow(workflow_name)["jobs"][job_id]
+    step = next(step for step in job["steps"] if step.get("name") == step_name)
+    env = job.get("env", {}) | step.get("env", {})
+    assert "_app:" in env["ICODER_DATABASE_URL"]
+    assert env["DATABASE_URL"] == env["ICODER_DATABASE_URL"]
+    assert env["ICODER_TEST_USE_PREMIGRATED_SCHEMA"] == "1"
+    assert env["ICODER_ALLOW_EXTERNAL_LLM"] == "false"
+    assert "-m postgresql_compat" in step["run"]
+    assert "asyncio_default_test_loop_scope=session" in step["run"]
+    assert "test_db_schema.py" in step["run"]
+    assert "test_a1b_ae_r_4_local_expert_completion.py" in step["run"]
+    assert "if" not in step and "continue-on-error" not in step
+    assert step_name in GATE.REQUIRED_JOBS[workflow_name][job["name"]]
+    uploads = [item for item in job["steps"]
+               if str(item.get("uses", "")).startswith("actions/upload-artifact")
+               and item.get("with", {}).get("name", "").startswith("postgresql-wave4")]
+    assert len(uploads) == 1
+    assert uploads[0]["if"] == "always()"
+    assert uploads[0]["with"]["if-no-files-found"] == "error"

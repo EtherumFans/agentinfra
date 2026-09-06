@@ -49,3 +49,30 @@ def test_all_pack_runtime_identifiers_fit_audit_schema():
         identifiers.append(identifier)
         assert len(identifier) <= width, (path.parent.name, identifier, width)
     assert max(map(len, identifiers)) > 48
+
+
+@pytest.mark.parametrize("shadow_populated", [False, True])
+def test_interrupted_sqlite_shadow_is_recovered_only_when_empty(shadow_populated):
+    path = Path(__file__).resolve().parents[3] / "alembic/versions/077_run_history_runtime_identifier.py"
+    spec = importlib.util.spec_from_file_location("migration_077_recovery", path)
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+    engine = sa.create_engine("sqlite:///:memory:")
+    with engine.begin() as connection:
+        connection.execute(sa.text("CREATE TABLE run_history (id VARCHAR(128) PRIMARY KEY, runtime_mode VARCHAR(48) NOT NULL DEFAULT '')"))
+        connection.execute(sa.text("INSERT INTO run_history VALUES ('authoritative', 'corti_like_fast')"))
+        connection.execute(sa.text("CREATE TABLE _alembic_tmp_run_history AS SELECT * FROM run_history WHERE 1=0"))
+        if shadow_populated:
+            connection.execute(sa.text("INSERT INTO _alembic_tmp_run_history VALUES ('preserve-me', 'corti_like_fast')"))
+        migration.op = Operations(MigrationContext.configure(connection))
+        if shadow_populated:
+            with pytest.raises(RuntimeError, match="manual recovery"):
+                migration.upgrade()
+            assert connection.execute(sa.text("SELECT id FROM _alembic_tmp_run_history")).scalar_one() == "preserve-me"
+        else:
+            migration.upgrade()
+            assert not sa.inspect(connection).has_table("_alembic_tmp_run_history")
+        assert connection.execute(sa.text("SELECT id FROM run_history")).scalar_one() == "authoritative"
+        columns = {c["name"]: c for c in sa.inspect(connection).get_columns("run_history")}
+        assert columns["runtime_mode"]["type"].length == (48 if shadow_populated else 128)
+    engine.dispose()

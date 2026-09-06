@@ -145,6 +145,31 @@ jobs:
           --admin-url "$P1_POSTGRES_ADMIN_DATABASE_URL"
           --migration-role "$ICODER_POSTGRES_MIGRATION_ROLE"
           --app-role "$ICODER_POSTGRES_APP_ROLE"
+      - name: PostgreSQL Wave 4 application-role contracts
+        timeout-minutes: 12
+        env:
+          # Use the same offline PHI fallback as the compatibility workflow;
+          # software-HSM operational material is tested by the gates below.
+          ICODER_PHI_KEY_PROVIDER: legacy_fernet
+          ICODER_ALLOW_DEGRADED_NO_KEY: "1"
+          LLM_PROVIDER: mock
+          ICODER_ALLOW_EXTERNAL_LLM: "false"
+        run: >-
+          python -m pytest
+          tests/integration/icoder/context/test_db_schema.py
+          tests/test_api/test_a1b_ae_r_4_local_expert_completion.py
+          -m postgresql_compat
+          -o asyncio_default_test_loop_scope=session
+          --junitxml=../artifacts/postgresql-wave4-app-role.xml
+          -v --tb=short
+      - name: Upload PostgreSQL Wave 4 application-role evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgresql-wave4-app-role-evidence
+          path: artifacts/postgresql-wave4-app-role.xml
+          if-no-files-found: error
+          retention-days: 14
       - name: Run PHI, RLS, migration, rotation and artifact gates
         run: |
           # The operational rehearsal above uses job-scoped one-time HSM

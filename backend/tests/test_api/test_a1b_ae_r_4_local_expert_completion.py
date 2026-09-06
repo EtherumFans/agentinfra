@@ -304,28 +304,57 @@ def test_wells_dvt_intermediate_score_moderate_risk():
 
 
 @pytest_asyncio.fixture
-async def memory_db(monkeypatch):
-    """In-memory SQLite for ConversationMemory + ContextMessageRow."""
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-    from app.database import Base
-    import app.models.memory  # noqa: F401
-    import app.icoder.agent_runtime.context.db_models  # noqa: F401
+async def memory_engine():
+    from tests.fixtures.database_compat import compatibility_engine
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    Session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with compatibility_engine() as engine:
+        yield engine
 
+
+@pytest_asyncio.fixture
+async def memory_db(memory_engine, monkeypatch):
+    """Real FK-owned data on both dialects; no PostgreSQL ORM DDL or model calls."""
+    from sqlalchemy import delete
+    from app.icoder.agent_runtime.context.db_models import ContextRow
+    from app.models.memory import ConversationMemory
+    from app.models.organization import Organization
+    from app.models.user import User
+    from tests.fixtures.database_compat import tenant_session
+    from cryptography.fernet import Fernet
+
+    monkeypatch.setenv("ICODER_PHI_KEY_PROVIDER", "legacy_fernet")
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY_ACTIVE_ID", "1")
+    monkeypatch.delenv("ICODER_PHI_ENCRYPTION_KEY_V1", raising=False)
     monkeypatch.setattr(
         "app.services.memory_expert._get_embedding_model", lambda: None
     )
 
-    async with Session() as session:
-        yield session
+    async with tenant_session(memory_engine, "org_w4_mem") as session:
+        session.add(Organization(
+            id="org_w4_mem", name="Wave 4 Memory Org", slug="wave4-memory-org",
+        ))
+        session.add(User(
+            id="u-w4-mem01", username="wave4-memory-user", email="wave4@example.invalid",
+            hashed_password="not-a-login-credential", full_name="Wave 4 Memory User",
+        ))
+        await session.commit()
+        try:
+            yield session
+        finally:
+            await session.rollback()
+            await session.execute(delete(ConversationMemory).where(
+                ConversationMemory.organization_id == "org_w4_mem",
+            ))
+            await session.execute(delete(ContextRow).where(
+                ContextRow.organization_id == "org_w4_mem",
+            ))
+            await session.execute(delete(User).where(User.id == "u-w4-mem01"))
+            await session.execute(delete(Organization).where(Organization.id == "org_w4_mem"))
+            await session.commit()
 
-    await engine.dispose()
 
-
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_memory_ingest_context_messages_basic(memory_db):
     from app.services.memory_expert import memory_expert
@@ -338,35 +367,37 @@ async def test_memory_ingest_context_messages_basic(memory_db):
     memory_db.add(
         ContextRow(
             id=ctx_id,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            expires_at=datetime.now(UTC),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+            expires_at=datetime.now(UTC).replace(tzinfo=None),
             agent_id="agent-1",
-            organization_id="org_test",
+            organization_id="org_w4_mem",
             status="ACTIVE",
             metadata_json="{}",
         )
     )
     memory_db.add(
         ContextMessageRow(
+            organization_id="org_w4_mem",
             context_id=ctx_id,
             message_id="msg-1",
             role="user",
             parts_json=json.dumps([{"text": "Patient has type 2 diabetes"}]),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
     )
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
         context_id=ctx_id,
-        user_id="user-1",
-        organization_id="org_test",
+        user_id="u-w4-mem01",
+        organization_id="org_w4_mem",
         db=memory_db,
     )
     assert saved == 1
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_memory_ingest_is_idempotent(memory_db):
     from app.services.memory_expert import memory_expert
@@ -379,42 +410,44 @@ async def test_memory_ingest_is_idempotent(memory_db):
     memory_db.add(
         ContextRow(
             id=ctx_id,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            expires_at=datetime.now(UTC),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+            expires_at=datetime.now(UTC).replace(tzinfo=None),
             agent_id="agent-1",
-            organization_id="org_test",
+            organization_id="org_w4_mem",
             status="ACTIVE",
             metadata_json="{}",
         )
     )
     memory_db.add(
         ContextMessageRow(
+            organization_id="org_w4_mem",
             context_id=ctx_id,
             message_id="msg-A",
             role="user",
             parts_json=json.dumps([{"text": "hello"}]),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
     )
     await memory_db.commit()
 
     first = await memory_expert.ingest_context_messages(
         context_id=ctx_id,
-        user_id="user-1",
-        organization_id="org_test",
+        user_id="u-w4-mem01",
+        organization_id="org_w4_mem",
         db=memory_db,
     )
     second = await memory_expert.ingest_context_messages(
         context_id=ctx_id,
-        user_id="user-1",
-        organization_id="org_test",
+        user_id="u-w4-mem01",
+        organization_id="org_w4_mem",
         db=memory_db,
     )
     assert first == 1
     assert second == 0, "second ingest should skip already-saved messages"
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_memory_ingest_handles_string_parts_json(memory_db):
     from app.services.memory_expert import memory_expert
@@ -427,35 +460,37 @@ async def test_memory_ingest_handles_string_parts_json(memory_db):
     memory_db.add(
         ContextRow(
             id=ctx_id,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            expires_at=datetime.now(UTC),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+            expires_at=datetime.now(UTC).replace(tzinfo=None),
             agent_id="agent-1",
-            organization_id="org_test",
+            organization_id="org_w4_mem",
             status="ACTIVE",
             metadata_json="{}",
         )
     )
     memory_db.add(
         ContextMessageRow(
+            organization_id="org_w4_mem",
             context_id=ctx_id,
             message_id="msg-str",
             role="user",
             parts_json="patient has hypertension",  # plain string, not JSON
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
     )
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
         context_id=ctx_id,
-        user_id="user-1",
-        organization_id="org_test",
+        user_id="u-w4-mem01",
+        organization_id="org_w4_mem",
         db=memory_db,
     )
     assert saved == 1
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_memory_ingest_skips_empty_messages(memory_db):
     from app.services.memory_expert import memory_expert
@@ -468,35 +503,37 @@ async def test_memory_ingest_skips_empty_messages(memory_db):
     memory_db.add(
         ContextRow(
             id=ctx_id,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            expires_at=datetime.now(UTC),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+            expires_at=datetime.now(UTC).replace(tzinfo=None),
             agent_id="agent-1",
-            organization_id="org_test",
+            organization_id="org_w4_mem",
             status="ACTIVE",
             metadata_json="{}",
         )
     )
     memory_db.add(
         ContextMessageRow(
+            organization_id="org_w4_mem",
             context_id=ctx_id,
             message_id="msg-empty",
             role="user",
             parts_json=json.dumps([{"text": ""}, {"content": ""}]),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
     )
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
         context_id=ctx_id,
-        user_id="user-1",
-        organization_id="org_test",
+        user_id="u-w4-mem01",
+        organization_id="org_w4_mem",
         db=memory_db,
     )
     assert saved == 0
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_memory_ingest_scopes_to_specific_context(memory_db):
     from app.services.memory_expert import memory_expert
@@ -509,44 +546,47 @@ async def test_memory_ingest_scopes_to_specific_context(memory_db):
         memory_db.add(
             ContextRow(
                 id=ctx_id,
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
-                expires_at=datetime.now(UTC),
+                created_at=datetime.now(UTC).replace(tzinfo=None),
+                updated_at=datetime.now(UTC).replace(tzinfo=None),
+                expires_at=datetime.now(UTC).replace(tzinfo=None),
                 agent_id="agent-1",
-                organization_id="org_test",
+                organization_id="org_w4_mem",
                 status="ACTIVE",
                 metadata_json="{}",
             )
         )
     memory_db.add(
         ContextMessageRow(
+            organization_id="org_w4_mem",
             context_id="ctx-A",
             message_id="msg-a",
             role="user",
             parts_json=json.dumps([{"text": "from context A"}]),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
     )
     memory_db.add(
         ContextMessageRow(
+            organization_id="org_w4_mem",
             context_id="ctx-B",
             message_id="msg-b",
             role="user",
             parts_json=json.dumps([{"text": "from context B"}]),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
     )
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
         context_id="ctx-A",
-        user_id="user-1",
-        organization_id="org_test",
+        user_id="u-w4-mem01",
+        organization_id="org_w4_mem",
         db=memory_db,
     )
     assert saved == 1
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_memory_save_encrypts_and_recall_is_tenant_scoped(
     memory_db, monkeypatch
@@ -558,23 +598,23 @@ async def test_memory_save_encrypts_and_recall_is_tenant_scoped(
 
     monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode())
     memory = await memory_expert.save(
-        user_id="user-1",
+        user_id="u-w4-mem01",
         session_id="session-encrypted",
         role="user",
         content="患者2型糖尿病控制欠佳，近期空腹血糖升高",
-        organization_id="org_test",
+        organization_id="org_w4_mem",
         db=memory_db,
     )
 
     assert memory is not None
-    assert memory.organization_id == "org_test"
+    assert memory.organization_id == "org_w4_mem"
     assert is_encrypted_value(memory.content)
     assert is_encrypted_value(memory.key_facts)
     assert "糖尿病" not in memory.content
 
     recalled = await memory_expert.recall(
-        user_id="user-1",
-        organization_id="org_test",
+        user_id="u-w4-mem01",
+        organization_id="org_w4_mem",
         query="糖尿病控制",
         db=memory_db,
     )
@@ -584,7 +624,7 @@ async def test_memory_save_encrypts_and_recall_is_tenant_scoped(
     assert recalled[0]["key_facts"] == []
 
     cross_tenant = await memory_expert.recall(
-        user_id="user-1",
+        user_id="u-w4-mem01",
         organization_id="other_org",
         query="糖尿病控制",
         db=memory_db,
@@ -592,6 +632,7 @@ async def test_memory_save_encrypts_and_recall_is_tenant_scoped(
     assert cross_tenant == []
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_memory_ingest_rejects_wrong_organization(memory_db):
     from app.services.memory_expert import memory_expert
@@ -604,34 +645,290 @@ async def test_memory_ingest_rejects_wrong_organization(memory_db):
     memory_db.add(
         ContextRow(
             id=context_id,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            expires_at=datetime.now(UTC),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+            expires_at=datetime.now(UTC).replace(tzinfo=None),
             agent_id="agent-1",
-            organization_id="org_test",
+            organization_id="org_w4_mem",
             status="ACTIVE",
             metadata_json="{}",
         )
     )
     memory_db.add(
         ContextMessageRow(
+            organization_id="org_w4_mem",
             context_id=context_id,
             message_id="msg-org",
             role="user",
             parts_json=json.dumps([{"text": "tenant-bound content"}]),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
     )
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
         context_id=context_id,
-        user_id="user-1",
+        user_id="u-w4-mem01",
         organization_id="other_org",
         db=memory_db,
     )
 
     assert saved == 0
+
+
+# ─────────────────────────────────────────────────────────────────────
+# §2.5 Memory database boundaries and PostgreSQL isolation
+# ─────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.postgresql_compat
+@pytest.mark.asyncio
+@pytest.mark.parametrize("message_length", [27, 28, 64])
+async def test_memory_ingest_full_length_ids_are_bounded_and_replay_safe(
+    memory_db, message_length,
+):
+    from sqlalchemy import select
+    from app.icoder.agent_runtime.context.db_models import ContextRow, ContextMessageRow
+    from app.models.memory import ConversationMemory
+    from app.services.memory_expert import memory_expert
+    from app.services.phi_encryption import decrypt_phi
+
+    context_id = "550e8400-e29b-41d4-a716-446655440040"
+    now = datetime.now(UTC).replace(tzinfo=None)
+    memory_db.add(ContextRow(
+        id=context_id, organization_id="org_w4_mem", agent_id="agent-1",
+        created_at=now, updated_at=now, expires_at=now,
+        status="active", metadata_json="{}",
+    ))
+    await memory_db.flush()
+    message_ids = ["m" * (message_length - 1) + suffix for suffix in ("a", "b")]
+    for message_id in message_ids:
+        memory_db.add(ContextMessageRow(
+            context_id=context_id, organization_id="org_w4_mem",
+            message_id=message_id, role="user", timestamp=now,
+            parts_json=json.dumps([{"text": "synthetic memory boundary case"}]),
+        ))
+    await memory_db.commit()
+    args = dict(context_id=context_id, organization_id="org_w4_mem",
+                user_id="u-w4-mem01", db=memory_db)
+    assert await memory_expert.ingest_context_messages(**args) == 2
+    memory_db.expunge_all()
+    rows = (await memory_db.scalars(select(ConversationMemory))).all()
+    assert len(rows) == 2
+    assert all(len(row.session_id) <= 64 for row in rows)
+    assert len({row.session_id for row in rows}) == 2
+    assert {json.loads(decrypt_phi(row.key_facts))["message_id"] for row in rows} == set(message_ids)
+    if message_length == 27:
+        assert {row.session_id for row in rows} == {
+            f"{context_id}:{message_id}" for message_id in message_ids
+        }
+    assert await memory_expert.ingest_context_messages(**args) == 0
+    for message_id in message_ids:
+        assert "synthetic memory boundary case" in await memory_expert.get_session_context(
+            "u-w4-mem01", "org_w4_mem", f"{context_id}:{message_id}", db=memory_db,
+        )
+
+
+@pytest.mark.postgresql_compat
+@pytest.mark.asyncio
+async def test_memory_recall_excludes_old_and_low_importance_rows(memory_db):
+    from datetime import timedelta
+    from app.models.memory import ConversationMemory
+    from app.services.memory_expert import memory_expert
+
+    now = datetime.now(UTC).replace(tzinfo=None)
+    for key, age, importance in (("recent", 1, 0.5), ("old", 31, 0.9), ("low", 1, 0.1)):
+        memory_db.add(ConversationMemory(
+            organization_id="org_w4_mem", user_id="u-w4-mem01",
+            session_id=key, role="user", content="synthetic diabetes " + key,
+            importance=importance, created_at=now - timedelta(days=age),
+        ))
+    await memory_db.commit()
+    memory_db.expunge_all()
+    recalled = await memory_expert.recall(
+        user_id="u-w4-mem01", organization_id="org_w4_mem",
+        query="diabetes", db=memory_db,
+    )
+    assert [row["content"] for row in recalled] == ["synthetic diabetes recent"]
+
+
+@pytest.mark.postgresql_compat
+@pytest.mark.asyncio
+async def test_memory_user_profile_and_session_context_are_scoped(memory_db):
+    from sqlalchemy import update
+    from app.models.memory import ConversationMemory
+    from app.services.memory_expert import memory_expert
+
+    memory = await memory_expert.save(
+        user_id="u-w4-mem01", organization_id="org_w4_mem", session_id="session-profile",
+        role="user", content="synthetic profile memory", db=memory_db,
+    )
+    await memory_db.execute(update(ConversationMemory).where(
+        ConversationMemory.id == memory.id,
+    ).values(importance=0.8))
+    await memory_db.commit()
+    memory_db.expunge_all()
+    profile = await memory_expert.get_user_profile(
+        "u-w4-mem01", "org_w4_mem", db=memory_db,
+    )
+    assert profile["total_memories"] == profile["high_value_memories"] == 1
+    assert profile["last_active"] is not None
+    assert "synthetic profile memory" in await memory_expert.get_session_context(
+        "u-w4-mem01", "org_w4_mem", "session-profile", db=memory_db,
+    )
+    assert await memory_expert.get_session_context(
+        "u-w4-mem01", "other_org", "session-profile", db=memory_db,
+    ) == ""
+    assert (await memory_expert.get_user_profile(
+        "other-user", "org_w4_mem", db=memory_db,
+    ))["total_memories"] == 0
+
+
+@pytest.mark.asyncio
+async def test_sqlite_legacy_overlong_memory_key_does_not_duplicate(memory_db, memory_engine):
+    if memory_engine.dialect.name != "sqlite":
+        pytest.skip("legacy overlong VARCHAR rows existed only in SQLite")
+    from sqlalchemy import select
+    from app.icoder.agent_runtime.context.db_models import ContextRow, ContextMessageRow
+    from app.models.memory import ConversationMemory
+    from app.services.memory_expert import memory_expert
+
+    cid, mid = "550e8400-e29b-41d4-a716-446655440041", "m" * 64
+    now = datetime.now(UTC).replace(tzinfo=None)
+    memory_db.add(ContextRow(
+        id=cid, organization_id="org_w4_mem", agent_id="agent-1",
+        created_at=now, updated_at=now, expires_at=now, status="active", metadata_json="{}",
+    ))
+    await memory_db.flush()
+    memory_db.add(ContextMessageRow(
+        context_id=cid, organization_id="org_w4_mem", message_id=mid,
+        role="user", parts_json='["synthetic legacy memory"]', timestamp=now,
+    ))
+    memory_db.add(ConversationMemory(
+        organization_id="org_w4_mem", user_id="u-w4-mem01", session_id=f"{cid}:{mid}",
+        role="user", content="synthetic legacy memory",
+    ))
+    await memory_db.commit()
+    assert await memory_expert.ingest_context_messages(
+        cid, "u-w4-mem01", "org_w4_mem", memory_db,
+    ) == 0
+    assert len((await memory_db.scalars(select(ConversationMemory))).all()) == 1
+
+
+async def _require_postgresql_app_role(engine):
+    if engine.dialect.name != "postgresql":
+        pytest.skip("requires Alembic PostgreSQL and a least-privilege application role")
+    from sqlalchemy import text
+    async with engine.connect() as connection:
+        role = (await connection.execute(text(
+            "SELECT rolsuper, rolbypassrls, rolcreatedb, rolcreaterole "
+            "FROM pg_roles WHERE rolname=current_user"
+        ))).one()
+        assert not any(role), "Wave 4 must run as the application role, never as admin"
+        assert not await connection.scalar(text(
+            "SELECT has_schema_privilege(current_user, 'public', 'CREATE')"
+        ))
+        assert await connection.scalar(text(
+            "SELECT count(*) FROM pg_auth_members m JOIN pg_roles r ON r.oid=m.member "
+            "WHERE r.rolname=current_user"
+        )) == 0
+
+
+@pytest.mark.postgresql_compat
+@pytest.mark.asyncio
+@pytest.mark.parametrize("tenant", [None, "other_org"])
+async def test_postgresql_memory_and_interview_fail_closed(memory_db, memory_engine, tenant):
+    await _require_postgresql_app_role(memory_engine)
+    from sqlalchemy import select, update
+    from sqlalchemy.exc import DBAPIError
+    from app.icoder.agent_runtime.context.db_models import ContextRow
+    from app.models.memory import ConversationMemory
+    from app.agents.experts.interviewing_expert import (
+        QuestionSpec, start_interview, save_to_context, load_from_context,
+    )
+    from app.services.memory_expert import memory_expert
+    from tests.fixtures.database_compat import tenant_session
+
+    cid = "550e8400-e29b-41d4-a716-446655440042"
+    now = datetime.now(UTC).replace(tzinfo=None)
+    memory_db.add(ContextRow(
+        id=cid, organization_id="org_w4_mem", agent_id="agent-1",
+        created_at=now, updated_at=now, expires_at=now, status="active", metadata_json="{}",
+    ))
+    await memory_db.commit()
+    await memory_expert.save(
+        "u-w4-mem01", "rls-memory", "user", "synthetic tenant-bound memory",
+        organization_id="org_w4_mem", db=memory_db,
+    )
+    questions = [QuestionSpec(key="q", prompt="Synthetic?")]
+    state = start_interview("rls", questions)
+    await save_to_context(memory_db, cid, state)
+
+    async with tenant_session(memory_engine, tenant) as other:
+        # No service-level WHERE organization_id: the database must hide rows.
+        assert (await other.scalars(select(ConversationMemory))).all() == []
+        assert await other.get(ContextRow, cid) is None
+        for operation in (
+            lambda: load_from_context(other, cid, questions),
+            lambda: save_to_context(other, cid, state),
+        ):
+            with pytest.raises(ValueError, match="context not found"):
+                await operation()
+        assert await memory_expert.ingest_context_messages(
+            cid, "u-w4-mem01", "org_w4_mem", other,
+        ) == 0
+        changed = await other.execute(update(ConversationMemory).values(content="forbidden"))
+        assert changed.rowcount == 0
+        await other.rollback()
+        with pytest.raises(DBAPIError) as caught:
+            await memory_expert.save(
+                "u-w4-mem01", "forged", "user", "synthetic forbidden write",
+                organization_id="org_w4_mem", db=other,
+            )
+        assert caught.value.orig.sqlstate == "42501"
+        await other.rollback()
+    memory_db.expunge_all()
+    assert (await load_from_context(memory_db, cid, questions)).questionnaire_key == "rls"
+    assert len((await memory_db.scalars(select(ConversationMemory))).all()) == 1
+
+
+@pytest.mark.postgresql_compat
+@pytest.mark.asyncio
+async def test_postgresql_tenant_scope_rebinds_and_resets_on_pool_reuse(memory_db, memory_engine):
+    await _require_postgresql_app_role(memory_engine)
+    from sqlalchemy import text, select
+    from sqlalchemy.ext.asyncio import create_async_engine
+    from app.models.memory import ConversationMemory
+    from app.services.memory_expert import memory_expert
+    from tests.fixtures.database_compat import tenant_session
+
+    await memory_expert.save(
+        "u-w4-mem01", "pool-memory", "user", "synthetic pooled memory",
+        organization_id="org_w4_mem", db=memory_db,
+    )
+    # Force reuse of the same physical connection (the app normally uses NullPool).
+    pooled = create_async_engine(memory_engine.url, pool_size=1, max_overflow=0)
+    try:
+        async with tenant_session(pooled, "org_w4_mem") as own:
+            pid = await own.scalar(text("SELECT pg_backend_pid()"))
+            for finish in (own.commit, own.rollback):
+                assert len((await own.scalars(select(ConversationMemory))).all()) == 1
+                await finish()
+                assert await own.scalar(text("SELECT pg_backend_pid()")) == pid
+                assert await own.scalar(text(
+                    "SELECT current_setting('icoder.current_organization_id', true)"
+                )) == "org_w4_mem"
+        async with pooled.connect() as unscoped:
+            assert await unscoped.scalar(text("SELECT pg_backend_pid()")) == pid
+            assert await unscoped.scalar(text(
+                "SELECT NULLIF(current_setting('icoder.current_organization_id', true), '')"
+            )) is None
+            assert (await unscoped.execute(select(ConversationMemory))).all() == []
+        async with tenant_session(pooled, "other_org") as other:
+            assert await other.scalar(text("SELECT pg_backend_pid()")) == pid
+            assert (await other.scalars(select(ConversationMemory))).all() == []
+    finally:
+        await pooled.dispose()
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -690,6 +987,7 @@ def test_deserialize_rejects_mismatched_question_list():
         deserialize_state(blob, wrong)
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_interview_save_load_roundtrip_via_context(memory_db):
     """End-to-end: save InterviewState to contexts.metadata_json, reload it."""
@@ -706,11 +1004,11 @@ async def test_interview_save_load_roundtrip_via_context(memory_db):
     memory_db.add(
         ContextRow(
             id=ctx_id,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            expires_at=datetime.now(UTC),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+            expires_at=datetime.now(UTC).replace(tzinfo=None),
             agent_id="agent-1",
-            organization_id="org_test",
+            organization_id="org_w4_mem",
             status="ACTIVE",
             metadata_json="{}",
         )
@@ -744,6 +1042,7 @@ async def test_interview_save_load_roundtrip_via_context(memory_db):
     assert restored.cursor == 1
 
 
+@pytest.mark.postgresql_compat
 @pytest.mark.asyncio
 async def test_load_from_context_returns_none_when_empty(memory_db):
     from app.agents.experts.interviewing_expert import (
@@ -756,11 +1055,11 @@ async def test_load_from_context_returns_none_when_empty(memory_db):
     memory_db.add(
         ContextRow(
             id=ctx_id,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            expires_at=datetime.now(UTC),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+            expires_at=datetime.now(UTC).replace(tzinfo=None),
             agent_id="agent-1",
-            organization_id="org_test",
+            organization_id="org_w4_mem",
             status="ACTIVE",
             metadata_json="{}",
         )

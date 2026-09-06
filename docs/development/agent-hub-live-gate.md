@@ -50,6 +50,11 @@ E2E invoked the obsolete `medcoder-coding-review` provider-backed route.
   both A2A and unified routes, independently of provider severity vocabulary.
   Rejected candidates remain uncodable review items. The negated-only live
   case additionally requires empty primary/secondary/procedure/flat codes.
+- Medical Coding reference semantics require failed validation, nonempty
+  issues/fired rules, WARNING review, and boolean human-review requirements.
+  A free-form model rule label (`RULE-001` versus `EVIDENCE-001`) is not an
+  API contract. Exact expected diagnosis code/text and safety assertions
+  remain enforced; negative mutations guard against false validation passes.
 
 ## Local verification
 

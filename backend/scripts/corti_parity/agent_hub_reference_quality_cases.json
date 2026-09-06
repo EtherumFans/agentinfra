@@ -218,8 +218,12 @@
       "example_index": 0,
       "assertions": [
         {"path": "code_assignment", "op": "contains_all", "value": ["S22.000x003", "胸椎压缩性骨折"]},
-        {"path": "validation_summary", "op": "contains_all", "value": ["RULE-001", "manual_review_required"]},
-        {"path": "human_review", "op": "contains_all", "value": ["WARNING", "review_required"]},
+        {"path": "validation_summary.passed", "op": "is_false"},
+        {"path": "validation_summary.issues_found", "op": "nonempty"},
+        {"path": "validation_summary.fired_rules", "op": "nonempty"},
+        {"path": "validation_summary.manual_review_required", "op": "is_true"},
+        {"path": "human_review.review_conclusion", "op": "equals", "value": "WARNING"},
+        {"path": "human_review.review_required", "op": "is_true"},
         {"path": "uncodable_items", "op": "empty"}
       ]
     },

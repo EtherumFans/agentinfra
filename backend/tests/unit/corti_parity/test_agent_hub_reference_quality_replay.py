@@ -140,6 +140,33 @@ def test_semantic_mutation_fails_without_copying_actual_content() -> None:
     )
 
 
+def test_medical_reference_accepts_provider_rule_labels_not_false_validation():
+    packs = {MODULE._agent_id(pack): pack for pack in _packs()}
+    _document, cases = MODULE.load_reference_cases(MODULE.DEFAULT_CASES, list(packs.values()))
+    reference = copy.deepcopy(packs["medical-coding-agent"]["example_outputs"][0])
+    case = cases["medical-coding-agent"]
+    # Rule identifiers are free-form provider output, not a Pack enum or a
+    # canonical clinical policy ID. Preserve the actual warning, not its label.
+    reference["validation_summary"]["issues_found"][0]["code"] = "EVIDENCE-001"
+    reference["validation_summary"]["fired_rules"] = ["EVIDENCE-001"]
+    assert MODULE.evaluate_reference_output(reference, case)["assertions_passed"]
+    for path, value in [
+        (("validation_summary", "passed"), True),
+        (("validation_summary", "manual_review_required"), False),
+        (("validation_summary", "issues_found"), []),
+        (("validation_summary", "fired_rules"), []),
+        (("human_review", "review_required"), False),
+        (("human_review", "review_conclusion"), "PASS"),
+        (("code_assignment", "primary_diagnosis", "code"), "J18.900"),
+    ]:
+        invalid = copy.deepcopy(reference)
+        target = invalid
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = value
+        assert not MODULE.evaluate_reference_output(invalid, case)["assertions_passed"], path
+
+
 def test_source_report_must_be_complete_successful_and_match_visible_agents(
     tmp_path: Path,
 ) -> None:

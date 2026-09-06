@@ -30,7 +30,9 @@ def validate_result(body: dict, pack: dict) -> tuple[dict, dict]:
     assert message.get("messageId") and message.get("contextId")
     metadata = message.get("metadata") or {}
     assert metadata.get("agent_id") == AGENT_ID and metadata.get("run_id")
-    assert metadata.get("manual_review_required") is True
+    # Dedicated coding exposes review_required in the signed domain result;
+    # generic providers additionally repeat it in message metadata.
+    assert metadata.get("manual_review_required") in (None, True)
     assert metadata.get("production_writeback_blocked") is True
     assert not metadata.get("degraded") and not metadata.get("error")
     schema = pack["output_contract"]["schema_ref"]
@@ -41,6 +43,7 @@ def validate_result(body: dict, pack: dict) -> tuple[dict, dict]:
     result = parts[0].get("data") or {}
     assert set(pack["output_contract"]["required_fields"]).issubset(result)
     assert result.get("contract_output_suppressed") is not True
+    assert (result.get("human_review") or {}).get("review_required") is True
     normalized = {
         "run_id": metadata["run_id"], "result": result,
         "result_attestation": (parts[0].get("metadata") or {}).get("result_attestation"),
@@ -80,15 +83,24 @@ def test_orchestrator_real_deepseek_end_to_end():
     assert response.status_code == 200, f"canonical A2A HTTP {response.status_code}"
     assert response.headers.get("A2A-Protocol-Version") == "0.3"
     assert body.get("id") == request_id
-    normalized, proof = validate_result(body, pack)
     trace = capture_trace_artifact(
-        base_url=base, headers=headers, response=normalized,
+        base_url=base, headers=headers,
+        response={"run_id": ((body.get("result") or {}).get("metadata") or {}).get("run_id", "")},
         trace_path=output / "trace.json", timeout=30,
     )
+    normalized, proof = validate_result(body, pack)
     assert trace["http_status"] == 200 and trace["run_id_matches"]
     assert trace["trace_attestation_signature_verified"]
     assert trace["model_call_observed"] and "deepseek" in trace["model_providers"]
     assert not trace["mock_detected"] and not trace["degraded_detected"]
+    parts = body["result"]["parts"]
+    domain_part = next(p for p in parts if p.get("kind") == "data")
+    cost = ((domain_part.get("metadata") or {}).get("runtime") or {}).get("cost") or {}
+    usage = cost.get("token_usage") or {}
+    assert cost.get("source") == "provider_token_usage"
+    assert usage.get("input_tokens", 0) > 0 and usage.get("output_tokens", 0) > 0
+    primary = (normalized["result"].get("code_assignment") or {}).get("primary_diagnosis") or {}
+    assert str(primary.get("code") or "").startswith(case["expected_principal_diagnosis"][:3])
     (output / "evidence.json").write_text(json.dumps({
         "source_revision": os.environ.get("GITHUB_SHA", ""),
         "agent_id": AGENT_ID, "passed": True, "result_proof": proof, "trace": trace,

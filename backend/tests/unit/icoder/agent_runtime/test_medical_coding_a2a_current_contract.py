@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from app.coding_runtime.base import CodingResult
 from app.icoder.agent_runtime.a2a_facade import (
     build_medical_coding_inbound_response,
@@ -112,3 +114,33 @@ def test_builder_fails_closed_on_nested_contract_violation(monkeypatch):
     assert response.http_status == 503
     assert response.error["code"] == "OUTPUT_CONTRACT_VIOLATION"
     assert response.metadata["invalid_field_schemas"]
+
+
+@pytest.mark.parametrize("severity", ["critical", "high", "medium", "low"])
+def test_a2a_failed_review_withholds_diagnoses_independent_of_severity(monkeypatch, severity):
+    monkeypatch.setenv("ICODER_RESULT_ATTESTATION_KEY", "test-only-attestation-key-32-bytes-minimum")
+    result = _result()
+    result.raw_schema.update({
+        "review_conclusion": "FAIL",
+        "primary_diagnosis": {
+            "code": "J18.900", "description": "肺炎", "confidence": 0.3,
+            "evidence": ["肺炎已排除"],
+        },
+        "secondary_diagnoses": [{
+            "code": "J18.9", "description": "肺炎", "evidence": ["肺炎已排除"],
+        }],
+        "issues_found": [{"severity": severity, "code": "EVIDENCE_INSUFFICIENT", "message": "无确诊诊断"}],
+    })
+    response = build_medical_coding_inbound_response(
+        result=result, run_id="run-medical-a2a", trace_id="trace-medical-a2a",
+        context_id="context-medical-a2a", source_text="肺炎已排除",
+    )
+    assert response.kind == "message"
+    data = response.parts[0]["data"]
+    assert data["code_assignment"]["primary_diagnosis"]["code"] == ""
+    assert data["code_assignment"]["secondary_diagnoses"] == []
+    assert len(data["uncodable_items"]) == 2
+    assert data["validation_summary"]["passed"] is False
+    assert data["human_review"]["review_required"] is True
+    # Projection does not destroy the internal evidence used for audit.
+    assert result.raw_schema["primary_diagnosis"]["code"] == "J18.900"

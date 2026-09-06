@@ -2364,30 +2364,9 @@ def _map_coding_result(
         )
 
         legacy = MedicalCodingOutputSchema.from_dict(raw_schema)
-        # A completed business-level NO_CONFIRMED_DIAGNOSIS decision is a
-        # hard coding safety gate.  Some LLMs correctly emit that issue but
-        # leave a low-confidence, negated candidate in primary_diagnosis.
-        # Never expose such a candidate as an assignable code.
-        no_confirmed_diagnosis = any(
-            str(getattr(issue, "code", "")).upper()
-            == "NO_CONFIRMED_DIAGNOSIS"
-            for issue in legacy.issues_found
-        )
-        # Provider rule identifiers are not yet canonical (some models emit
-        # RULE-001 for the same condition).  A FAIL result containing a
-        # critical issue is nevertheless unambiguous: diagnosis assignment
-        # is not safe to expose as final.  Fail closed independent of the
-        # provider's localized message or rule-code vocabulary.
-        critical_diagnosis_failure = (
-            str(legacy.review_conclusion).upper() == "FAIL"
-            and any(
-                str(getattr(issue, "severity", "")).lower() == "critical"
-                for issue in legacy.issues_found
-            )
-        )
-        suppress_diagnosis_assignment = (
-            no_confirmed_diagnosis or critical_diagnosis_failure
-        )
+        # The shared policy also protects A2A. A FAIL decision is sufficient;
+        # do not depend on the provider choosing a particular severity word.
+        suppress_diagnosis_assignment = legacy.diagnosis_assignment_blocked
         rejected_diagnoses = []
         if suppress_diagnosis_assignment:
             rejected_diagnoses = [

@@ -319,6 +319,18 @@ class MedicalCodingOutputSchema:
     method_family: str = ""  # medcoder | legacy | noop
     method_stage_trace: list = field(default_factory=list)  # list[dict]
 
+    @property
+    def diagnosis_assignment_blocked(self) -> bool:
+        """A failed review cannot publish assignable diagnosis candidates.
+
+        Provider severity/rule vocabularies vary (for example high versus
+        critical). The business FAIL decision itself is the safety boundary.
+        """
+        return str(self.review_conclusion).upper() == "FAIL" or any(
+            str(issue.code).upper() == "NO_CONFIRMED_DIAGNOSIS"
+            for issue in self.issues_found
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "review_conclusion": self.review_conclusion,
@@ -703,7 +715,7 @@ class MedicalCodingAgentOutputV2:
 
         # validation_summary: project from issues_found + manual_review_required
         validation = ValidationSummary(
-            passed=not legacy.issues_found,
+            passed=not legacy.diagnosis_assignment_blocked and not legacy.issues_found,
             issues_found=list(legacy.issues_found),
             # The public Medical Coding Pack is review-required in every
             # outcome.  Keep the nested v8 contract aligned with the
@@ -723,10 +735,26 @@ class MedicalCodingAgentOutputV2:
             notes=legacy.notes,
         )
 
-        # code_assignment: pass-through (codes already carry evidence)
+        # Evidence quotes do not override a failed business review. Apply the
+        # same safety decision for A2A and unified projections, without
+        # mutating the runtime's original evidence object.
+        blocked = legacy.diagnosis_assignment_blocked
+        rejected = [
+            diagnosis for diagnosis in
+            [legacy.primary_diagnosis, *legacy.secondary_diagnoses]
+            if blocked and diagnosis.code
+        ]
+        uncodable = []
+        for diagnosis in rejected:
+            spans = _parse_evidence(diagnosis.evidence or [])
+            uncodable.append(UncodableItem(
+                item_type="deferred_diagnosis",
+                text=next((span.text for span in spans if span.text), diagnosis.description),
+                reason="The coding review failed; this candidate must not be assigned or billed.",
+            ))
         assignment = CodeAssignment(
-            primary_diagnosis=legacy.primary_diagnosis,
-            secondary_diagnoses=list(legacy.secondary_diagnoses),
+            primary_diagnosis=DiagnosisEntry() if blocked else legacy.primary_diagnosis,
+            secondary_diagnoses=[] if blocked else list(legacy.secondary_diagnoses),
             procedures=list(legacy.procedures),
         )
 
@@ -749,7 +777,7 @@ class MedicalCodingAgentOutputV2:
             ),
             code_assignment=assignment,
             documentation_gaps=[],
-            uncodable_items=[],
+            uncodable_items=uncodable,
             validation_summary=validation,
             human_review=review,
             trace_refs=trace,

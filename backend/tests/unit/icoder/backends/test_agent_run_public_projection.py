@@ -1,6 +1,7 @@
 """Public Agent Run projection must not expose opaque provider payloads."""
 
 import json
+import pytest
 import time
 from pathlib import Path
 from types import SimpleNamespace
@@ -1002,7 +1003,8 @@ def test_source_negation_is_uncodable_without_model_candidate() -> None:
     )
 
 
-def test_critical_diagnosis_failure_cannot_depend_on_provider_rule_name() -> None:
+@pytest.mark.parametrize("severity", ["critical", "high", "medium", "low"])
+def test_failed_diagnosis_cannot_depend_on_provider_rule_or_severity(severity) -> None:
     raw_schema = {
         "review_conclusion": "FAIL",
         "primary_diagnosis": {
@@ -1010,7 +1012,7 @@ def test_critical_diagnosis_failure_cannot_depend_on_provider_rule_name() -> Non
             "evidence": ["肺炎已排除"],
         },
         "issues_found": [{
-            "severity": "critical", "code": "RULE-001",
+            "severity": severity, "code": "RULE-001",
             "message": "无确诊诊断", "suggestion": "补充记录",
         }],
         "manual_review_required": True,

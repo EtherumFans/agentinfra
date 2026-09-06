@@ -46,6 +46,10 @@ E2E invoked the obsolete `medcoder-coding-review` provider-backed route.
   before minting tokens. Dependency cleanup after response transmission is
   not a safe commit boundary for the immediate authenticated Agent request.
   Commit failure rolls back and returns 503 without issuing credentials.
+- A business-level failed coding review withholds diagnosis assignments on
+  both A2A and unified routes, independently of provider severity vocabulary.
+  Rejected candidates remain uncodable review items. The negated-only live
+  case additionally requires empty primary/secondary/procedure/flat codes.
 
 ## Local verification
 

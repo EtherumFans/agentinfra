@@ -156,6 +156,19 @@ async def register(data: UserCreate, request: Request, db: AsyncSession = Depend
                      details={"org_id": org.id, "org_name": org.name},
                      organization_id=org.id)
 
+    # Yield-dependency cleanup can run after the HTTP response is sent.
+    # A token must not escape while its user/membership are still uncommitted:
+    # an immediate Agent request uses another connection and would see 401.
+    try:
+        await db.commit()
+    except Exception as exc:
+        await db.rollback()
+        logger.error("registration commit failed error_type=%s", type(exc).__name__)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Registration could not be persisted. Please try again.",
+        ) from None
+
     orgs = [OrgInfo(id=org.id, name=org.name, slug=org.slug, plan=org.plan,
                     role="owner", is_default=True)]
     access_token = create_access_token(user.id, user.username, user.role.value, org.id, token_version=0)

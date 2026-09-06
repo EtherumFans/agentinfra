@@ -42,6 +42,10 @@ E2E invoked the obsolete `medcoder-coding-review` provider-backed route.
 - PHI rotation/rewrap explicitly accept revisions 076/077; unknown future schema
   revisions remain rejected. Human review is required in the signed domain
   result, not assumed from an optional duplicate envelope metadata field.
+- Public registration commits the user, organization, membership and audit
+  before minting tokens. Dependency cleanup after response transmission is
+  not a safe commit boundary for the immediate authenticated Agent request.
+  Commit failure rolls back and returns 503 without issuing credentials.
 
 ## Local verification
 

@@ -72,9 +72,18 @@ async def schema_evidence() -> dict:
                 "WHERE table_schema='public' AND table_name='agents' "
                 "AND column_name='default_expert_id'"
             ))).scalar_one()
+            runtime_width = (await connection.execute(text(
+                "SELECT character_maximum_length FROM information_schema.columns "
+                "WHERE table_schema='public' AND table_name='run_history' "
+                "AND column_name='runtime_mode'"
+            ))).scalar_one()
         assert revision == heads[0], "database/head mismatch"
         assert width == 128, "Pack expert identifier width mismatch"
-        return {"revision": revision, "default_expert_id_width": width}
+        assert runtime_width == 128, "audit runtime identifier width mismatch"
+        return {
+            "revision": revision, "default_expert_id_width": width,
+            "runtime_mode_width": runtime_width,
+        }
     finally:
         await engine.dispose()
 

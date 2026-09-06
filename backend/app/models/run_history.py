@@ -69,7 +69,8 @@ class RunHistoryModel(Base, TimestampMixin):
     # Run envelope fields (from AgentRunResponse)
     run_id: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
     trace_id: Mapped[str] = mapped_column(String(64), default="", server_default="")
-    runtime_mode: Mapped[str] = mapped_column(String(48), default="", server_default="")
+    # Includes the full governed-provider backend_type, not only short modes.
+    runtime_mode: Mapped[str] = mapped_column(String(128), default="", server_default="")
     latency_ms: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0, server_default="0.0")
 

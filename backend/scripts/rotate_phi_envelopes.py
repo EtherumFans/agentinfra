@@ -1,4 +1,4 @@
-"""Resumable online PHI envelope rotation for revisions 072 through 076.
+"""Resumable online PHI envelope rotation for revisions 072 through 077.
 
 The forward v1->v2 path is safe while the dual-reader/v2-writer application is
 serving traffic.  Rows are locked in small batches and committed independently;
@@ -62,9 +62,9 @@ def run(database_url: str, *, target: str, execute: bool, batch_size: int) -> di
         with connection.cursor() as cursor:
             cursor.execute("SELECT version_num FROM alembic_version")
             revision = str(cursor.fetchone()[0])
-            if revision not in {"072", "073", "074", "075", "076"}:
+            if revision not in {"072", "073", "074", "075", "076", "077"}:
                 raise RuntimeError(
-                    f"PHI rotation requires compatible revision 072 through 076; found {revision}"
+                    f"PHI rotation requires compatible revision 072 through 077; found {revision}"
                 )
             cursor.execute(
                 "SELECT pg_try_advisory_lock(hashtext('icoder.phi.rotation.v2'))"

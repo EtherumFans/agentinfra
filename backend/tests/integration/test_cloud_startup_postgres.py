@@ -19,5 +19,5 @@ async def test_migrated_head_passes_cloud_startup_database_gate() -> None:
     from app import database
 
     assert database.engine.dialect.name == "postgresql"
-    assert database.PRODUCTION_SCHEMA_REVISION == "076"
+    assert database.PRODUCTION_SCHEMA_REVISION == "077"
     await database.verify_production_database()

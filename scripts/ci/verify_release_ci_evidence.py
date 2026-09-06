@@ -36,6 +36,8 @@ REQUIRED_JOBS = {
         "MedCodER registry / index smoke (no quality claim)": [],
         "Agent Hub offline contracts (no live claim)": ["Validate all Hub-visible Packs without network access"],
         "Agent Hub 26-Agent live E2E": [
+            "Verify live configuration, schema and Registry readiness",
+            "Real-provider canonical A2A E2E",
             "Run 26 happy-path and 26 adversarial Agent cases",
             "Run two-round Agent stability benchmark",
             "Validate reference semantics and assemble live evidence bundle",

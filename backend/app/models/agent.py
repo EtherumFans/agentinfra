@@ -100,7 +100,8 @@ class Agent(Base, TimestampMixin):
 
     # Expert bindings: 1 Agent can use N Experts
     expert_ids: Mapped[list] = mapped_column(JSON, default=list)  # ["abc123", "def456"]
-    default_expert_id: Mapped[str] = mapped_column(String(12), default="")
+    # Pack expert identifiers are public slugs, not 12-character DB UUIDs.
+    default_expert_id: Mapped[str] = mapped_column(String(128), default="")
 
     # A2A Protocol
     a2a_enabled: Mapped[bool] = mapped_column(Boolean, default=False)

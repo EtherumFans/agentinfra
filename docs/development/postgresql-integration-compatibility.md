@@ -66,6 +66,15 @@ Two runtime incompatibilities were reproduced and fixed:
 
 No schema migration or production schema revision change is required.
 
+The first PostgreSQL 16 Integration run also exposed an existing-schema role
+adoption bug: independent ownership changes were attempted on table-owned
+sequences before their tables. Provisioning now leaves SERIAL/IDENTITY
+dependencies intact and moves those sequences with their table; standalone
+sequences are still transferred explicitly and all sequence owners remain
+subject to verification. The role contract now seeds existing SERIAL,
+IDENTITY and standalone sequences, repeats provisioning after new objects,
+and checks retained data, sequence values and ownership links.
+
 CI executes the marked cases in both the Integration workflow and the PR PHI
 gate. Integration provisions/verifies the app role after Wave 3; the PR gate
 starts with a separate migration identity and then runs Wave 4 as the app role.
@@ -100,6 +109,8 @@ recreates its schema.
 - CI evidence/release-validator contracts: **55 passed**. `git diff --check`
   passed; role verification found no privilege drift across 92 objects and
   9 functions. Wave 4 tenant/user fixture rows were cleaned up.
+- Follow-up role-adoption regression and role unit contracts: **7 passed**
+  locally after reproducing the linked-sequence failure in GitHub PostgreSQL 16.
 
 Local Python was 3.12. The wired GitHub jobs use Python 3.11 / PostgreSQL 16;
 their new remote runs remain to be executed after commit/push. These local

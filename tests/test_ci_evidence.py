@@ -308,3 +308,26 @@ def test_wave4_requires_app_role_and_retains_evidence(workflow_name, job_id, ste
     assert len(uploads) == 1
     assert uploads[0]["if"] == "always()"
     assert uploads[0]["with"]["if-no-files-found"] == "error"
+
+
+def test_live_configuration_and_canonical_a2a_are_isolated_and_blocking():
+    jobs = workflow("ci-integration.yml")["jobs"]
+    live = jobs["agent-hub-live-e2e"]
+    assert live["env"]["ICODER_ALLOW_EXTERNAL_LLM"] == "true"
+    assert live["env"]["ICODER_DISABLE_AUTH_FOR_TESTS"] == "0"
+    assert live["env"]["ICODER_ALLOW_DEGRADED_NO_KEY"] == "0"
+    assert live["env"]["RATE_LIMIT_PER_MINUTE"] == "600"
+    steps = live["steps"]
+    names = [step.get("name", "") for step in steps]
+    preflight = "Verify live configuration, schema and Registry readiness"
+    a2a = "Real-provider canonical A2A E2E"
+    assert names.index(preflight) < names.index(a2a) < names.index("Run 26 happy-path and 26 adversarial Agent cases")
+    for name in (preflight, a2a):
+        step = next(s for s in steps if s.get("name") == name)
+        assert "if" not in step and "continue-on-error" not in step
+        assert name in GATE.REQUIRED_JOBS["ci-integration.yml"][live["name"]]
+    a2a_step = next(s for s in steps if s.get("name") == a2a)
+    assert "--noconftest" in a2a_step["run"] and "--junitxml" in a2a_step["run"]
+    assert a2a_step["env"]["ICODER_RUN_LIVE_AGENT_E2E"] == "1"
+    ordinary = next(s for s in jobs["integration"]["steps"] if s.get("name") == "Backend e2e tests")
+    assert ordinary["env"]["ICODER_CREDENTIAL_LLM"] == ""

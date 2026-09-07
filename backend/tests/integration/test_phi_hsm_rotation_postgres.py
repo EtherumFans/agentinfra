@@ -13,6 +13,7 @@ from pathlib import Path
 import psycopg
 import pytest
 from cryptography.fernet import Fernet
+from app.database import PRODUCTION_SCHEMA_REVISION
 
 from app.services.phi_encryption import decrypt_phi, encrypt_phi_v1
 from app.services.soft_hsm_keystore import seal_keyring
@@ -83,8 +84,8 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(
                 revision = str(cursor.fetchone()[0])
         if revision == "070":
             backfill(MIGRATION_URL, execute=True)
-        if revision != "075":
-            _alembic("075")
+        if revision != PRODUCTION_SCHEMA_REVISION:
+            _alembic(PRODUCTION_SCHEMA_REVISION)
         with psycopg.connect(_raw(APP_URL)) as connection:
             with connection.cursor() as cursor:
                 _set_tenant(cursor, organization_id)
@@ -105,7 +106,7 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(
     with psycopg.connect(_raw(MIGRATION_URL)) as connection:
         with connection.cursor() as cursor:
             cursor.execute("SELECT version_num FROM alembic_version")
-            assert cursor.fetchone()[0] == "075"
+            assert cursor.fetchone()[0] == PRODUCTION_SCHEMA_REVISION
             cursor.execute(
                 "INSERT INTO organizations (id,name,slug,plan,settings,is_active) "
                 "VALUES (%s,%s,%s,'free','{}'::json,true)",
@@ -233,7 +234,7 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(
 
     migrated = backfill(MIGRATION_URL, execute=True)
     assert migrated["updated_values"] >= 3
-    _alembic("075")
+    _alembic(PRODUCTION_SCHEMA_REVISION)
     assert rotate(MIGRATION_URL, target="v2", execute=True, batch_size=2)["values"] >= 3
 
     with psycopg.connect(_raw(APP_URL)) as connection:

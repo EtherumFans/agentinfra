@@ -118,6 +118,20 @@ results do not claim a full historical Integration sweep, live-provider
 validation, or clinical quality. The isolated local PostgreSQL instance was
 stopped after validation; no existing service or business database was changed.
 
+## Mainline synchronization (2026-09-07)
+
+Wave 4 now incorporates the P0 Agent Hub Live Gate fixes from master
+`5c5e52cae91f689b70d3505c59b2b187c5e1c178`. Alembic and cloud startup use
+revision `077`; Wave 4 itself adds no further migration. Historical `075`
+results above describe the original verification, not the synchronized head.
+
+Both Wave 4 application-role gates and the P0 authenticated real-provider
+preflight/A2A/semantic gates remain mandatory in release evidence. Their
+independent CI contract tests are retained together. Fresh PostgreSQL 16 and
+live-provider evidence must be collected on the synchronized PR head and
+again on its eventual master merge commit; older skipped-live runs cannot
+substitute for those checks.
+
 ## Remaining scope
 
 The full historical Integration suite still runs on SQLite. Further work

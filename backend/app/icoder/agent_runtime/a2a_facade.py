@@ -314,6 +314,117 @@ async def dispatch_medical_coding_fast(
     return result, out_run_id, out_trace_id
 
 
+async def run_medical_coding_a2a(
+    *,
+    dispatch_input: dict[str, Any],
+    context_id: str,
+    interaction_id: str = "",
+    source_text: str = "",
+    source_documents: list[dict[str, Any]] | None = None,
+    upstream_results: list[dict[str, Any]] | None = None,
+) -> InboundResponse:
+    """Own the A2A fast-path audit lifecycle before publishing any result.
+
+    The unified Agent Run endpoint owns its own lifecycle and continues to
+    call dispatch_medical_coding_fast directly. Trace events alone cannot
+    authorize a trace read: a committed tenant-owned RunHistory is required.
+    """
+    from app import database
+    from app.services.run_lifecycle import RunStatus, record_run_start, set_status
+    from app.services.database_tenancy import bind_tenant_to_transaction
+
+    dispatch_input = dict(dispatch_input)
+    run_id = dispatch_input["run_id"] = dispatch_input.get("run_id") or make_run_id()
+    trace_id = dispatch_input["trace_id"] = (
+        dispatch_input.get("trace_id") or f"trace-{uuid.uuid4().hex[:16]}"
+    )
+    agent_id = str(dispatch_input["agent_id"])
+    organization_id = str(dispatch_input.get("tenant_id") or "")
+    user_id = str(dispatch_input.get("user_id") or "")
+    started_at = time.monotonic()
+
+    def failure(code: str, message: str) -> InboundResponse:
+        return InboundResponse(
+            kind="error", context_id=context_id, http_status=503,
+            metadata={
+                "run_id": run_id, "trace_id": trace_id, "agent_id": agent_id,
+                "phi_redacted": True, "production_writeback_blocked": True,
+                "manual_review_required": True,
+            },
+            error={"code": code, "message": message},
+        )
+
+    try:
+        if not organization_id:
+            raise ValueError("A2A run requires server-established tenant identity")
+        async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, organization_id)
+            await record_run_start(
+                db, run_id=run_id, trace_id=trace_id, agent_id=agent_id,
+                organization_id=organization_id, user_id=user_id,
+                context_id=context_id, input_text=source_text,
+                runtime_mode=dispatch_input.get("runtime_mode") or "corti_like_fast",
+            )
+            await set_status(db, run_id=run_id, status=RunStatus.RUNNING)
+            await db.commit()
+    except Exception as exc:
+        logger.error("Medical A2A audit start failed error_type=%s", type(exc).__name__)
+        return failure("RUN_AUDIT_UNAVAILABLE", "Agent execution could not establish its audit record.")
+
+    result = None
+    try:
+        result, out_run_id, trace_id = await dispatch_medical_coding_fast(**dispatch_input)
+        if out_run_id != run_id:
+            raise ValueError("Runtime changed the authoritative run identity")
+        persist_trace_events(
+            run_id=run_id, trace_events=list(result.trace_events or []),
+            agent_id=agent_id, runtime_mode=result.runtime_mode,
+            trace_id=trace_id, organization_id=organization_id,
+            user_id=user_id, actor_id=user_id,
+        )
+        response = build_medical_coding_inbound_response(
+            result=result, run_id=run_id, trace_id=trace_id,
+            context_id=context_id, interaction_id=interaction_id,
+            source_text=source_text, source_documents=source_documents,
+            upstream_results=upstream_results, organization_id=organization_id,
+        )
+    except Exception as exc:
+        logger.error("Medical A2A execution failed error_type=%s", type(exc).__name__)
+        response = failure("INTERNAL_ERROR", "Medical coding execution failed.")
+
+    failed = response.kind != "message"
+    reason = str((response.error or {}).get("code") or "") if failed else ""
+    emit_trace_event(
+        run_id, RunTraceStep.COMPLETION,
+        status=RunTraceStatus.FAILED if failed else RunTraceStatus.OK,
+        safe_metadata={
+            "agent_id": agent_id, "error_reason": reason,
+            "_trace_id": trace_id, "_organization_id": organization_id,
+            "_user_id": user_id or None, "_actor_id": user_id or None,
+        },
+    )
+    try:
+        async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, organization_id)
+            row = await set_status(
+                db, run_id=run_id,
+                status=RunStatus.FAILED if failed else RunStatus.COMPLETED,
+                extra_fields={
+                    "trace_id": trace_id,
+                    "latency_ms": int((time.monotonic() - started_at) * 1000),
+                    "cost_usd": float((getattr(result, "cost", None) or {}).get("amount") or 0),
+                    "error": failed, "error_reason": reason[:128] or None,
+                },
+            )
+            if row is None:
+                raise RuntimeError("Run audit record disappeared before finalization")
+            await db.commit()
+    except Exception as exc:
+        logger.error("Medical A2A audit finalization failed error_type=%s", type(exc).__name__)
+        return failure("RUN_AUDIT_UNAVAILABLE", "Agent result was withheld because its audit record could not be finalized.")
+    return response
+
+
 def build_medical_coding_inbound_response(
     *,
     result: Any,

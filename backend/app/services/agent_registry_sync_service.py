@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -334,6 +334,7 @@ class AgentRegistrySyncService:
 
         repaired: list[str] = []
         failed: list[str] = []
+        committed = False
 
         try:
             report = await self.check_consistency(db)
@@ -341,62 +342,80 @@ class AgentRegistrySyncService:
             state.total_in_db = report.total_db
             state.checked_at = report.checked_at
 
+            if db.bind.dialect.name == "sqlite" and any(
+                inc.type in {"missing_in_db", "field_mismatch"}
+                for inc in report.inconsistencies
+            ):
+                # Python's legacy SQLite transaction mode does not BEGIN for
+                # SELECT/SAVEPOINT. Start a real outer write transaction before
+                # releasing any savepoint, so outer rollback remains effective.
+                await db.execute(text("UPDATE agents SET id=id WHERE 1=0"))
+
             for inc in report.inconsistencies:
                 if inc.type in {"missing_in_db", "field_mismatch"}:
                     reg_rec = self._registry.get(inc.agent_ref)
                     try:
-                        fields = _registry_record_db_fields(reg_rec)
-                        ref = str(fields["config"].get("agent_ref") or "")
-                        db_agent = None
-                        if inc.db_data and inc.db_data.get("id"):
-                            existing = await db.execute(
-                                select(AgentModel).where(
-                                    AgentModel.id == str(inc.db_data["id"])
+                        # Flush inside the savepoint: a bad Pack must not poison
+                        # the shared PostgreSQL transaction or the next Pack.
+                        async with db.begin_nested():
+                            fields = _registry_record_db_fields(reg_rec)
+                            ref = str(fields["config"].get("agent_ref") or "")
+                            db_agent = None
+                            if inc.db_data and inc.db_data.get("id"):
+                                existing = await db.execute(
+                                    select(AgentModel).where(
+                                        AgentModel.id == str(inc.db_data["id"])
+                                    )
                                 )
-                            )
-                            db_agent = existing.scalar_one_or_none()
-                        if db_agent is None:
-                            existing = await db.execute(
-                                select(AgentModel).where(
-                                    AgentModel.id == inc.agent_ref
+                                db_agent = existing.scalar_one_or_none()
+                            if db_agent is None:
+                                existing = await db.execute(
+                                    select(AgentModel).where(
+                                        AgentModel.id == inc.agent_ref
+                                    )
                                 )
-                            )
-                            db_agent = existing.scalar_one_or_none()
-                        if db_agent is None and ref:
-                            candidates = await db.execute(
-                                select(AgentModel).where(
-                                    AgentModel.is_prebuilt == True  # noqa: E712
+                                db_agent = existing.scalar_one_or_none()
+                            if db_agent is None and ref:
+                                candidates = await db.execute(
+                                    select(AgentModel).where(
+                                        AgentModel.is_prebuilt == True  # noqa: E712
+                                    )
                                 )
-                            )
-                            db_agent = next(
-                                (
-                                    item for item in candidates.scalars().all()
-                                    if _db_agent_ref(item) == ref
-                                ),
-                                None,
-                            )
-                        if db_agent is None:
-                            db_agent = AgentModel(**fields)
-                            db.add(db_agent)
-                        else:
-                            # Upgrade rows created by the former incomplete
-                            # repair path instead of leaving an orphan clone-like row.
-                            for key, value in fields.items():
-                                setattr(db_agent, key, value)
+                                db_agent = next(
+                                    (item for item in candidates.scalars().all()
+                                     if _db_agent_ref(item) == ref), None,
+                                )
+                            if db_agent is None:
+                                db_agent = AgentModel(**fields)
+                                db.add(db_agent)
+                            else:
+                                for key, value in fields.items():
+                                    setattr(db_agent, key, value)
+                            await db.flush()
                         repaired.append(inc.agent_ref)
                     except Exception as e:
-                        logger.error(f"Failed to repair DB for {inc.agent_ref}: {e}")
+                        # SQLAlchemy exception strings can contain full Pack
+                        # prompts/parameters; publish only the exception class.
+                        state.last_error = type(e).__name__
+                        logger.error("Registry projection failed: %s", type(e).__name__)
                         failed.append(inc.agent_ref)
 
             if repaired:
                 await db.commit()
+                committed = True
                 logger.info(f"Repaired {len(repaired)} agent(s) from Registry to DB: {repaired}")
 
-            state.last_status = "success" if not failed else "failed"
+            after = await self.check_consistency(db)
+            state.total_in_db = after.total_db
+            state.last_status = "success" if not failed and after.consistent else "failed"
         except Exception as e:
+            await db.rollback()
+            if not committed:
+                failed = list(dict.fromkeys([*failed, *repaired]))
+                repaired.clear()
             state.last_status = "failed"
-            state.last_error = str(e)
-            logger.exception("Registry→DB sync failed (captured in SyncState)")
+            state.last_error = type(e).__name__
+            logger.error("Registry→DB sync failed: %s", type(e).__name__)
         finally:
             state.agents_created = len(repaired)
             state.agents_failed = len(failed)

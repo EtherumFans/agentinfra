@@ -121,10 +121,24 @@ def _transfer_object_ownership(cursor: Any, spec: RoleSpec) -> None:
         JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE n.nspname = %s
           AND c.relkind IN ('r', 'p', 'S', 'v', 'm', 'f')
+          AND NOT (
+              c.relkind = 'S' AND EXISTS (
+                  SELECT 1 FROM pg_depend d
+                  WHERE d.classid = 'pg_class'::regclass
+                    AND d.objid = c.oid
+                    AND d.refclassid = 'pg_class'::regclass
+                    AND d.refobjsubid > 0
+                    AND d.deptype IN ('a', 'i')
+              )
+          )
         ORDER BY c.relkind, c.relname
         """,
         (spec.schema,),
     )
+    # SERIAL (auto dependency) and IDENTITY (internal dependency) sequences
+    # follow their table's owner automatically. ALTER SEQUENCE OWNER cannot
+    # transfer them independently; retain the dependency and transfer only
+    # standalone sequences here. verify() still checks every sequence owner.
     object_kinds = {
         "r": "TABLE",
         "p": "TABLE",

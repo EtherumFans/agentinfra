@@ -214,6 +214,10 @@
       "input_text": "出院记录：入院时考虑肺炎，后经复查已排除；未形成其他确诊诊断，未实施手术。",
       "assertions": [
         {"path": "uncodable_items", "op": "nonempty"},
+        {"path": "code_assignment.primary_diagnosis.code", "op": "empty"},
+        {"path": "code_assignment.secondary_diagnoses", "op": "empty"},
+        {"path": "code_assignment.procedures", "op": "empty"},
+        {"path": "codes", "op": "empty"},
         {"path": "human_review", "op": "nonempty"}
       ]
     },

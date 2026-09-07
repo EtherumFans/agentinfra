@@ -213,3 +213,65 @@ async def test_pack_field_drift_is_reported_and_repaired(db_session, registry):
     assert row.version == "1.2.3"
     assert row.config["production_ready"] is False
     assert (await service.check_consistency(db_session)).consistent is True
+
+
+@pytest.mark.asyncio
+async def test_pack_expert_slug_is_preserved_without_truncation(db_session, registry):
+    pack = _pack()
+    expert_id = "triage-questionnaire-path-reviewer"
+    pack["experts"] = [{"expert_id": expert_id}]
+    registry.install(pack, publisher_name="iCoDer")
+    service = AgentRegistrySyncService(registry=registry)
+    assert Agent.__table__.c.default_expert_id.type.length == 128
+    assert (await service.repair_from_registry(db_session))["total_failed"] == 0
+    db_session.expunge_all()
+    row = (await db_session.execute(select(Agent))).scalar_one()
+    assert row.default_expert_id == expert_id
+    assert service.last_state.total_in_db == service.last_state.total_in_registry == 1
+
+
+@pytest.mark.asyncio
+async def test_failed_pack_savepoint_does_not_poison_other_repairs(
+    db_session, registry, monkeypatch,
+):
+    import app.services.agent_registry_sync_service as module
+
+    second = _pack()
+    second["agent_ref"] = "icoder/second-projection@1.0.0"
+    second["manifest"]["name"] = "Second Projection"
+    registry.install(second, publisher_name="iCoDer")
+    original = module._registry_record_db_fields
+
+    def fields(record):
+        values = original(record)
+        if values["canonical_key"] == "test-projection-agent":
+            values["name"] = None  # actual NOT NULL flush failure
+        return values
+
+    monkeypatch.setattr(module, "_registry_record_db_fields", fields)
+    service = AgentRegistrySyncService(registry=registry)
+    result = await service.repair_from_registry(db_session)
+    assert result["total_failed"] == result["total_repaired"] == 1
+    assert service.last_state.last_status == "failed"
+    assert service.last_state.last_error == "IntegrityError"
+    db_session.expunge_all()
+    rows = (await db_session.execute(select(Agent))).scalars().all()
+    assert [row.canonical_key for row in rows] == ["second-projection"]
+    monkeypatch.setattr(module, "_registry_record_db_fields", original)
+    assert (await service.repair_from_registry(db_session))["total_repaired"] == 1
+    assert service.last_state.last_status == "success"
+
+
+@pytest.mark.asyncio
+async def test_commit_failure_does_not_claim_repairs(db_session, registry, monkeypatch):
+    async def fail_commit():
+        raise RuntimeError("private SQL parameters must not be published")
+
+    monkeypatch.setattr(db_session, "commit", fail_commit)
+    service = AgentRegistrySyncService(registry=registry)
+    result = await service.repair_from_registry(db_session)
+    assert result["total_repaired"] == 0
+    assert result["total_failed"] == 1
+    assert service.last_state.last_status == "failed"
+    assert service.last_state.last_error == "RuntimeError"
+    assert (await db_session.execute(select(Agent))).scalars().all() == []

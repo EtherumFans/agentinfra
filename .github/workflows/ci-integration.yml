@@ -152,6 +152,44 @@ jobs:
           -o asyncio_default_test_loop_scope=session
           -v --tb=short
 
+      - name: Provision and verify Wave 4 application role
+        env:
+          ICODER_POSTGRES_MIGRATION_PASSWORD: ci_wave4_migration_only
+          ICODER_POSTGRES_APP_PASSWORD: ci_wave4_app_only
+        run: |
+          python scripts/provision_postgresql_roles.py provision \
+            --admin-url postgresql://icoder:icoder_test@localhost:5432/icoder_test \
+            --migration-role icoder_wave4_migration --app-role icoder_wave4_app
+          python scripts/provision_postgresql_roles.py verify \
+            --admin-url postgresql://icoder:icoder_test@localhost:5432/icoder_test \
+            --migration-role icoder_wave4_migration --app-role icoder_wave4_app
+
+      - name: PostgreSQL compatibility wave 4 — Context Schema and Local Expert Memory
+        timeout-minutes: 12
+        env:
+          DATABASE_URL: postgresql+asyncpg://icoder_wave4_app:ci_wave4_app_only@localhost:5432/icoder_test
+          ICODER_DATABASE_URL: postgresql+asyncpg://icoder_wave4_app:ci_wave4_app_only@localhost:5432/icoder_test
+          ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
+          LLM_PROVIDER: mock
+          ICODER_ALLOW_EXTERNAL_LLM: "false"
+        run: >-
+          python -m pytest
+          tests/integration/icoder/context/test_db_schema.py
+          tests/test_api/test_a1b_ae_r_4_local_expert_completion.py
+          -m postgresql_compat
+          -o asyncio_default_test_loop_scope=session
+          --junitxml=../artifacts/postgresql-wave4.xml
+          -v --tb=short
+
+      - name: Upload PostgreSQL Wave 4 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgresql-wave4-evidence
+          path: artifacts/postgresql-wave4.xml
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Integration tests
         run: python -m pytest tests/integration -v --tb=short
         env:

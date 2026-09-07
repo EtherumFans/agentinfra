@@ -33,6 +33,24 @@ def test_provisioning_is_idempotent_and_defaults_cover_new_objects() -> None:
     try:
         with connection.cursor() as cursor:
             cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema_name)))
+            # Exercise adoption of an already migrated schema, not just
+            # provisioning an empty one. Linked sequences must move with
+            # their table while standalone sequences move independently.
+            cursor.execute(sql.SQL(
+                "CREATE TABLE {}.existing_serial (id bigserial PRIMARY KEY, value text)"
+            ).format(sql.Identifier(schema_name)))
+            cursor.execute(sql.SQL(
+                "CREATE TABLE {}.existing_identity "
+                "(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY, value text)"
+            ).format(sql.Identifier(schema_name)))
+            cursor.execute(sql.SQL(
+                "CREATE SEQUENCE {}.existing_standalone"
+            ).format(sql.Identifier(schema_name)))
+            for table in ("existing_serial", "existing_identity"):
+                cursor.execute(sql.SQL(
+                    "INSERT INTO {}.{} (value) VALUES ('before-provision') RETURNING id"
+                ).format(sql.Identifier(schema_name), sql.Identifier(table)))
+                assert cursor.fetchone()[0] == 1
 
         provision(connection, spec)
         provision(connection, spec)
@@ -53,10 +71,35 @@ def test_provisioning_is_idempotent_and_defaults_cover_new_objects() -> None:
 
         report = verify(connection, spec)
         assert report["ok"] is True, report
-        assert report["objects_checked"] >= 2
+        assert report["objects_checked"] >= 7
         assert report["functions_checked"] == 1
 
+        # Repeat after new IDENTITY objects exist; default privileges and
+        # ownership reconciliation must both remain idempotent.
+        provision(connection, spec)
+        assert verify(connection, spec)["ok"] is True
+
         with connection.cursor() as cursor:
+            for table in ("existing_serial", "existing_identity"):
+                cursor.execute(sql.SQL(
+                    "INSERT INTO {}.{} (value) VALUES ('after-provision') RETURNING id"
+                ).format(sql.Identifier(schema_name), sql.Identifier(table)))
+                assert cursor.fetchone()[0] == 2
+                cursor.execute(sql.SQL("SELECT count(*) FROM {}.{}").format(
+                    sql.Identifier(schema_name), sql.Identifier(table),
+                ))
+                assert cursor.fetchone()[0] == 2
+            cursor.execute(
+                "SELECT count(*) FROM pg_depend d "
+                "JOIN pg_class c ON c.oid=d.objid "
+                "JOIN pg_namespace n ON n.oid=c.relnamespace "
+                "WHERE n.nspname=%s AND c.relkind='S' "
+                "AND d.classid='pg_class'::regclass "
+                "AND d.refclassid='pg_class'::regclass "
+                "AND d.refobjsubid>0 AND d.deptype IN ('a', 'i')",
+                (schema_name,),
+            )
+            assert cursor.fetchone()[0] == 3, "retain SERIAL/IDENTITY ownership links"
             cursor.execute(
                 "SELECT rolinherit FROM pg_roles WHERE rolname = ANY(%s) ORDER BY rolname",
                 ([migration_role, app_role],),

@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: guard-secrets
+        name: Block obvious secrets from being committed
+        entry: python scripts/audit/guard_secrets.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]

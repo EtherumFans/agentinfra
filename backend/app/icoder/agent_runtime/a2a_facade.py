@@ -449,6 +449,7 @@ def build_medical_coding_inbound_response(
         from official_agents.medical_coding.schema import (
             MedicalCodingOutputSchema,
             MedicalCodingAgentOutputV2,
+            apply_source_negation_to_v2,
         )
     except Exception:
         return InboundResponse(
@@ -470,6 +471,15 @@ def build_medical_coding_inbound_response(
         v1 = MedicalCodingOutputSchema.from_dict(raw)
         v2 = MedicalCodingAgentOutputV2.from_legacy_v1(v1, run_id=run_id)
         v2_dict = v2.to_dict()
+        assigned_diagnosis_present = bool(
+            getattr(v1.primary_diagnosis, "code", "")
+            or any(getattr(item, "code", "") for item in v1.secondary_diagnoses)
+        )
+        apply_source_negation_to_v2(
+            v2_dict,
+            source_text=source_text,
+            assigned_diagnosis_present=assigned_diagnosis_present,
+        )
         try:
             from app.icoder.markdown_generator import generate_markdown
             rendered_markdown = generate_markdown(v2_dict)

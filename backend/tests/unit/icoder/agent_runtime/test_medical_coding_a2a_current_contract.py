@@ -144,3 +144,34 @@ def test_a2a_failed_review_withholds_diagnoses_independent_of_severity(monkeypat
     assert data["human_review"]["review_required"] is True
     # Projection does not destroy the internal evidence used for audit.
     assert result.raw_schema["primary_diagnosis"]["code"] == "J18.900"
+
+
+def test_a2a_negated_only_source_populates_uncodable_items(monkeypatch):
+    monkeypatch.setenv(
+        "ICODER_RESULT_ATTESTATION_KEY",
+        "test-only-attestation-key-32-bytes-minimum",
+    )
+    source = "出院记录：入院时考虑肺炎，后经复查已排除；未形成其他确诊诊断，未实施手术。"
+    response = build_medical_coding_inbound_response(
+        result=_result(),
+        run_id="run-medical-a2a",
+        trace_id="trace-medical-a2a",
+        context_id="context-medical-a2a",
+        source_text=source,
+    )
+
+    assert response.kind == "message"
+    data = response.parts[0]["data"]
+    assert data["code_assignment"]["primary_diagnosis"]["code"] == ""
+    assert data["code_assignment"]["secondary_diagnoses"] == []
+    assert data["code_assignment"]["procedures"] == []
+    assert data["uncodable_items"], "negated-only input must surface uncodable_items"
+    assert all(
+        item["item_type"] == "negated_finding"
+        for item in data["uncodable_items"]
+    )
+    assert data["documentation_analysis"]["negated_findings"]
+    for finding in data["documentation_analysis"]["negated_findings"]:
+        assert finding["char_end"] > finding["char_start"]
+        assert source[finding["char_start"]:finding["char_end"]] == finding["text"]
+    assert data["human_review"]["review_required"] is True

@@ -9,9 +9,74 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+import re
 from typing import Any
 
 from .modes import Mode, MEDCODER_MODES, LEGACY_MODES, coerce  # noqa: F401
+
+_NEGATED_CODING_CLAUSE_RE = re.compile(
+    r"[^。；;\n]{0,80}(?:已排除|未形成(?:其他)?确诊诊断|不考虑|否认)"
+    r"[^。；;\n]{0,80}"
+)
+
+
+def source_negated_coding_findings(source_text: str | None) -> list[dict[str, Any]]:
+    """Extract exact negated-diagnosis clauses without model inference."""
+    if not source_text:
+        return []
+    findings: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for match in _NEGATED_CODING_CLAUSE_RE.finditer(source_text):
+        quote = match.group(0).strip()
+        if not quote or quote in seen:
+            continue
+        start = source_text.index(quote, match.start(), match.end())
+        findings.append({
+            "text": quote,
+            "char_start": start,
+            "char_end": start + len(quote),
+            "doc_id": "input",
+        })
+        seen.add(quote)
+    return findings
+
+
+def apply_source_negation_to_v2(
+    result_payload: dict[str, Any],
+    *,
+    source_text: str | None,
+    assigned_diagnosis_present: bool,
+) -> None:
+    """Map source-level negated findings into a v2 medical-coding payload."""
+    findings = source_negated_coding_findings(source_text)
+    documentation = result_payload.get("documentation_analysis")
+    if isinstance(documentation, dict) and findings:
+        existing = list(documentation.get("negated_findings") or [])
+        existing_text = {
+            str(item.get("text") or "")
+            for item in existing
+            if isinstance(item, dict)
+        }
+        documentation["negated_findings"] = [
+            *existing,
+            *[item for item in findings if item["text"] not in existing_text],
+        ]
+    if findings and not assigned_diagnosis_present:
+        uncodable = list(result_payload.get("uncodable_items") or [])
+        existing_text = {
+            str(item.get("text") or "")
+            for item in uncodable
+            if isinstance(item, dict)
+        }
+        uncodable.extend({
+            "item_type": "negated_finding",
+            "text": item["text"],
+            "reason": (
+                "The source explicitly negates or rules out a diagnosis; "
+                "no diagnosis code may be assigned from this statement."
+            ),
+        } for item in findings if item["text"] not in existing_text)
+        result_payload["uncodable_items"] = uncodable
 
 
 # ── Span-level Evidence ──

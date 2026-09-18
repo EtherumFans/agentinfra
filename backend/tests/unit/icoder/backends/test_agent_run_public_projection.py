@@ -1392,3 +1392,57 @@ def test_diagnosis_projection_omits_unverified_code_without_inventing_one() -> N
         public.result["structured_extraction"]["warnings"]
     )
     assert "icd10_cn_code" not in repr(public.result["issues_found"])
+
+
+
+def test_negated_diagnosis_is_withheld_even_when_provider_assigns_code() -> None:
+    source = "出院记录：入院时考虑肺炎，后经复查已排除；未形成其他确诊诊断，未实施手术。"
+    raw_schema = {
+        "review_conclusion": "WARNING",
+        "primary_diagnosis": {
+            "code": "J18.900",
+            "description": "肺炎",
+            "confidence": 0.75,
+            "evidence": [{"text": "入院时考虑肺炎"}],
+        },
+        "secondary_diagnoses": [],
+        "procedures": [],
+        "issues_found": [{
+            "severity": "medium",
+            "code": "PRIMARY_DIAGNOSIS_UNCERTAIN",
+            "message": "入院时考虑肺炎但已排除，需人工复核",
+            "suggestion": "核对影像与检验结果",
+        }],
+        "manual_review_required": True,
+    }
+    result = CodingResult(
+        codes=[CodingResultCode(
+            code="J18.900", system="ICD-10-CN", display="肺炎",
+            type="primary_diagnosis", confidence=0.75, evidence="入院时考虑肺炎",
+        )],
+        summary="入院时考虑肺炎但已排除",
+        runtime_mode="corti_like_fast",
+        raw_schema=raw_schema,
+    )
+
+    public = _map_coding_result(
+        agent_id="medical-coding-agent",
+        run_id="run-negated-hallucinated",
+        trace_id="trace-negated-hallucinated",
+        result=result,
+        include_trace=False,
+        include_evidence=True,
+        source_text=source,
+        t0=time.perf_counter(),
+    )
+
+    assert public.error is False
+    assert public.result["code_assignment"]["primary_diagnosis"]["code"] == ""
+    assert public.result["code_assignment"]["secondary_diagnoses"] == []
+    assert public.result["code_assignment"]["procedures"] == []
+    assert public.result["codes"] == []
+    assert public.result["uncodable_items"]
+    assert all(
+        item["item_type"] == "negated_finding"
+        for item in public.result["uncodable_items"]
+    )

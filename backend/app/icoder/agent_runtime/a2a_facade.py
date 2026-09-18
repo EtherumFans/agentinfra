@@ -450,6 +450,8 @@ def build_medical_coding_inbound_response(
             MedicalCodingOutputSchema,
             MedicalCodingAgentOutputV2,
             apply_source_negation_to_v2,
+            uncodable_item_from_negated_diagnosis,
+            withhold_source_negated_diagnoses,
         )
     except Exception:
         return InboundResponse(
@@ -469,6 +471,7 @@ def build_medical_coding_inbound_response(
     rendered_markdown = ""
     try:
         v1 = MedicalCodingOutputSchema.from_dict(raw)
+        negated_diagnoses = withhold_source_negated_diagnoses(v1, source_text)
         v2 = MedicalCodingAgentOutputV2.from_legacy_v1(v1, run_id=run_id)
         v2_dict = v2.to_dict()
         assigned_diagnosis_present = bool(
@@ -480,6 +483,11 @@ def build_medical_coding_inbound_response(
             source_text=source_text,
             assigned_diagnosis_present=assigned_diagnosis_present,
         )
+        if negated_diagnoses:
+            uncodable = list(v2_dict.get("uncodable_items") or [])
+            for diagnosis in negated_diagnoses:
+                uncodable.append(uncodable_item_from_negated_diagnosis(diagnosis))
+            v2_dict["uncodable_items"] = uncodable
         try:
             from app.icoder.markdown_generator import generate_markdown
             rendered_markdown = generate_markdown(v2_dict)

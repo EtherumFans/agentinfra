@@ -79,6 +79,90 @@ def apply_source_negation_to_v2(
         result_payload["uncodable_items"] = uncodable
 
 
+def uncodable_item_from_negated_diagnosis(diagnosis: Any) -> dict[str, Any]:
+    """Build an uncodable item for a diagnosis the source explicitly negates."""
+    evidence_items = getattr(diagnosis, "evidence", []) or []
+    if not isinstance(evidence_items, list):
+        evidence_items = [evidence_items]
+    text = ""
+    for item in evidence_items:
+        if isinstance(item, dict):
+            candidate = str(item.get("text") or "").strip()
+        elif hasattr(item, "text"):
+            candidate = str(getattr(item, "text") or "").strip()
+        else:
+            candidate = str(item).strip()
+        if candidate:
+            text = candidate
+            break
+    text = text or str(getattr(diagnosis, "description", "") or "")
+    return {
+        "item_type": "negated_finding",
+        "text": text,
+        "reason": (
+            "The source explicitly negates or rules out this diagnosis; "
+            "it must not be assigned or billed."
+        ),
+    }
+
+
+def withhold_source_negated_diagnoses(
+    legacy: Any,
+    source_text: str | None,
+) -> list[Any]:
+    """Withhold diagnoses whose description/evidence is negated in source.
+
+    Enforces the Pack's "no evidence = no code" boundary even when a provider
+    assigns a code for a finding the source explicitly rules out (e.g.
+    "肺炎已排除"). Mutates ``legacy`` in place and returns the withheld
+    :class:`DiagnosisEntry` objects for surfacing as ``uncodable_items``.
+    """
+    if getattr(legacy, "diagnosis_assignment_blocked", False):
+        # A FAIL / NO_CONFIRMED_DIAGNOSIS review already withholds every
+        # assignable diagnosis elsewhere; do not double-count negated findings.
+        return []
+
+    findings = source_negated_coding_findings(source_text)
+    negated_texts = [str(f["text"]) for f in findings]
+    if not negated_texts:
+        return []
+
+    def _negated(diagnosis: Any) -> bool:
+        candidates = [str(getattr(diagnosis, "description", "") or "").strip()]
+        evidence_items = getattr(diagnosis, "evidence", []) or []
+        if not isinstance(evidence_items, list):
+            evidence_items = [evidence_items]
+        for item in evidence_items:
+            if isinstance(item, dict):
+                candidates.append(str(item.get("text") or "").strip())
+            elif hasattr(item, "text"):
+                candidates.append(str(getattr(item, "text") or "").strip())
+            else:
+                candidates.append(str(item).strip())
+        return any(
+            candidate and any(candidate in negated for negated in negated_texts)
+            for candidate in candidates
+        )
+
+    withheld: list[Any] = []
+    if (
+        getattr(legacy.primary_diagnosis, "code", "")
+        and _negated(legacy.primary_diagnosis)
+    ):
+        withheld.append(legacy.primary_diagnosis)
+        legacy.primary_diagnosis = DiagnosisEntry()
+    kept_secondary: list[Any] = []
+    for diagnosis in legacy.secondary_diagnoses:
+        if getattr(diagnosis, "code", "") and _negated(diagnosis):
+            withheld.append(diagnosis)
+        else:
+            kept_secondary.append(diagnosis)
+    legacy.secondary_diagnoses = kept_secondary
+    return withheld
+
+
+
+
 # ── Span-level Evidence ──
 
 

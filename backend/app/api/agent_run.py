@@ -2361,6 +2361,8 @@ def _map_coding_result(
             DiagnosisEntry,
             MedicalCodingAgentOutputV2,
             MedicalCodingOutputSchema,
+            uncodable_item_from_negated_diagnosis,
+            withhold_source_negated_diagnoses,
         )
 
         legacy = MedicalCodingOutputSchema.from_dict(raw_schema)
@@ -2376,6 +2378,8 @@ def _map_coding_result(
             ]
             legacy.primary_diagnosis = DiagnosisEntry()
             legacy.secondary_diagnoses = []
+
+        negated_diagnoses = withhold_source_negated_diagnoses(legacy, source_text)
 
         result_payload = MedicalCodingAgentOutputV2.from_legacy_v1(
             legacy,
@@ -2399,6 +2403,11 @@ def _map_coding_result(
                 })
             result_payload["uncodable_items"] = uncodable_items
             evidence = [item for item in evidence if item.get("type") == "procedure"]
+        if negated_diagnoses:
+            uncodable_items = list(result_payload.get("uncodable_items") or [])
+            for diagnosis in negated_diagnoses:
+                uncodable_items.append(uncodable_item_from_negated_diagnosis(diagnosis))
+            result_payload["uncodable_items"] = uncodable_items
         source_negated_findings = _source_negated_coding_findings(source_text)
         documentation = result_payload.get("documentation_analysis")
         if isinstance(documentation, dict) and source_negated_findings:

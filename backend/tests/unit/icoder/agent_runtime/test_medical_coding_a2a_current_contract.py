@@ -175,3 +175,41 @@ def test_a2a_negated_only_source_populates_uncodable_items(monkeypatch):
         assert finding["char_end"] > finding["char_start"]
         assert source[finding["char_start"]:finding["char_end"]] == finding["text"]
     assert data["human_review"]["review_required"] is True
+
+
+
+def test_a2a_negated_hallucinated_diagnosis_is_withheld(monkeypatch):
+    monkeypatch.setenv(
+        "ICODER_RESULT_ATTESTATION_KEY",
+        "test-only-attestation-key-32-bytes-minimum",
+    )
+    source = "出院记录：入院时考虑肺炎，后经复查已排除；未形成其他确诊诊断，未实施手术。"
+    result = _result()
+    result.raw_schema.update({
+        "primary_diagnosis": {
+            "code": "J18.900",
+            "description": "肺炎",
+            "confidence": 0.75,
+            "evidence": [{"text": "入院时考虑肺炎"}],
+        },
+        "secondary_diagnoses": [],
+        "procedures": [],
+    })
+    response = build_medical_coding_inbound_response(
+        result=result,
+        run_id="run-medical-a2a",
+        trace_id="trace-medical-a2a",
+        context_id="context-medical-a2a",
+        source_text=source,
+    )
+
+    assert response.kind == "message"
+    data = response.parts[0]["data"]
+    assert data["code_assignment"]["primary_diagnosis"]["code"] == ""
+    assert data["code_assignment"]["secondary_diagnoses"] == []
+    assert data["code_assignment"]["procedures"] == []
+    assert data["uncodable_items"]
+    assert all(
+        item["item_type"] == "negated_finding"
+        for item in data["uncodable_items"]
+    )

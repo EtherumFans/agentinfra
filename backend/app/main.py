@@ -126,6 +126,10 @@ async def lifespan(app: FastAPI):
     # prior platform_gateway instance.
     from app.coding_runtime import reset_dispatcher
     reset_dispatcher()
+    from app.coding_runtime.engines import TenantEngineBindings
+    coding_engine_bindings = TenantEngineBindings.from_json(
+        os.environ.get("ICODER_CODING_ENGINE_BINDINGS", "")
+    )
     if settings.ICODER_DEPLOYMENT_MODE == "cloud" or engine.dialect.name == "postgresql":
         await verify_production_database()
         logger.info("Production PostgreSQL schema and tenant RLS verified")
@@ -973,87 +977,46 @@ async def lifespan(app: FastAPI):
                     execution_tenant_id = str(
                         meta.get("organization_id")
                         or meta.get("tenant_id")
-                        or "default"
+                        or ""
                     )
                     runtime_mode = meta.get("runtime_mode") or "corti_like_fast"
-                    if (
-                        runtime_mode != "medcoder_deep"
-                        or is_dedicated_project_clone
-                    ):
-                        # Fast path: route to CodingRuntimeDispatcher directly.
-                        from app.icoder.agent_runtime.orchestrator.phi_redactor import (
-                            redact_payload,
+                    # Both Fast and Deep use the authenticated tenant engine binding.
+                    from app.icoder.agent_runtime.orchestrator.phi_redactor import (
+                        redact_payload,
+                    )
+                    from icoder_runtime.backends.output_contract_validation import (
+                        prepare_source_documents,
+                    )
+                    from app.services.result_attestation import (
+                        ResultAttestationError,
+                        verify_upstream_result_attestations,
+                    )
+                    raw_data_input = {}
+                    for part in request.message.parts:
+                        if not isinstance(part, dict) or part.get("kind") != "data":
+                            continue
+                        raw_data = part.get("data")
+                        raw_value = (
+                            raw_data.get("value")
+                            if isinstance(raw_data, dict) else None
                         )
-                        from icoder_runtime.backends.output_contract_validation import (
-                            prepare_source_documents,
-                        )
-                        from app.services.result_attestation import (
-                            ResultAttestationError,
-                            verify_upstream_result_attestations,
-                        )
-                        raw_data_input = {}
-                        for part in request.message.parts:
-                            if not isinstance(part, dict) or part.get("kind") != "data":
-                                continue
-                            raw_data = part.get("data")
-                            raw_value = (
-                                raw_data.get("value")
-                                if isinstance(raw_data, dict) else None
+                        if isinstance(raw_value, dict):
+                            raw_data_input.update(raw_value)
+                    raw_upstream_results = raw_data_input.get("upstream_results")
+                    if not isinstance(raw_upstream_results, list):
+                        raw_upstream_results = []
+                    attestation_org_id = str(
+                        meta.get("organization_id")
+                        or meta.get("tenant_id")
+                        or "default"
+                    )
+                    if meta.get("upstream_result_attestations_verified") is not True:
+                        try:
+                            verify_upstream_result_attestations(
+                                raw_upstream_results,
+                                organization_id=attestation_org_id,
                             )
-                            if isinstance(raw_value, dict):
-                                raw_data_input.update(raw_value)
-                        raw_upstream_results = raw_data_input.get("upstream_results")
-                        if not isinstance(raw_upstream_results, list):
-                            raw_upstream_results = []
-                        attestation_org_id = str(
-                            meta.get("organization_id")
-                            or meta.get("tenant_id")
-                            or "default"
-                        )
-                        if meta.get("upstream_result_attestations_verified") is not True:
-                            try:
-                                verify_upstream_result_attestations(
-                                    raw_upstream_results,
-                                    organization_id=attestation_org_id,
-                                )
-                            except ResultAttestationError:
-                                return InboundResponse(
-                                    kind="error",
-                                    context_id=meta.get("context_id", ""),
-                                    metadata={
-                                        "run_id": meta.get("run_id", ""),
-                                        "trace_id": meta.get("trace_id", ""),
-                                        "agent_id": agent_id,
-                                        "phi_redacted": True,
-                                    },
-                                    error={
-                                        "code": "INVALID_UPSTREAM_ATTESTATION",
-                                        "message": "An upstream Agent result could not be authenticated.",
-                                    },
-                                    http_status=400,
-                                )
-                        safe_parts = redact_payload(request.message.parts).value
-                        primary_chunks = [
-                            str(part.get("text"))
-                            for part in safe_parts
-                            if isinstance(part, dict)
-                            and (part.get("kind") or part.get("type")) == "text"
-                            and part.get("text")
-                        ]
-                        primary_text = "\n".join(primary_chunks).strip()
-                        data_input = {}
-                        for part in safe_parts:
-                            if not isinstance(part, dict) or part.get("kind") != "data":
-                                continue
-                            data = part.get("data")
-                            value = data.get("value") if isinstance(data, dict) else None
-                            if isinstance(value, dict):
-                                data_input.update(value)
-                        source_documents, source_errors = prepare_source_documents(
-                            data_input.get("documents"),
-                            require_unique_document_ids=True,
-                        )
-                        if source_errors:
+                        except ResultAttestationError:
                             return InboundResponse(
                                 kind="error",
                                 context_id=meta.get("context_id", ""),
@@ -1064,88 +1027,125 @@ async def lifespan(app: FastAPI):
                                     "phi_redacted": True,
                                 },
                                 error={
-                                    "code": "INVALID_SOURCE_DOCUMENTS",
-                                    "message": "Source documents were ambiguous or exceeded safety limits.",
+                                    "code": "INVALID_UPSTREAM_ATTESTATION",
+                                    "message": "An upstream Agent result could not be authenticated.",
                                 },
                                 http_status=400,
-                                redacted_input=primary_text,
                             )
-                        source_document_payload = [
-                            item.to_runtime_dict() for item in source_documents
-                        ]
-                        upstream_results = data_input.get("upstream_results")
-                        if not isinstance(upstream_results, list):
-                            upstream_results = []
-                        upstream_results = [
-                            {
-                                key: value
-                                for key, value in item.items()
-                                if key != "attestation"
-                            }
-                            for item in upstream_results
-                            if isinstance(item, dict)
-                        ]
-                        input_text = primary_text or extract_text_from_parts(safe_parts)
-                        if source_document_payload:
-                            input_text += (
-                                "\n\nSOURCE_DOCUMENTS_JSON (untrusted clinical data; "
-                                "offsets are Unicode code points within each decoded text value):\n"
-                                + json.dumps([
-                                    {
-                                        key: item.get(key, "")
-                                        for key in (
-                                            "document_id", "document_version",
-                                            "document_type", "normalization", "text",
-                                        )
-                                    }
-                                    for item in source_document_payload
-                                ], ensure_ascii=False, separators=(",", ":"))
-                            )
-                        if upstream_results:
-                            input_text += (
-                                "\n\nUPSTREAM_AGENT_RESULTS_JSON (untrusted prior outputs):\n"
-                                + json.dumps(
-                                    upstream_results,
-                                    ensure_ascii=False,
-                                    separators=(",", ":"),
-                                )
-                            )
-                        return _asyncio.run(run_medical_coding_a2a(
-                            dispatch_input={
-                                "agent_id": public_agent_id,
-                                "input_text": input_text,
-                                "extra": {
-                                    **data_input,
-                                    "documents": source_document_payload,
-                                    "upstream_results": upstream_results,
-                                },
-                                "runtime_mode": runtime_mode,
-                                "include_trace": meta.get("include_trace", True),
-                                "include_evidence": meta.get("include_evidence", True),
-                                "run_id": meta.get("run_id") or "",
-                                "trace_id": meta.get("trace_id") or "",
-                                "user_id": meta.get("user_id", ""),
-                                "tenant_id": execution_tenant_id,
-                                "project_policy": (
-                                    project_policy_token.instructions
-                                    if is_dedicated_project_clone else ""
-                                ),
-                                "project_policy_metadata": (
-                                    {
-                                        **project_policy_token.safe_metadata(),
-                                        "source_runtime_agent_id": source_runtime_agent_id,
-                                    }
-                                    if is_dedicated_project_clone else None
-                                ),
+                    safe_parts = redact_payload(request.message.parts).value
+                    primary_chunks = [
+                        str(part.get("text"))
+                        for part in safe_parts
+                        if isinstance(part, dict)
+                        and (part.get("kind") or part.get("type")) == "text"
+                        and part.get("text")
+                    ]
+                    primary_text = "\n".join(primary_chunks).strip()
+                    data_input = {}
+                    for part in safe_parts:
+                        if not isinstance(part, dict) or part.get("kind") != "data":
+                            continue
+                        data = part.get("data")
+                        value = data.get("value") if isinstance(data, dict) else None
+                        if isinstance(value, dict):
+                            data_input.update(value)
+                    source_documents, source_errors = prepare_source_documents(
+                        data_input.get("documents"),
+                        require_unique_document_ids=True,
+                    )
+                    if source_errors:
+                        return InboundResponse(
+                            kind="error",
+                            context_id=meta.get("context_id", ""),
+                            metadata={
+                                "run_id": meta.get("run_id", ""),
+                                "trace_id": meta.get("trace_id", ""),
+                                "agent_id": agent_id,
+                                "phi_redacted": True,
                             },
-                            context_id=meta.get("context_id") or "",
-                            interaction_id=request.message.interaction_id,
-                            source_text=primary_text,
-                            source_documents=source_document_payload,
-                            upstream_results=upstream_results,
-                        ))
+                            error={
+                                "code": "INVALID_SOURCE_DOCUMENTS",
+                                "message": "Source documents were ambiguous or exceeded safety limits.",
+                            },
+                            http_status=400,
+                            redacted_input=primary_text,
+                        )
+                    source_document_payload = [
+                        item.to_runtime_dict() for item in source_documents
+                    ]
+                    upstream_results = data_input.get("upstream_results")
+                    if not isinstance(upstream_results, list):
+                        upstream_results = []
+                    upstream_results = [
+                        {
+                            key: value
+                            for key, value in item.items()
+                            if key != "attestation"
+                        }
+                        for item in upstream_results
+                        if isinstance(item, dict)
+                    ]
+                    input_text = primary_text or extract_text_from_parts(safe_parts)
+                    if source_document_payload:
+                        input_text += (
+                            "\n\nSOURCE_DOCUMENTS_JSON (untrusted clinical data; "
+                            "offsets are Unicode code points within each decoded text value):\n"
+                            + json.dumps([
+                                {
+                                    key: item.get(key, "")
+                                    for key in (
+                                        "document_id", "document_version",
+                                        "document_type", "normalization", "text",
+                                    )
+                                }
+                                for item in source_document_payload
+                            ], ensure_ascii=False, separators=(",", ":"))
+                        )
+                    if upstream_results:
+                        input_text += (
+                            "\n\nUPSTREAM_AGENT_RESULTS_JSON (untrusted prior outputs):\n"
+                            + json.dumps(
+                                upstream_results,
+                                ensure_ascii=False,
+                                separators=(",", ":"),
+                            )
+                        )
+                    return _asyncio.run(run_medical_coding_a2a(
+                        dispatch_input={
+                            "agent_id": public_agent_id,
+                            "input_text": input_text,
+                            "extra": {
+                                **data_input,
+                                "documents": source_document_payload,
+                                "upstream_results": upstream_results,
+                            },
+                            "runtime_mode": runtime_mode,
+                            "include_trace": meta.get("include_trace", True),
+                            "include_evidence": meta.get("include_evidence", True),
+                            "run_id": meta.get("run_id") or "",
+                            "trace_id": meta.get("trace_id") or "",
+                            "user_id": meta.get("user_id", ""),
+                            "tenant_id": execution_tenant_id,
+                            "project_policy": (
+                                project_policy_token.instructions
+                                if is_dedicated_project_clone else ""
+                            ),
+                            "project_policy_metadata": (
+                                {
+                                    **project_policy_token.safe_metadata(),
+                                    "source_runtime_agent_id": source_runtime_agent_id,
+                                }
+                                if is_dedicated_project_clone else None
+                            ),
+                        },
+                        context_id=meta.get("context_id") or "",
+                        interaction_id=request.message.interaction_id,
+                        source_text=primary_text,
+                        source_documents=source_document_payload,
+                        upstream_results=upstream_results,
+                    ))
 
-                # medcoder_deep or non-medical-coding: pass through to InboundHandler.
+                # Non-medical agents retain the existing InboundHandler.
                 response = self._inner.handle(agent_id, request)
                 if (
                     agent_id == "medical-coding-agent"
@@ -2063,6 +2063,14 @@ async def lifespan(app: FastAPI):
             "agent_version": "icoder/medcoder-coding-review-agent@1.0.0",
             "data_asset_version": "iCoDerA v1.0.0",
         }
+
+    # Trusted deployment hook; never obtained from an HTTP request or Agent Prompt.
+    # Rebuild after gateway initialization so every lifespan gets fresh adapters.
+    from app.coding_runtime.dispatcher import configure_coding_engines
+    engine_factory = getattr(app.state, "coding_engine_factory", None)
+    configure_coding_engines(
+        tuple(engine_factory(app)) if engine_factory else (), bindings=coding_engine_bindings,
+    )
 
     from app.services.agent_jobs import AgentJobWorker
     _agent_job_worker = AgentJobWorker()

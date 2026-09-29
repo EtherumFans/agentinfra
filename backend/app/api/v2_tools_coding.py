@@ -60,7 +60,8 @@ from app.schemas.v2_tools_coding import (
 from app.services.code_dictionary import _ICD10_CODES, _ICD9_CODES
 from app.services.coding_filter import code_allowed_by_filter
 from app.services.guided_document_repository import guided_document_repository
-from icoder_runtime.providers.medical_coding import HybridCodingAdapter
+from app.coding_runtime import CodingRequest as EngineRequest, RuntimeMode, get_dispatcher
+from official_agents.medical_coding.schema import MedicalCodingOutputSchema
 
 logger = logging.getLogger(__name__)
 
@@ -240,6 +241,7 @@ async def post_v2_tools_coding_icoder(
         ),
     ),
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
 ):
     """Phase 1.1 iCoDer 5-stage MedCodER pipeline (Chinese-only).
 
@@ -253,20 +255,6 @@ async def post_v2_tools_coding_icoder(
     multi-system predictor (15 systems), use
     ``POST /api/v2/tools/coding/`` instead.
     """
-    # ── 1. Hospital-pilot / M3-0 gate (don't fake-model in production) ──
-    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
-        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "reason": "llm_credential_missing",
-                    "hint": (
-                        "Set ICODER_CREDENTIAL_LLM (DeepSeek API key) before calling /api/v2/tools/coding/icoder. "
-                        "Set ICODER_ALLOW_DEGRADED_NO_KEY=1 ONLY for local dev (returns a single mocked code)."
-                    ),
-                },
-            )
-
     # ── 2. Validate system + context; fail fast on bad request ─────────
     try:
         allowed_systems, chosen_system = _validate_request(body)
@@ -300,16 +288,38 @@ async def post_v2_tools_coding_icoder(
         except Exception as _pii_err:
             logger.warning(f"PII redaction skipped (non-fatal): {_pii_err!r}")
 
-    # ── 4. Run the 5-stage MedCodER pipeline ───────────────────────────
-    adapter = HybridCodingAdapter(mode=adapter_mode)
-    try:
-        result = await adapter.infer_async(messages)
-    except Exception as exc:
-        logger.error(f"/api/v2/tools/coding/icoder adapter.infer_async failed: {exc!r}")
-        raise HTTPException(status_code=502, detail={"error": "coding_pipeline_failed", "reason": str(exc)[:200]})
+    # The same authenticated tenant binding governs every iCoDer coding entry.
+    systems = tuple(dict.fromkeys("icd9cm3" if x.startswith("icd9") else "icd10cn" for x in allowed_systems))
+    execution = await get_dispatcher().dispatch(EngineRequest(
+        text=messages[-1]["content"], mode=RuntimeMode.MEDCODER_DEEP,
+        coding_system=chosen_system, coding_systems=systems,
+        tenant_id=str(current_org.id), user_id=str(current_user.id),
+        legacy_variant=adapter_mode,
+    ))
+    if execution.error:
+        status = 503 if execution.error_reason == "llm_credential_missing" else 502
+        raise HTTPException(status_code=status, detail={"error": "coding_pipeline_failed", "reason": execution.error_reason})
+    result = MedicalCodingOutputSchema.from_dict(execution.raw_schema)
 
     # ── 5. Corti-shape projection ──────────────────────────────────────
     extracted = list(getattr(result, "extracted_diagnoses", []) or [])
+    if not extracted and execution.codes:
+        # Normalized engine output is valid without legacy retrieval internals.
+        codes = []
+        for item in execution.codes:
+            system = "icd9cm3" if "9" in item.system or item.type == "procedure" else "icd10cn"
+            if system != ("icd9cm3" if chosen_system.startswith("icd9") else "icd10cn"):
+                continue
+            evidences = []
+            for index, block in enumerate(blocks):
+                start = block.text.find(item.evidence) if item.evidence else -1
+                if start >= 0:
+                    evidences.append(CodingEvidence(contextIndex=index, text=item.evidence,
+                                                   start=start, end=start + len(item.evidence)))
+                    break
+            codes.append(CodingCode(system=chosen_system, code=item.code, display=item.display,
+                                    evidences=evidences, alternatives=_build_alternatives(item.alternatives)))
+        return CodingResponse(codes=codes, engine=execution.engine)
     if not extracted:
         raise HTTPException(
             status_code=502,
@@ -360,7 +370,7 @@ async def post_v2_tools_coding_icoder(
             )
         )
 
-    return CodingResponse(codes=codes)
+    return CodingResponse(codes=codes, engine=execution.engine)
 
 
 # ─── Corti §13.6 codes_predict (canonical, real inference) ──────────

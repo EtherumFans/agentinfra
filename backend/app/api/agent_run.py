@@ -2509,6 +2509,7 @@ def _map_coding_result(
             **trace_refs,
             "run_id": out_run_id,
             "trace_id": out_trace_id,
+            "engine": dict(getattr(result, "engine", {})),
         }
     except Exception as exc:
         logger.error(

@@ -133,7 +133,8 @@ def stub_adapter(monkeypatch):
                 )
             return self._next_result
 
-    monkeypatch.setattr(api_mod, "HybridCodingAdapter", StubAdapter)
+    import icoder_runtime.providers.medical_coding as provider_mod
+    monkeypatch.setattr(provider_mod, "HybridCodingAdapter", StubAdapter)
     monkeypatch.setattr(api_mod, "_DISPLAY_INDEX", {
         "I50.900": "心力衰竭,未特指 (chronic)",
         "I50.901": "充血性心力衰竭",
@@ -174,9 +175,9 @@ def _patch_next_on_first_call(adapter_capture: dict[str, Any]) -> None:
             adapter_capture["messages"] = list(messages)
             return self._result
 
-    from app.api import v2_tools_coding as api_mod
-    # Replace the stub class with the patched one for this test.
-    api_mod.HybridCodingAdapter = PatchedStub  # type: ignore[assignment]
+    # Replace the provider stub for this test; fixture teardown restores it.
+    import icoder_runtime.providers.medical_coding as provider_mod
+    provider_mod.HybridCodingAdapter = PatchedStub  # type: ignore[assignment]
 
 
 # ─── Tests ───────────────────────────────────────────────────────────

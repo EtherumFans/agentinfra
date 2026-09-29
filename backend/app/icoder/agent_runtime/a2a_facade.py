@@ -22,11 +22,9 @@ A2A semantics (run_id, trace_id, context_id, message_id, parts, metadata)
 even when the underlying dispatch is a lightweight CodingRuntimeDispatcher
 call rather than the full InboundHandler 5-stage state machine.
 
-Medical Coding Agent default routing (§4.2):
-  - ``medical-coding-agent`` + runtime_mode in (None, "corti_like_fast")
-    → CodingRuntimeDispatcher (FastCodingRuntime, ~6-8s)
-  - ``medical-coding-agent`` + runtime_mode == "medcoder_deep"
-    → InboundHandler 5-stage MedCODER pipeline (30-60s+, opt-in only)
+Medical Coding Agent routing:
+  All runtime modes use the tenant-bound CodingRuntimeDispatcher.
+  The legacy engine alone maps Fast/Deep to the previous implementations.
 
 Trace persistence (§4.3):
   - ``persist_trace_events()`` emits each trace_event to RunTraceStore
@@ -212,23 +210,20 @@ async def dispatch_medical_coding_fast(
 ) -> tuple[Any, str, str]:
     """Dispatch medical-coding-agent to CodingRuntimeDispatcher.
 
-    Routes to FastCodingRuntime for ``corti_like_fast`` (default) or
-    MedCoderRuntime for ``medcoder_deep``. Returns ``(CodingResult,
+    Resolves the authenticated tenant binding before selecting an engine. Returns ``(CodingResult,
     out_run_id, out_trace_id)``.
 
     This is the shared fast-path used by:
       - unified endpoint ``_run_medical_coding()`` in agent_run.py
-      - ``_MedicalCodingV2ProjectingHandler`` when runtime_mode is None or
-        "corti_like_fast" (so A2A ``message:send`` also defaults to fast)
+      - ``_MedicalCodingV2ProjectingHandler`` for all medical coding modes
     """
     from app.coding_runtime import (
         CodingRequest,
-        RuntimeMode,
         get_dispatcher,
     )
 
     mode_str = runtime_mode or "corti_like_fast"
-    mode = RuntimeMode.coerce(mode_str)
+    mode = mode_str  # Dispatcher rejects unknown modes; no fallback.
     coding_systems = _requested_coding_systems(extra)
     request = CodingRequest(
         text=input_text,
@@ -292,6 +287,7 @@ async def dispatch_medical_coding_fast(
                 (project_policy_metadata or {}).get("source_runtime_agent_id")
                 or ""
             ),
+            "engine": dict(getattr(result, "engine", {})),
             "_trace_id": out_trace_id,
             "_organization_id": tenant_id or None,
             "_user_id": user_id or None,
@@ -470,6 +466,7 @@ def build_medical_coding_inbound_response(
         v1 = MedicalCodingOutputSchema.from_dict(raw)
         v2 = MedicalCodingAgentOutputV2.from_legacy_v1(v1, run_id=run_id)
         v2_dict = v2.to_dict()
+        v2_dict.setdefault("trace_refs", {})["engine"] = dict(getattr(result, "engine", {}))
         try:
             from app.icoder.markdown_generator import generate_markdown
             rendered_markdown = generate_markdown(v2_dict)

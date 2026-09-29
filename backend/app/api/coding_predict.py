@@ -44,7 +44,6 @@ from __future__ import annotations
 
 import logging
 import math
-import os
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -57,7 +56,8 @@ from app.coding_runtime import (
     RuntimeMode,
     get_dispatcher,
 )
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_current_organization
+from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.v2_tools_coding import CodesFilter
 from app.services.coding_filter import code_allowed_by_filter
@@ -74,6 +74,8 @@ ChinaCodingSystem = Literal["icd10cn", "icd9cm3"]
 
 class CodingPredictRequest(BaseModel):
     """POST /api/v1/coding/predict request body."""
+
+    model_config = {"extra": "forbid"}
 
     text: str = Field(..., min_length=1, max_length=16000,
                       description="Clinical encounter text (Chinese or English).")
@@ -156,6 +158,9 @@ class CodingPredictResponse(BaseModel):
     trace_events: list[dict[str, Any]] = Field(default_factory=list)
     error: bool = False
     error_reason: str = ""
+    engine: dict[str, Any] = Field(default_factory=dict)
+    manual_review_required: bool = True
+    production_writeback_blocked: bool = True
     filter_applied: CodesFilter | None = None
     coding_systems_applied: list[ChinaCodingSystem] = Field(default_factory=list)
 
@@ -291,6 +296,25 @@ class CodingPricingEstimateResponse(BaseModel):
 # ─── Endpoint ─────────────────────────────────────────────────────────
 
 
+@router.get("/engine-capabilities")
+async def get_coding_engine_capabilities(
+    current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
+) -> dict[str, Any]:
+    """Expose only the authenticated organization's configured engine manifest."""
+    from dataclasses import asdict
+    dispatcher = get_dispatcher()
+    try:
+        binding = dispatcher.bindings.resolve(str(current_org.id))
+        engine = dispatcher.registry.resolve(binding)
+    except ValueError:
+        raise HTTPException(status_code=503, detail={"reason": "engine_binding_unavailable"}) from None
+    return {
+        "manifest": asdict(engine.manifest), "binding_revision": binding.revision,
+        "manual_review_required": True, "production_writeback_blocked": True,
+    }
+
+
 @router.get("/pricing", response_model=CodingPricingEstimateResponse)
 async def get_coding_pricing_estimate(
     input_chars: int = Query(0, ge=0, le=16000),
@@ -298,6 +322,7 @@ async def get_coding_pricing_estimate(
         "corti_like_fast"
     ),
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
 ) -> CodingPricingEstimateResponse:
     """Return a conservative, configuration-backed pre-run cost range.
 
@@ -306,6 +331,15 @@ async def get_coding_pricing_estimate(
     requires an LLM credential and must not be used as the billing ledger.
     """
     del current_user  # Authentication is the boundary; no user data is needed.
+
+    dispatcher = get_dispatcher()
+    try:
+        binding = dispatcher.bindings.resolve(str(current_org.id))
+        dispatcher.registry.resolve(binding)
+    except ValueError:
+        raise HTTPException(status_code=503, detail={"reason": "engine_binding_unavailable"}) from None
+    if binding.engine_id != "icoder.legacy":
+        raise HTTPException(status_code=409, detail={"reason": "engine_pricing_not_available"})
 
     input_price = max(float(settings.LLM_PRICE_INPUT_PER_1M), 0.0)
     output_price = max(float(settings.LLM_PRICE_OUTPUT_PER_1M), 0.0)
@@ -373,6 +407,7 @@ async def get_coding_pricing_estimate(
 async def post_coding_predict(
     body: CodingPredictRequest,
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
 ) -> CodingPredictResponse:
     """Unified medical coding prediction entry.
 
@@ -383,21 +418,6 @@ async def post_coding_predict(
     with ``error=True`` + ``summary`` containing a user-visible message and
     a hint to retry or switch modes.
     """
-    # ── 1. LLM credential gate (don't fake-model in production) ────────
-    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
-        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "reason": "llm_credential_missing",
-                    "hint": (
-                        "Set ICODER_CREDENTIAL_LLM (DeepSeek API key) before "
-                        "calling /api/v1/coding/predict. Set "
-                        "ICODER_ALLOW_DEGRADED_NO_KEY=1 ONLY for local dev."
-                    ),
-                },
-            )
-
     # ── 2. Coerce mode + build request ─────────────────────────────────
     mode = RuntimeMode.coerce(body.mode)
     coding_systems = body.requested_coding_systems()
@@ -409,12 +429,15 @@ async def post_coding_predict(
         include_evidence=body.include_evidence,
         include_trace=body.include_trace,
         user_id=str(getattr(current_user, "id", "") or ""),
-        tenant_id=str(getattr(current_user, "tenant_id", "") or ""),
+        tenant_id=str(current_org.id),
     )
 
     # ── 3. Dispatch to runtime ──────────────────────────────────────────
     dispatcher = get_dispatcher()
     result: CodingResult = await dispatcher.dispatch(request)
+
+    if result.error_reason == "llm_credential_missing":
+        raise HTTPException(status_code=503, detail={"reason": result.error_reason})
 
     # ── 4. Project to response model ────────────────────────────────────
     requested_systems = set(coding_systems)
@@ -460,9 +483,10 @@ async def post_coding_predict(
 
     # If runtime reported an error, return HTTP 200 with error=True so the
     # frontend can render a friendly retry UI (rather than catching a 5xx).
-    # Hard errors (credential missing) already raised above.
+    # Legacy credential failures retain the existing HTTP 503 response.
     return CodingPredictResponse(
         codes=codes,
+        engine=result.engine,
         summary=result.summary,
         runtime_mode=result.runtime_mode,
         latency_ms=result.latency_ms,

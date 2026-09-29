@@ -26,6 +26,16 @@ def test_medical_a2a_creates_its_own_trace_authority(monkeypatch, error):
 
     monkeypatch.setattr(a2a_facade, "dispatch_medical_coding_fast", dispatch)
     with TestClient(app) as client:
+        # Auth bypass returns a synthetic org; the real audit FK requires it.
+        # Do not seed run_history: the request must create its own audit row.
+        async def ensure_organization():
+            from app import database
+            from app.models.organization import Organization
+            async with database.AsyncSessionLocal() as db:
+                if await db.get(Organization, "org_default1") is None:
+                    db.add(Organization(id="org_default1", name="A2A audit test", slug="a2a-audit-test"))
+                    await db.commit()
+        client.portal.call(ensure_organization)
         response = client.post(
             "/api/icoder/agents/medical-coding-agent/v1/message:send",
             headers={"A2A-Protocol-Version": "0.3"},

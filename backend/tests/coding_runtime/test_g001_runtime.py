@@ -152,10 +152,12 @@ def test_runtime_mode_coerce_known_values():
     assert RuntimeMode.coerce(RuntimeMode.CORTI_LIKE_FAST) == RuntimeMode.CORTI_LIKE_FAST
 
 
-def test_runtime_mode_coerce_unknown_falls_back_to_fast():
-    assert RuntimeMode.coerce("unknown_mode") == RuntimeMode.CORTI_LIKE_FAST
+def test_runtime_mode_coerce_defaults_only_when_omitted():
+    with pytest.raises(ValueError):
+        RuntimeMode.coerce("unknown_mode")
     assert RuntimeMode.coerce(None) == RuntimeMode.CORTI_LIKE_FAST
-    assert RuntimeMode.coerce(42) == RuntimeMode.CORTI_LIKE_FAST
+    with pytest.raises(ValueError):
+        RuntimeMode.coerce(42)
     assert RuntimeMode.coerce("") == RuntimeMode.CORTI_LIKE_FAST
 
 
@@ -176,12 +178,11 @@ def test_dispatcher_routes_deep_to_medcoder_runtime():
     assert runtime.name == "medcoder_runtime"
 
 
-def test_dispatcher_unknown_mode_falls_back_to_fast():
-    """Unknown mode must NEVER raise — always fall back to Fast."""
+def test_legacy_selector_rejects_unknown_mode():
     reset_dispatcher()
     d = get_dispatcher()
-    runtime = d.select_runtime(RuntimeMode.CORTI_LIKE_FAST)
-    assert runtime.name == "fast_coding_runtime"
+    with pytest.raises(ValueError):
+        d.select_runtime("unknown")
 
 
 # ─── FastCodingRuntime ─────────────────────────────────────────────────
@@ -359,20 +360,18 @@ async def test_dispatcher_dispatch_fast_returns_coding_result():
     d = get_dispatcher()
     # Override the cached fast runtime with one wired to a fake gateway
     d._fast = FastCodingRuntime(gateway=_FakeGateway(content=_ok_json()))
-    result = await d.dispatch(CodingRequest(text=T12_TEXT, mode=RuntimeMode.CORTI_LIKE_FAST))
+    result = await d.dispatch(CodingRequest(text=T12_TEXT, mode=RuntimeMode.CORTI_LIKE_FAST, tenant_id="test-org"))
     assert isinstance(result, CodingResult)
     assert result.runtime_mode == "corti_like_fast"
     assert len(result.codes) >= 4
 
 
 @pytest.mark.asyncio
-async def test_dispatcher_dispatch_unknown_mode_falls_back_to_fast():
-    """Unknown mode string coerced to FAST — never raises."""
+async def test_dispatcher_dispatch_unknown_mode_fails_closed():
     reset_dispatcher()
     d = get_dispatcher()
     d._fast = FastCodingRuntime(gateway=_FakeGateway(content=_ok_json()))
-    req = CodingRequest(text=T12_TEXT, mode=RuntimeMode.CORTI_LIKE_FAST)
-    # Pass an unknown string mode via the coerce path
-    req.mode = RuntimeMode.coerce("totally_unknown")
+    req = CodingRequest(text=T12_TEXT, mode="totally_unknown", tenant_id="test-org")
     result = await d.dispatch(req)
-    assert result.runtime_mode == "corti_like_fast"
+    assert result.error and result.error_reason == "engine_mode_unsupported"
+    assert not result.codes

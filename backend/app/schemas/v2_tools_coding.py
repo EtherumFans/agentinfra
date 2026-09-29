@@ -116,6 +116,9 @@ class CodingCode(BaseModel):
 
 class CodingResponse(BaseModel):
     """Corti §3.1 ``POST /v2/tools/coding`` response body."""
+    engine: dict = Field(default_factory=dict)
+    manual_review_required: bool = True
+    production_writeback_blocked: bool = True
     codes: List[CodingCode] = Field(
         default_factory=list,
         description="One entry per disease/procedure mention extracted from the source text",

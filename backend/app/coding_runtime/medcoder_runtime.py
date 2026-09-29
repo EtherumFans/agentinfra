@@ -101,19 +101,22 @@ class MedCoderRuntime:
         # ── Build messages + invoke HybridCodingAdapter ─────────────────
         # HybridCodingAdapter expects OpenAI-style messages and reads the
         # user message text as the encounter narrative.
-        messages = [{"role": "user", "content": text}]
+        messages = [
+            {"role": "system", "content": (
+                "You are iCoDer medical coding auditor. "
+                f"Target coding system: {request.coding_system}. "
+                "Return codes with char-span evidence links."
+            )},
+            {"role": "user", "content": text},
+        ]
 
         try:
             from icoder_runtime.providers.medical_coding import HybridCodingAdapter
-            adapter = HybridCodingAdapter(mode="medcoder.full")
-            _emit("stage1_extract", "ok", {"note": "stage1+2+3+4+5 run by HybridCodingAdapter"})
-            schema = (
-                await adapter.infer_async(
-                    messages,
-                    context={"project_policy": request.project_policy},
-                )
-                if request.project_policy
-                else await adapter.infer_async(messages)
+            adapter = HybridCodingAdapter(mode=request.legacy_variant)
+            schema = await adapter.infer_async(
+                messages,
+                context={"project_policy": request.project_policy,
+                         "coding_systems": list(request.coding_systems)},
             )
         except Exception as exc:
             logger.error(f"MedCoderRuntime: HybridCodingAdapter failed: {exc!r}", exc_info=True)
@@ -182,12 +185,11 @@ class MedCoderRuntime:
                         "duration_ms": entry.get("duration_ms", 0),
                         "metadata_size": len(str(entry.get("metadata", ""))),
                     })
-        # If no real stage trace, emit synthetic placeholders so RunTrace
-        # still shows the 5-stage progression.
+        # Missing telemetry must not be represented as proof of execution.
         emitted_steps = {e["step"] for e in events}
         for stage_name, step_key in stage_map.items():
             if step_key not in emitted_steps:
-                _emit(step_key, "ok", {"note": "synthetic — adapter did not emit detailed trace"})
+                _emit(step_key, "not_observed", {"reason": "adapter_stage_trace_missing"})
 
         # ── Project to flat CodingResultCode list ───────────────────────
         codes: list[CodingResultCode] = []

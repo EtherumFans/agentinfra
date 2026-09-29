@@ -1,42 +1,50 @@
-"""CodingRuntimeDispatcher — mode → runtime routing.
-
-Single entry point for the API layer. Given a :class:`CodingRequest`,
-routes to the appropriate runtime based on ``request.mode``.
-
-Design notes:
-  - Lazily instantiates runtimes (FastRuntime needs the platform_gateway
-    which isn't available at module-load time).
-  - Returns a friendly error :class:`CodingResult` on unknown mode (rather
-    than raising) so the API layer can return a clean 400 with a hint.
-"""
+"""Authenticated tenant binding -> capability validation -> one engine invocation."""
 from __future__ import annotations
 
-import logging
-from typing import Any
+import asyncio
+import copy
+import math
+import os
+import uuid
 
 from app.coding_runtime.base import (
     CodingRequest,
     CodingResult,
+    CodingResultCode,
     CodingRuntime,
     RuntimeMode,
 )
 from app.coding_runtime.fast_runtime import FastCodingRuntime
 from app.coding_runtime.medcoder_runtime import MedCoderRuntime
 
-logger = logging.getLogger(__name__)
+from app.coding_runtime.engines import (
+    EngineManifest, EngineRegistry, TenantEngineBindings,
+)
+
+class LegacyCodingEngine:
+    """Compatibility provider; only this adapter knows the Fast/Deep runtimes."""
+    manifest = EngineManifest("icoder.legacy", "1.0.0", supports_legacy_variants=True)
+
+    def __init__(self, owner):
+        self.owner = owner
+
+    async def predict(self, request):
+        if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip() and os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY") != "1":
+            raise ValueError("llm_credential_missing")
+        return await self.owner.select_runtime(request.mode).predict(request)
+
 
 
 class CodingRuntimeDispatcher:
-    """Routes a CodingRequest to the appropriate CodingRuntime.
+    """Process-local immutable configuration with request-local execution data."""
 
-    Single shared instance lives at ``app.state.coding_dispatcher`` (set
-    by ``get_dispatcher()`` on first call). Stateless except for the
-    cached runtime instances.
-    """
-
-    def __init__(self):
+    def __init__(self, *, registry=None, bindings=None, timeout_seconds=None):
         self._fast: FastCodingRuntime | None = None
         self._deep: MedCoderRuntime | None = None
+        self.registry = registry if registry is not None else EngineRegistry((LegacyCodingEngine(self),))
+        self.bindings = bindings if bindings is not None else TenantEngineBindings.from_json(
+            os.environ.get("ICODER_CODING_ENGINE_BINDINGS", ""))
+        self.timeout_seconds = timeout_seconds or {RuntimeMode.CORTI_LIKE_FAST: 30, RuntimeMode.MEDCODER_DEEP: 90}
 
     def _get_fast(self) -> FastCodingRuntime:
         if self._fast is None:
@@ -49,36 +57,82 @@ class CodingRuntimeDispatcher:
         return self._deep
 
     def select_runtime(self, mode: RuntimeMode) -> CodingRuntime:
-        """Return the runtime for ``mode``. Falls back to Fast on unknown."""
+        """Legacy adapter implementation detail; reject unknown modes."""
         if mode == RuntimeMode.MEDCODER_DEEP:
             return self._get_deep()
-        # Default + unknown → Fast (never raise)
-        return self._get_fast()
+        if mode == RuntimeMode.CORTI_LIKE_FAST:
+            return self._get_fast()
+        raise ValueError("unsupported_runtime_mode")
 
     async def dispatch(self, request: CodingRequest) -> CodingResult:
-        """Route ``request`` to the appropriate runtime and invoke predict."""
-        runtime = self.select_runtime(request.mode)
+        """Bind by authenticated tenant, negotiate, invoke once, force review."""
+        invocation_id = str(uuid.uuid4())
+        metadata = {"contract_version": "1.0", "invocation_id": invocation_id}
+        run_id = request.run_id or str(uuid.uuid4())
         try:
-            return await runtime.predict(request)
+            binding = self.bindings.resolve(request.tenant_id)
+            metadata.update(engine_id=binding.engine_id, engine_version=binding.engine_version,
+                            binding_revision=binding.revision)
+            engine = self.registry.resolve(binding)
+            m = engine.manifest
+            # Deliberately bypass coerce's legacy unknown-value fallback.
+            try:
+                mode = RuntimeMode(request.mode)
+            except ValueError:
+                raise ValueError("engine_mode_unsupported") from None
+            if mode.value not in m.modes or not set(request.coding_systems) <= set(m.coding_systems):
+                raise ValueError("engine_capability_unsupported")
+            if not request.coding_systems or not request.text.strip() or len(request.text) > m.max_input_chars:
+                raise ValueError("engine_input_invalid")
+            if request.legacy_variant != "medcoder.full" and not m.supports_legacy_variants:
+                raise ValueError("engine_capability_unsupported")
+            owned = copy.deepcopy(request)
+            owned.mode, owned.run_id = mode, run_id
+            result = await asyncio.wait_for(engine.predict(owned), timeout=self.timeout_seconds[mode])
+            if (not isinstance(result, CodingResult) or not isinstance(result.raw_schema, dict)
+                    or not isinstance(result.trace_events, list) or not isinstance(result.codes, list)):
+                raise ValueError("engine_output_invalid")
+            if result.run_id and result.run_id != run_id:
+                raise ValueError("engine_run_id_mismatch")
+            if result.raw_schema.get("is_mock") or result.degraded:
+                raise ValueError("engine_output_degraded")
+            if any(not isinstance(c, CodingResultCode) or not c.code.strip()
+                   or not math.isfinite(c.confidence) or not 0 <= c.confidence <= 1
+                   for c in result.codes):
+                raise ValueError("engine_output_invalid")
+            result = copy.deepcopy(result)
+        except asyncio.CancelledError:
+            raise
+        except asyncio.TimeoutError:
+            result = self._failure("engine_timeout", run_id)
         except Exception as exc:
-            # Defensive — should never happen since runtimes catch their own
-            # errors, but if one slips through we return a clean error result
-            # instead of letting the API 500.
-            logger.error(
-                f"CodingRuntimeDispatcher: runtime {runtime.name} crashed: {exc!r}",
-                exc_info=True,
-            )
-            return CodingResult(
-                codes=[],
-                summary=f"内部错误: {str(exc)[:200]}。请重试或切换至 Fast Coding 模式。",
-                runtime_mode=request.mode.value,
-                latency_ms=0,
-                llm_provider="deepseek",
-                trace_id="",
-                run_id=request.run_id,
-                error=True,
-                error_reason="runtime_crashed",
-            )
+            # Never expose plugin exception text (it may contain medical records).
+            allowed = {"engine_mode_unsupported", "tenant_required", "tenant_engine_not_bound", "engine_not_registered",
+                       "engine_capability_unsupported", "engine_input_invalid", "engine_output_invalid",
+                       "engine_run_id_mismatch", "engine_output_degraded", "llm_credential_missing"}
+            reason = str(exc) if isinstance(exc, ValueError) and str(exc) in allowed else "engine_failed"
+            result = self._failure(reason, run_id)
+        result.run_id = run_id
+        result.runtime_mode = request.mode.value if isinstance(request.mode, RuntimeMode) else str(request.mode)
+        result.trace_id = result.trace_id or f"trace-{uuid.uuid4().hex}"
+        result.engine = metadata
+        result.manual_review_required = True
+        result.production_writeback_blocked = True
+        if result.error:
+            result.codes = []
+            result.raw_schema = {}
+        else:
+            result.raw_schema["manual_review_required"] = True
+        result.raw_schema["engine"] = dict(metadata)
+        result.raw_schema["production_writeback_blocked"] = True
+        result.trace_events.append({"step": "engine_dispatch", "status": "error" if result.error else "ok",
+                                    "metadata": {**metadata, "reason": result.error_reason}})
+        return result
+
+    @staticmethod
+    def _failure(reason: str, run_id: str) -> CodingResult:
+        return CodingResult(codes=[], run_id=run_id, error=True, error_reason=reason,
+                            llm_provider="", summary="编码引擎未完成，请转人工审核。")
 
 
 _dispatcher: CodingRuntimeDispatcher | None = None
@@ -96,3 +150,18 @@ def reset_dispatcher() -> None:
     """Reset the singleton (for tests)."""
     global _dispatcher
     _dispatcher = None
+
+
+def configure_coding_engines(engines, *, bindings=None) -> None:
+    """Trusted bootstrap hook; call before serving, identically in every worker.
+
+    This is not a runtime administration API. Reconfiguration requires a deployment.
+    The legacy provider remains registered but is never used as failure fallback.
+    """
+    global _dispatcher
+    if _dispatcher is not None:
+        raise RuntimeError("coding_engines_already_initialized")
+    dispatcher = CodingRuntimeDispatcher(bindings=bindings)
+    dispatcher.registry = EngineRegistry((LegacyCodingEngine(dispatcher), *engines))
+    dispatcher.bindings.validate_registry(dispatcher.registry)
+    _dispatcher = dispatcher

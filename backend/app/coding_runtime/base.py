@@ -42,12 +42,9 @@ class RuntimeMode(str, Enum):
     def coerce(cls, value: Any) -> "RuntimeMode":
         if isinstance(value, RuntimeMode):
             return value
-        if isinstance(value, str):
-            try:
-                return cls(value)
-            except ValueError:
-                return cls.CORTI_LIKE_FAST
-        return cls.CORTI_LIKE_FAST
+        if value is None or value == "":
+            return cls.CORTI_LIKE_FAST
+        return cls(value)
 
 
 @dataclass
@@ -63,13 +60,16 @@ class CodingRequest:
     # Optional run_id for trace correlation. If absent, the runtime
     # generates one and returns it in :class:`CodingResult.trace_id`.
     run_id: str = ""
-    # Optional user_id / tenant_id for cost attribution (filled by API layer).
+    # Filled by authenticated API context. Dispatcher requires a tenant_id;
+    # the empty default only preserves direct-runtime constructor compatibility.
     user_id: str = ""
     tenant_id: str = ""
     # Server-resolved project specialization for a dedicated clone. It is
     # appended under immutable source-runtime safeguards and is never copied
     # into response or trace metadata.
     project_policy: str = ""
+    # Compatibility option for the legacy research endpoint only.
+    legacy_variant: str = "medcoder.full"
 
 
 @dataclass
@@ -127,6 +127,9 @@ class CodingResult:
     # path fires.
     degraded: bool = False
     degraded_reason: str = ""
+    engine: dict[str, Any] = field(default_factory=dict)
+    manual_review_required: bool = True
+    production_writeback_blocked: bool = True
 
 
 @runtime_checkable

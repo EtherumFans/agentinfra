@@ -1,10 +1,11 @@
+import PrebuiltAgentCard from '../components/agents/PrebuiltAgentCard';
 // iCoDer Agents - iCoDer Console 1:1 with My Agents / Prebuilt tabs + Agent detail chat
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bot, Search, Plus, User,
   ChevronDown, Loader2,
-  Wrench, Trash2, Send,
+  Trash2,
   Layers,
 } from 'lucide-react';
 
@@ -398,163 +399,13 @@ export default function AgentsPage() {
               <button onClick={() => { setSearchQuery(''); setUseCase(''); }} className="px-4 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors">{t.clearFilter}</button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-              {filteredCertifiedAgents.map(card => {
-                // Phase 5 Track D P0 Gate 1 (2026-07-11): card uses unified
-                // display_status + display_badges (≤2). PDF §B3 max badges.
-                // Internal fields (maturity/production_ready/human_review)
-                // remain accessible for engineering dashboards but are NOT
-                // rendered on user-facing cards.
-                const isComingSoon = card.display_status === 'coming_soon';
-                const isDeprecated = card.display_status === 'deprecated';
-                const dimCard = isComingSoon || isDeprecated;
-                const isCloningThis = cloningAgentId === card.agent_id;
-                const runActionEnabled = card.runtime_readiness?.run_action_enabled === true;
-                const runtimeConfigurationStatus = card.runtime_readiness?.configuration_status;
-                const runtimeReadinessLabel = runtimeConfigurationStatus === 'local_ready'
-                  ? t.agentRuntimeLocalReady
-                  : runtimeConfigurationStatus === 'configured_live_verified'
-                    ? t.agentRuntimeConfiguredLive
-                  : runtimeConfigurationStatus === 'configured_not_live_verified'
-                    ? t.agentRuntimeConfiguredNotLive
-                    : t.agentRuntimeUnavailable;
-                const displayBadgeClass = (b: typeof card.display_badges[number]): string => {
-                  switch (b.type) {
-                    case 'preview':
-                      return 'bg-amber-100 text-amber-700';
-                    case 'available':
-                      return 'bg-green-100 text-green-700';
-                    case 'controlled_use':
-                      return 'bg-blue-100 text-blue-700';
-                    case 'coming_soon':
-                      return 'bg-muted text-muted-foreground';
-                    case 'deprecated':
-                    case 'internal_only':
-                      return 'bg-gray-200 text-gray-700';
-                    case 'approval_required':
-                      return 'bg-orange-50 text-orange-700';
-                    case 'anomaly_confirmation_required':
-                      return 'bg-yellow-50 text-yellow-700';
-                    case 'clinical_decision_confirmation_required':
-                      return 'bg-purple-50 text-purple-700';
-                    default:
-                      return 'bg-muted text-muted-foreground';
-                  }
-                };
-                const displayBadgeLabel = (b: typeof card.display_badges[number]): string => {
-                  // Use the user-locale label that the backend already attaches.
-                  // Backend ``label_zh`` / ``label_en`` is authoritative — no
-                  // client-side catalog drift.
-                  return (locale === 'zh-CN' ? b.label_zh : b.label_en) || b.label_en;
-                };
-                return (
-                  <div key={card.agent_ref}
-                    className={`bg-background rounded-xl p-4 transition-all group ${
-                      dimCard
-                        ? 'opacity-80'
-                        : 'hover:ring-1 hover:ring-primary/30 hover:shadow-md'
-                    }`}>
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                        dimCard ? 'bg-muted' : 'bg-primary/10 group-hover:bg-primary/20'
-                      }`}>
-                        <Bot size={15} className={dimCard ? 'text-muted-foreground' : 'text-primary'} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className={`text-sm font-medium transition-colors ${
-                            dimCard ? 'text-muted-foreground' : 'text-foreground group-hover:text-primary'
-                          }`}>{card.name}</p>
-                          {/* Phase 5 Track D P0 Gate 1: display_status + ≤2 badges.
-                              PDF §B3 forbids rendering raw maturity/production_ready. */}
-                          {card.display_badges?.map((b, i) => (
-                            <span key={`${card.agent_ref}-badge-${i}`}
-                              className={`text-[9px] px-1.5 py-0.5 rounded-xs font-medium ${displayBadgeClass(b)}`}
-                              title={displayBadgeLabel(b)}>
-                              {displayBadgeLabel(b)}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{card.description}</p>
-                        {/* Phase 4-D (D-6): card metadata (DD-Mon-YYYY · Creator) */}
-                        {(card.created_at || card.creator) && (
-                          <p className="text-[10px] text-muted-foreground/80 mt-1.5">
-                            {card.created_at && <span>{card.created_at}</span>}
-                            {card.created_at && card.creator && <span> · </span>}
-                            {card.creator && <span>{card.creator}</span>}
-                          </p>
-                        )}
-                        <p
-                          className={`text-[10px] mt-1.5 ${
-                            runActionEnabled ? 'text-emerald-700' : 'text-amber-700'
-                          }`}
-                          title={card.runtime_readiness?.reason || runtimeReadinessLabel}
-                        >
-                          {runtimeReadinessLabel}
-                          {card.runtime_readiness?.semantic_validation_status === 'not_verified'
-                            ? ` · ${t.agentSemanticNotVerified}`
-                            : ''}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          {card.category && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{card.category}</span>
-                          )}
-                          <span className="text-[10px] font-mono text-muted-foreground">v{card.version}</span>
-                          {card.default_runtime_mode && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-xs bg-primary/10 text-primary font-mono" title="Default runtime mode">
-                              {card.default_runtime_mode}
-                            </span>
-                          )}
-                        </div>
-                        {/* Red lines (4 rules) - only show for runnable cards */}
-                        {card.runnable && (card.red_lines?.no_upcoding || card.red_lines?.evidence_required) && (
-                          <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                            {card.red_lines?.no_upcoding && (
-                              <span className="text-[9px] px-1 py-0.5 rounded-xs bg-red-50 text-red-700" title="No upcoding">no_upcoding</span>
-                            )}
-                            {card.red_lines?.evidence_required && (
-                              <span className="text-[9px] px-1 py-0.5 rounded-xs bg-orange-50 text-orange-700" title="Evidence required">evidence_required</span>
-                            )}
-                            {card.red_lines?.production_writeback_blocked && (
-                              <span className="text-[9px] px-1 py-0.5 rounded-xs bg-gray-100 text-gray-700" title="Does not write back to EMR/HIS">no_writeback</span>
-                            )}
-                          </div>
-                        )}
-                        {/* Workflow (7-step / pipeline stages) */}
-                        {card.runnable && card.workflow && (
-                          <p className="text-[10px] text-muted-foreground mt-1.5 line-clamp-2">{card.workflow}</p>
-                        )}
-                        {/* Phase 3-B2 Loop 2 - Click-to-Chat CTAs.
-                            Primary = Chat / Use Agent (clone + navigate).
-                            Secondary = Customize (placeholder link to detail page). */}
-                        {card.runnable && (
-                          <div className="flex items-center gap-2 mt-3">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); chatWithHubCard(card); }}
-                              disabled={isCloningThis || !runActionEnabled}
-                              title={!runActionEnabled ? t.agentRuntimeUnavailableHint : t.agentChatUseAgent}
-                              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50 transition-opacity duration-200 active:scale-[0.98] font-medium"
-                            >
-                              {isCloningThis ? (
-                                <><Loader2 size={12} className="animate-spin" /> {t.agentCardCloning}</>
-                              ) : (
-                                <><Send size={12} /> {t.agentChatUseAgent}</>
-                              )}
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); navigate(`/ai-studio/agents/${card.agent_ref}`); }}
-                              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200 active:scale-[0.98]"
-                              title={t.agentChatCustomize}
-                            >
-                              <Wrench size={12} /> {t.agentChatCustomize}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="prebuilt-agent-grid">
+              {filteredCertifiedAgents.map(card => <PrebuiltAgentCard
+                key={card.agent_ref} card={card} locale={locale}
+                cloning={cloningAgentId === card.agent_id}
+                onUse={() => chatWithHubCard(card)}
+                onDetails={() => navigate(`/ai-studio/agents/${card.agent_ref}`)}
+              />)}
             </div>
           )
         )}

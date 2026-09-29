@@ -1,3 +1,5 @@
+import {ensureBrowserAccess} from './browserSession';
+import {useAuthStore} from '../store';
 /**
  * CDI API client — /api/v1/cdi/* (Phase 5 Track D P0 Gate 5).
  *
@@ -181,8 +183,8 @@ export interface CDIAuditDashboard {
 
 const cdiApi = axios.create({ baseURL: '/api/v1/cdi', timeout: 120000 });
 
-cdiApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+cdiApi.interceptors.request.use(async (config) => {
+  const token = await ensureBrowserAccess();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   config.headers['Content-Type'] = 'application/json';
   return config;

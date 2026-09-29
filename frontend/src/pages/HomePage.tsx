@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { useT } from '../i18n';
+import { useAuthStore } from '../store';
 
 interface HomeTab {
   key: 'transcribe' | 'document' | 'chat' | 'code';
@@ -35,10 +36,7 @@ const TABS: HomeTab[] = [
     labelKey: 'homeTabDocument',
     descKey: 'homeTabDocumentDesc',
     ctaKey: 'homeTabDocumentCta',
-    // Phase 3-B2 Loop 0: TextGeneration deprecated - redirect to Medical Coding
-    // (closest available document workflow). Will be re-pointed to a real
-    // Guided Documents page in Phase 3-C.
-    to: '/ai-studio/medical-coding',
+    to: '/ai-studio/text-generation',
     icon: FileText,
   },
   {
@@ -65,7 +63,8 @@ const TABS: HomeTab[] = [
 export default function HomePage() {
   const t = useT();
   const navigate = useNavigate();
-  const [active, setActive] = useState<HomeTab['key']>('transcribe');
+  const role = useAuthStore(s => s.user?.role);
+  const [active, setActive] = useState<HomeTab['key']>('code');
 
   // Reset scroll when tab changes
   useEffect(() => {
@@ -85,8 +84,18 @@ export default function HomePage() {
           <div className="mb-2">
             <h1 className="text-xl font-bold text-foreground tracking-tight">{t.home}</h1>
             <p className="text-xs text-muted-foreground mt-1">{t.homeSubtitle ?? t.aiStudio}</p>
+            <p className="text-sm text-muted-foreground mt-3">{t.overviewSubtitle}</p>
           </div>
 
+          <section aria-label="角色任务入口" className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-semibold">{role === 'clinician' ? '医生答复与复核' : role === 'qc' ? '文档质控与澄清' : '编码与证据复核'}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">选择已授权的工作流；分析结果需要人工复核。</p>
+            <div className="mt-3 flex flex-wrap gap-4">
+              <button onClick={() => navigate('/ai-studio/cdi')} className="text-primary underline">CDI 病例与澄清任务</button>
+              <button onClick={() => navigate('/ai-studio/medical-coding')} className="text-primary underline">医学编码</button>
+              <button onClick={() => navigate('/ai-studio/agents')} className="text-primary underline">本地预置工具</button>
+            </div>
+          </section>
           {/* ===== 4-tab switcher (Project Home IA) ===== */}
           <div role="tablist" className="inline-flex items-center rounded-xl border border-border/20 bg-background p-1 shadow-sm">
             {TABS.map((tt) => {

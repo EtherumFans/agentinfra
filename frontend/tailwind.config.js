@@ -4,7 +4,7 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      // Semantic color tokens — reference CSS custom properties defined in index.css
+      // Native-style workbench tokens — light surfaces and blue emphasis.
       // (light values in :root, dark values in .dark). Switching <html class="dark">
       // cascades the new values through every class below.
       colors: {
@@ -13,15 +13,15 @@ export default {
         muted: 'hsl(var(--muted))',
         'muted-foreground': 'hsl(var(--muted-foreground))',
 
-        // Vermillion primary — Chinese medical seal red
+        // Native blue primary actions
         primary: 'hsl(var(--primary))',
         'primary-foreground': 'hsl(var(--primary-foreground))',
 
-        // Jade secondary — accuracy, confirmed, success
+        // Quiet secondary surfaces
         secondary: 'hsl(var(--secondary))',
         'secondary-foreground': 'hsl(var(--secondary-foreground))',
 
-        // Warm gray accents
+        // Blue-gray surfaces
         accent: 'hsl(var(--accent))',
         'accent-foreground': 'hsl(var(--accent-foreground))',
 
@@ -54,19 +54,35 @@ export default {
         'chart-3': 'hsl(var(--chart-3))',
         'chart-4': 'hsl(var(--chart-4))',
         'chart-5': 'hsl(var(--chart-5))',
+
+        // Low-saturation status palettes preserve existing semantic utility names.
+        green: { 50: '#F1F8F4', 100: '#E3F1E8', 200: '#C7E2D1', 300: '#9BC6AB', 400: '#70A887', 500: '#4F8D6B', 600: '#248A3D', 700: '#248A3D', 800: '#254F3B', 900: '#203F32' },
+        emerald: { 50: '#F0F8F5', 100: '#E2F1EB', 200: '#C4E0D4', 300: '#98C5B2', 400: '#6EA58D', 500: '#4D8A71', 600: '#248A3D', 700: '#248A3D', 800: '#254D40', 900: '#203E35' },
+        blue: { 50: '#F0F5FA', 100: '#E8F2FF', 200: '#CCDBEC', 300: '#A3BCD6', 400: '#799DBF', 500: '#597FA5', 600: '#0071E3', 700: '#0066CC', 800: '#2D4761', 900: '#273C50' },
+        amber: { 50: '#FCF8EE', 100: '#F7EED7', 200: '#ECDCB3', 300: '#DBC48A', 400: '#C5A969', 500: '#AB8D4F', 600: '#A05A00', 700: '#A05A00', 800: '#604927', 900: '#503D23' },
+        yellow: { 50: '#FCF8EE', 100: '#F7EED7', 200: '#ECDCB3', 300: '#DBC48A', 400: '#C5A969', 500: '#AB8D4F', 600: '#A05A00', 700: '#A05A00', 800: '#604927', 900: '#503D23' },
+        red: { 50: '#FCF3F1', 100: '#F5E5E0', 200: '#E9CBC3', 300: '#D6A69A', 400: '#BE8274', 500: '#AE6658', 600: '#D70015', 700: '#D70015', 800: '#6E392F', 900: '#5A3029' },
+      },
+      boxShadow: {
+        sm: '0 1px 3px rgb(0 0 0 / 0.04)',
+        DEFAULT: '0 2px 8px rgb(0 0 0 / 0.05)',
+        md: '0 4px 14px rgb(0 0 0 / 0.06)',
+        lg: '0 6px 20px rgb(0 0 0 / 0.07)',
+        xl: '0 8px 24px rgb(0 0 0 / 0.08)',
+        '2xl': '0 10px 28px rgb(0 0 0 / 0.09)',
       },
       fontFamily: {
-        sans: ['"Noto Sans SC"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Microsoft YaHei"', '"Segoe UI"', 'sans-serif'],
         mono: ['"JetBrains Mono"', '"IBM Plex Mono"', 'monospace'],
-        brand: ['"DM Serif Display"', '"Noto Serif SC"', 'serif'],
+        brand: ['-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Microsoft YaHei"', '"Segoe UI"', 'sans-serif'],
       },
       // Radius tier system — shape consistency lock (§4.4)
       // Documented rule (follow everywhere):
       //   rounded-xs  (2px)  → micro-badges (text-[9px] inline status tags)
-      //   rounded-md  (6px)  → buttons, inputs, small chips
-      //   rounded-lg  (8px)  → cards, list items, popover surfaces
-      //   rounded-xl  (12px) → modals, drawers, dialogs
-      //   rounded-2xl (16px) → chat surfaces (message bubbles, composer)
+      //   rounded-md  (9px)  → buttons, inputs, small chips
+      //   rounded-lg  (16px) → cards, list items, popover surfaces
+      //   rounded-xl  (18px) → modals, drawers, dialogs
+      //   rounded-2xl (18px) → chat surfaces (message bubbles, composer)
       //   rounded-full      → pill badges, avatars
       // Removed: rounded-sm, rounded-3xl (no usages).
       borderRadius: {

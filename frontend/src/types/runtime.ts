@@ -356,6 +356,9 @@ export interface RunTraceResponse {
     agent_id: string;
     trace_id: string;
     run_status: string;
+    executed_agent_version?: string | null;
+    draft_preview?: boolean | null;
+    manual_review_required?: boolean | null;
     runtime_mode: string;
     latency_ms: number;
     cost: { amount: number; currency: 'CNY' | string };

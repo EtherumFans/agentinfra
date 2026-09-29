@@ -42,6 +42,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from rapidfuzz import fuzz
 from sqlalchemy.ext.asyncio import AsyncSession
+from icoder_runtime.observability.model_usage import collect_model_usage
 
 from app.coding_runtime import (
     CodingRequest,
@@ -298,6 +299,9 @@ class AgentRunRequest(BaseModel):
     """POST /api/v1/agents/{agent_id}/run request body (prompt §9.1)."""
 
     input: AgentRunRequestInput
+    expected_agent_version: str | None = Field(None, min_length=1, max_length=64)
+    expected_configuration_digest: str | None = Field(None, pattern=r"^[a-f0-9]{64}$")
+    preview_draft: bool = Field(False, description="Authenticated organization users only; never changes a published version.")
     runtime_mode: str | None = Field(
         None,
         description=(
@@ -784,6 +788,8 @@ def _ground_declared_evidence_coordinates(
 
 
 class AgentRunResponse(BaseModel):
+    executed_agent_version: str | None = None
+    draft_preview: bool = False
     """POST /api/v1/agents/{agent_id}/run response body (prompt §9.1)."""
 
     agent_id: str
@@ -996,6 +1002,7 @@ async def _execute_specialized_connector_graph(
     request: Request,
     db: AsyncSession,
     t0: float,
+    db_agent_override: Any | None = None,
 ) -> tuple[AgentRunRequest, dict[str, Any] | None, AgentRunResponse | None]:
     """Apply a tenant Agent's graph before a dedicated runtime.
 
@@ -1008,7 +1015,7 @@ async def _execute_specialized_connector_graph(
 
     if not tenant_id:
         return body, None, None
-    db_agent = await _load_agent_from_db(agent_id, tenant_id, db)
+    db_agent = db_agent_override if db_agent_override is not None else await _load_agent_from_db(agent_id, tenant_id, db)
     if db_agent is None:
         return body, None, None
 
@@ -1142,6 +1149,7 @@ async def _execute_specialized_connector_graph(
     operation_id="agent_run_v1",
     response_model=AgentRunResponse,
 )
+@collect_model_usage
 async def run_agent(
     agent_id: str,
     body: AgentRunRequest,
@@ -1172,6 +1180,8 @@ async def run_agent(
     t0 = time.perf_counter()
     # Phase 7 Gate 12 — hybrid auth: principal is (user, client), exactly one set.
     current_user, current_client = principal
+    if body.preview_draft and (current_client is not None or body.expected_agent_version or body.expected_configuration_digest):
+        raise HTTPException(403, detail={'error': 'draft_preview_user_only'})
     is_machine_client = bool(
         current_client is not None
         and current_client.get("token_type") == "client_credentials"
@@ -1214,10 +1224,14 @@ async def run_agent(
             resolve_tenant_runtime,
         )
 
-        runtime_resolution = await resolve_tenant_runtime(agent_id, tenant_id, db)
+        runtime_resolution = await resolve_tenant_runtime(agent_id, tenant_id, db,
+            version=body.expected_agent_version, preview=body.preview_draft)
         execution_agent_id = runtime_resolution.runtime_agent_id
         resolved_clone_pack = runtime_resolution.pack
         resolved_db_agent = runtime_resolution.db_agent
+        from app.services.agent_integration import validate_integration_binding
+        validate_integration_binding(resolved_db_agent, body.expected_agent_version,
+                                     body.expected_configuration_digest)
     except CloneRuntimeConfigurationError as exc:
         logger.warning(
             "agent_run: clone runtime resolution rejected agent_id=%s code=%s",
@@ -1264,6 +1278,9 @@ async def run_agent(
             extra={
                 **body.input.extra,
                 "purpose_of_use": run_purpose_of_use,
+                "expected_agent_version": body.expected_agent_version,
+                "expected_configuration_digest": body.expected_configuration_digest,
+                "preview_draft": body.preview_draft,
                 "documents": [item.model_dump() for item in body.input.documents],
                 "upstream_results": [
                     item.model_dump(exclude={"attestation"})
@@ -1650,6 +1667,7 @@ async def run_agent(
                 request=request,
                 db=db,
                 t0=t0,
+                db_agent_override=resolved_db_agent,
             )
         )
         if specialized_connector_payload is not None:
@@ -1714,6 +1732,11 @@ async def run_agent(
             db_agent_override=resolved_db_agent,
             runtime_source_agent_id=execution_agent_id,
         )
+
+    response.executed_agent_version = getattr(resolved_db_agent, 'version', None)
+    response.draft_preview = body.preview_draft
+    if body.preview_draft:
+        response.warnings.append('draft_preview_not_published')
 
     # Sign only successful, contract-valid output, before it is published to
     # run history or an idempotency snapshot.  If signing fails, withhold the
@@ -2024,6 +2047,8 @@ async def _persist_run_history(
     if row is None:
         # No PENDING row was written (legacy path or row was deleted).
         # INSERT with all fields. Use COMPLETED/FAILED directly.
+        from datetime import datetime, timezone
+        recorded_at = datetime.now(timezone.utc).replace(tzinfo=None)
         row = RunHistoryModel(
             id=_generate_row_id(),
             organization_id=organization_id or tenant_id or None,
@@ -2034,6 +2059,8 @@ async def _persist_run_history(
             runtime_mode=response.runtime_mode,
             latency_ms=response.latency_ms,
             cost_usd=cost_amount,
+            created_at=recorded_at,
+            updated_at=recorded_at,
             input_text=(input_text or "")[:4096],
             output_summary=(response.summary or "")[:4096],
             error=bool(response.error),
@@ -2074,6 +2101,19 @@ async def _persist_run_history(
         row.output_summary = (response.summary or "")[:4096]
         row.error = bool(response.error)
         row.error_reason = response.error_reason or None
+    row.executed_agent_version = response.executed_agent_version
+    row.draft_preview = response.draft_preview
+    row.manual_review_required = response.manual_review_required
+    from icoder_runtime.observability.model_usage import model_usage_snapshot
+    usage = model_usage_snapshot()
+    if usage is not None:
+        row.model_calls = usage['calls']
+        row.model_input_tokens = usage['input_tokens']
+        row.model_output_tokens = usage['output_tokens']
+        row.model_estimated_cost_usd = usage['estimated_cost_usd']
+        row.model_usage_complete = usage['usage_complete']
+        row.model_cost_complete = usage['cost_complete']
+        row.model_usage = usage
     await db.flush()
 
 
@@ -2361,8 +2401,6 @@ def _map_coding_result(
             DiagnosisEntry,
             MedicalCodingAgentOutputV2,
             MedicalCodingOutputSchema,
-            uncodable_item_from_negated_diagnosis,
-            withhold_source_negated_diagnoses,
         )
 
         legacy = MedicalCodingOutputSchema.from_dict(raw_schema)
@@ -2378,8 +2416,6 @@ def _map_coding_result(
             ]
             legacy.primary_diagnosis = DiagnosisEntry()
             legacy.secondary_diagnoses = []
-
-        negated_diagnoses = withhold_source_negated_diagnoses(legacy, source_text)
 
         result_payload = MedicalCodingAgentOutputV2.from_legacy_v1(
             legacy,
@@ -2403,11 +2439,6 @@ def _map_coding_result(
                 })
             result_payload["uncodable_items"] = uncodable_items
             evidence = [item for item in evidence if item.get("type") == "procedure"]
-        if negated_diagnoses:
-            uncodable_items = list(result_payload.get("uncodable_items") or [])
-            for diagnosis in negated_diagnoses:
-                uncodable_items.append(uncodable_item_from_negated_diagnosis(diagnosis))
-            result_payload["uncodable_items"] = uncodable_items
         source_negated_findings = _source_negated_coding_findings(source_text)
         documentation = result_payload.get("documentation_analysis")
         if isinstance(documentation, dict) and source_negated_findings:

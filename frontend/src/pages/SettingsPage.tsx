@@ -138,7 +138,7 @@ export default function SettingsPage() {
     }
     setChangingPassword(true); setPasswordMsg('');
     try {
-      const token = localStorage.getItem('access_token') || '';
+      const token = useAuthStore.getState().accessToken || '';
       const r = await fetch('/api/auth/change-password', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
@@ -253,7 +253,8 @@ export default function SettingsPage() {
           <div className="space-y-3">
             <div>
               <label className="text-xs text-muted-foreground">{t.product}</label>
-              <p className="font-medium text-foreground">{config?.app || 'iCoDer 医学编码智能体'} {config?.version || ''}</p>
+              <p className="font-medium text-foreground">{t.appName} {config?.version || ''}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t.appTagline}</p>
             </div>
             <div>
               <label className="text-xs text-muted-foreground">{t.llmProvider}</label>

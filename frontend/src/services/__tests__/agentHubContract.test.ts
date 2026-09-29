@@ -71,7 +71,7 @@ describe('Phase 3-B1 Section F — Agent Hub frontend contract', () => {
     }
   });
 
-  it('declares and renders truthful four-axis runtime readiness', () => {
+  it('preserves runtime readiness gating behind simplified cards', () => {
     const api = fs.readFileSync(HUB_API_PATH, 'utf-8');
     const page = fs.readFileSync(AGENTS_PAGE_PATH, 'utf-8');
 
@@ -83,9 +83,10 @@ describe('Phase 3-B1 Section F — Agent Hub frontend contract', () => {
     expect(api).toContain('production_approval_status');
     expect(api).toContain('mergeHubTenantReadiness');
     expect(api).toContain('listWithTenantReadiness');
-    expect(page).toContain('card.runtime_readiness?.run_action_enabled === true');
-    expect(page).toContain('disabled={isCloningThis || !runActionEnabled}');
-    expect(page).toContain('agentSemanticNotVerified');
+    const card = fs.readFileSync(path.join(FRONTEND_SRC, 'components', 'agents', 'PrebuiltAgentCard.tsx'), 'utf-8');
+    expect(page).toContain('<PrebuiltAgentCard');
+    expect(card).toContain('card.runtime_readiness?.run_action_enabled===true');
+    expect(card).toContain('disabled={!ready||cloning}');
   });
 
   it('AgentsPage Prebuilt tab imports agentHubApi (not runtimeAgentApi.listAgents for certified)', () => {

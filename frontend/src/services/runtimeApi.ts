@@ -1,3 +1,5 @@
+import {ensureBrowserAccess} from './browserSession';
+import {useAuthStore} from '../store';
 /**
  * Runtime Agent API client — /api/runtime/* standard endpoints (agent lifecycle,
  * registry, medical-coding, rule-engine).
@@ -19,8 +21,8 @@ import type {
 const api = axios.create({ baseURL: '/api/runtime', timeout: 30000 });
 
 // Auth token interceptor
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+api.interceptors.request.use(async (config) => {
+  const token = await ensureBrowserAccess();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -28,8 +30,8 @@ api.interceptors.request.use((config) => {
 // A2A mainline client — POST /api/icoder/agents/{agentId}/v1/message:send
 // JSON-RPC 2.0 envelope + A2A-Protocol-Version: 0.3 header.
 const a2aApi = axios.create({ baseURL: '/api/icoder/agents', timeout: 60000 });
-a2aApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+a2aApi.interceptors.request.use(async (config) => {
+  const token = await ensureBrowserAccess();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   config.headers['A2A-Protocol-Version'] = '0.3';
   config.headers['Content-Type'] = 'application/json';
@@ -40,8 +42,8 @@ a2aApi.interceptors.request.use((config) => {
 // POST /api/v1/agents/{agent_id}/run — thin facade that routes to
 // CodingRuntimeDispatcher (medical-coding) or ProviderRegistry (others).
 const unifiedRunApi = axios.create({ baseURL: '/api/v1/agents', timeout: 60000 });
-unifiedRunApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+unifiedRunApi.interceptors.request.use(async (config) => {
+  const token = await ensureBrowserAccess();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   config.headers['Content-Type'] = 'application/json';
   return config;
@@ -169,7 +171,7 @@ async function _streamAgentViaA2A(
   handlers: AgentStreamHandlers,
 ): Promise<AgentRunResponse> {
   const shortId = agentId.split('/').pop()!.split('@')[0];
-  const token = localStorage.getItem('access_token') || '';
+  const token = await ensureBrowserAccess() || '';
   const message: Record<string, unknown> = {
     role: 'user',
     messageId: crypto.randomUUID(),

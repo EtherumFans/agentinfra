@@ -98,8 +98,22 @@ def _section_bodies(text: str) -> dict[str, str]:
 
 
 def _has_meaningful_content(body: str) -> bool:
-    """A heading alone is incomplete; a documented negation such as 无 is valid."""
-    return bool(re.search(r"[\w\u3400-\u9fff]", body, re.UNICODE))
+    """Reject placeholder-only sections without rejecting documented negations.
+
+    This is a documentation heuristic, not a clinical completeness assessment.
+    Match whole clauses so 未记录 in a substantive explanation is not discarded.
+    """
+    clauses = re.split(r"[，,。；;！!？?\n\r]+", body)
+    placeholder = re.compile(
+        r"(?:未记录|未填写|未提供|未明确|不详|未知|待补(?:充|全)?|待完善|"
+        r"待查|暂无|略|待定|不清楚|N/?A|TBD|unknown|not documented)",
+        re.IGNORECASE,
+    )
+    return any(
+        bool(re.search(r"[\w\u3400-\u9fff]", clause))
+        and not placeholder.fullmatch(clause.strip(" \t:：-—_"))
+        for clause in clauses
+    )
 
 
 def _detect_sections(

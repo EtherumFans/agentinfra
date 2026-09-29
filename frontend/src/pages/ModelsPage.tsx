@@ -12,6 +12,8 @@ import {
 
 import { useLocaleStore } from '../i18n';
 import { modelCatalogApi } from '../services/api';
+import ModelConnectionCard from '../components/agents/ModelConnectionCard';
+import { useAuthStore } from '../store';
 
 
 type ModelStatus =
@@ -146,6 +148,7 @@ const statusClasses: Record<ModelStatus, string> = {
 
 
 export default function ModelsPage() {
+  const currentOrgId = useAuthStore(state => state.currentOrgId);
   const locale = useLocaleStore((state) => state.locale);
   const zh = locale === 'zh-CN';
   const [catalog, setCatalog] = useState<ModelCatalogResponse | null>(null);
@@ -182,7 +185,7 @@ export default function ModelsPage() {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [currentOrgId]);
 
   const updateSelection = async (mode: 'inherit' | 'pinned', deploymentId = '') => {
     if (!catalog) return;
@@ -258,7 +261,10 @@ export default function ModelsPage() {
     [catalog],
   );
 
-  const statusLabel = (status: ModelStatus) => {
+  const statusLabel = (status: ModelStatus, selected = false) => {
+    if (selected && status === 'configured_not_live_verified' && catalog?.effective_deployment_id === 'organization-deepseek') {
+      return zh ? '启用时连接测试通过' : 'Connection tested on activation';
+    }
     const labels: Record<ModelStatus, [string, string]> = {
       available_to_configure: ['可配置', 'Available to configure'],
       configured_not_live_verified: ['已配置，未实网验证', 'Configured, not live verified'],
@@ -296,6 +302,7 @@ export default function ModelsPage() {
           </button>
         </div>
 
+        <ModelConnectionCard key={`${currentOrgId}:${catalog?.effective_deployment_id}:${catalog?.tenant_selection.version}`} onChanged={() => void load()} />
         {error && (
           <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             <AlertTriangle size={17} /> {error}
@@ -344,7 +351,9 @@ export default function ModelsPage() {
                 </div>
                 {!catalog.selection_editable && (
                   <span className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
-                    {zh ? '仅 owner/admin 可修改' : 'Owner/admin only'}
+                    {catalog.effective_deployment_id === 'organization-deepseek'
+                      ? (zh ? '在上方模型连接中管理' : 'Manage in Model connection above')
+                      : (zh ? '仅 owner/admin 可修改' : 'Owner/admin only')}
                   </span>
                 )}
               </div>
@@ -383,7 +392,7 @@ export default function ModelsPage() {
               </p>
             </div>
 
-            {active && (
+            {active && catalog.effective_deployment_id !== 'organization-deepseek' && (
               <div className={`rounded-xl border p-5 ${active.status === 'blocked' ? 'border-red-200 bg-red-50/60' : 'border-amber-200 bg-amber-50/50'}`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -461,7 +470,7 @@ export default function ModelsPage() {
                       </div>
                     </div>
                     <span className={`rounded-full px-2 py-1 text-[11px] font-medium ${statusClasses[item.status]}`}>
-                      {statusLabel(item.status)}
+                      {statusLabel(item.status, item.selected)}
                     </span>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-muted-foreground">{item.china_scenario}</p>

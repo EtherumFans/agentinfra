@@ -31,7 +31,7 @@ iCoDer v1 ships as **托管云 SaaS (Corti-style)**, 不是医院私有化部署
 |---|---|---|
 | **Environment** | 地理 / 合规区域 | EU / US / CN |
 | **Tenant** | 客户 (医院 / ISV) | 一个医院 = 一个 Tenant |
-| **API Client** | 接入凭证 | backend-service (server-to-server) vs ROPC embedded (browser) |
+| **API Client** | 接入凭证 | 服务端client_credentials与受控浏览器嵌入会话 |
 
 三层对应 Corti 的 environment / tenant / API client 模型。医院 HIS/EMR 通过 API Client
 集成,不直接接触底层控制面。
@@ -54,20 +54,19 @@ Environment 配置 declarative 在 [regions.yaml](../../deploy/cloud/regions.yam
 
 - **Tenant 创建**: 通过 `CLOUD_INTAKE_TEMPLATE.md` onboarding 流程,经 iCoDer
   平台运维团队审批。
-- **Tenant 隔离**: 每个 Tenant 拥有独立 database schema + LLM credential vault +
-  audit log partition。
+- **Tenant 隔离**: 当前实现主要使用共享表的 organization_id 与 PostgreSQL RLS 应用角色隔离，配合凭据及审计访问控制；不承诺每租户独立 schema。目标部署必须实际验证 RLS、密钥及审计配置。
 - **现有 `Organization` schema** (在 `backend/app/api/organizations.py`) 升级为
   `Tenant` 的实现细节之一;Phase 1 文档口径用 Tenant,代码继续用 Organization
   直到 Phase 2 重命名。
 
 ### 2.3 API Client (接入凭证)
 
-两类 client,与 Corti 同款:
+两类集成入口，授权流程以当前实现为准：
 
 | 类型 | 用途 | 凭证 | 典型用户 |
 |---|---|---|---|
 | **backend-service** | HIS / EMR 后端集成 | `client_id` + `client_secret` (server 持有) | 医院信息科自研集成 |
-| **ROPC embedded** | Web Component / 浏览器嵌入 | ROPC flow (username/password → short-lived token) | Web 端医生工作站 |
+| **受控 embedded** | Web Component / 浏览器嵌入 | 经认证的短期预览/嵌入会话；OAuth token端点仅支持client_credentials，不支持password grant | Web 端医生工作站 |
 
 详细规范见 [API_CLIENT_MODEL.md](API_CLIENT_MODEL.md)。
 

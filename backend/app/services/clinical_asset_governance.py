@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -190,6 +191,8 @@ def assert_asset_use_allowed(
     usage: str,
     manifest_path: str | Path | None = None,
     verify_integrity: bool = True,
+    jurisdiction: str | None = None,
+    as_of: date | None = None,
 ) -> dict[str, Any]:
     """Return the asset only when integrity and deployment policy allow use.
 
@@ -201,10 +204,19 @@ def assert_asset_use_allowed(
     if verify_integrity:
         verify_asset_integrity(asset)
 
+    today = as_of or date.today()
+    try:
+        valid_from = date.fromisoformat(asset.get("effective_from") or "")
+        valid_to = date.fromisoformat(asset["effective_to"]) if asset.get("effective_to") else None
+        effective = valid_from <= today and (valid_to is None or today <= valid_to)
+    except (TypeError, ValueError):
+        effective = False
+    if (asset.get("effective_from") or asset.get("effective_to")) and not effective:
+        raise ClinicalAssetGovernanceError(f"{asset_id}@{asset['version']} is outside a valid effective period")
     authoritative = (
         asset["authority_status"] == "authoritative_verified"
         and asset["license_status"] == "verified"
-        and bool(asset.get("effective_from"))
+        and effective
     )
     if usage in {"billing", "settlement", "production_grouping"} and (
         not authoritative or not asset["billing_authoritative"]
@@ -216,6 +228,11 @@ def assert_asset_use_allowed(
         raise ClinicalAssetGovernanceError(
             f"{asset_id}@{asset['version']} is not verified for cloud clinical use"
         )
+    strict = deployment_mode.strip().casefold() == "cloud" or usage in {"billing", "settlement", "production_grouping"}
+    if (strict or jurisdiction is not None) and (
+        not jurisdiction or asset["jurisdiction"] != jurisdiction
+    ):
+        raise ClinicalAssetGovernanceError(f"{asset_id}@{asset['version']} jurisdiction must match the requested deployment")
     return asset
 
 

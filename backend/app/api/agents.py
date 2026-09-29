@@ -16,10 +16,11 @@ mounted A2A routes.
 """
 import json
 import uuid
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from app.services.release_evaluation import EvaluationPurpose, validate_release_policy
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
-from sqlalchemy import select, or_
+from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import select, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.middleware.auth import get_current_user, get_current_organization
@@ -55,6 +56,7 @@ class AgentCreate(BaseModel):
     default_expert_id: str = ""
     a2a_enabled: bool = False
     config: dict | None = None
+    _validate_release_policy = field_validator("config")(validate_release_policy)
 
 class AgentUpdate(BaseModel):
     name: str | None = None
@@ -66,6 +68,7 @@ class AgentUpdate(BaseModel):
     default_expert_id: str | None = None
     a2a_enabled: bool | None = None
     config: dict | None = None
+    _validate_release_policy = field_validator("config")(validate_release_policy)
     status: str | None = None
     is_published: bool | None = None
     version: str | None = None
@@ -102,7 +105,7 @@ def _lifecycle_projection(agent: Agent) -> dict:
     elif status == "draft":
         allowed_actions = ["publish", "delete"]
     elif status == "published":
-        allowed_actions = ["archive", "version", "delete"]
+        allowed_actions = ["publish", "archive", "version", "delete"]
     else:
         allowed_actions = ["restore", "delete"]
     return {
@@ -408,8 +411,8 @@ async def create_agent(
         a2a_enabled=body.a2a_enabled,
         config=body.config or {},
         is_prebuilt=False,
-        is_published=True,
-        status="published",
+        is_published=False,
+        status="draft",
         version="1.0.0",
         created_by=user.id,
     )
@@ -420,8 +423,8 @@ async def create_agent(
         agent=agent,
         org=org,
         user=user,
-        action="agent.lifecycle.created_published",
-        details={"status": "published", "version": "1.0.0"},
+        action="agent.lifecycle.created_draft",
+        details={"status": "draft", "version": "1.0.0"},
     )
     await db.commit()
     await db.refresh(agent)
@@ -643,7 +646,8 @@ async def update_agent(
     db: AsyncSession = Depends(get_db),
 ):
     """Update agent."""
-    result = await db.execute(select(Agent).where(Agent.id == agent_id, Agent.organization_id == org.id))
+    await _lock_agent(db, agent_id, org.id)
+    result = await db.execute(select(Agent).where(Agent.id == agent_id, Agent.organization_id == org.id).with_for_update())
     agent = result.scalar_one_or_none()
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -700,6 +704,8 @@ async def update_agent(
             default_expert_id=next_default_expert_id,
         )
 
+    from app.services.agent_releases import preserve_current
+    await preserve_current(db, agent, str(user.id))
     changed_fields: list[str] = []
     for field in ["name", "description", "system_prompt", "icon", "category",
                    "expert_ids", "default_expert_id", "a2a_enabled", "config"]:
@@ -709,8 +715,6 @@ async def update_agent(
             changed_fields.append(field)
 
     previous_version = agent.version or "1.0.0"
-    if changed_fields and str(agent.status or "draft") == "published":
-        agent.version = _bump_patch_version(previous_version)
     agent.is_published = str(agent.status or "draft") == "published"
 
     if changed_fields:
@@ -758,35 +762,16 @@ async def bump_agent_version(
     org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
-    """Bump agent version (patch increment)."""
-    result = await db.execute(
-        select(Agent).where(Agent.id == agent_id, Agent.organization_id == org.id)
-    )
-    agent = result.scalar_one_or_none()
-    if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
-    if str(agent.status or "draft") != "published" or not agent.is_published:
-        raise HTTPException(
-            status_code=409,
-            detail={"error": "agent_not_published"},
-        )
-    previous_version = agent.version or "1.0.0"
-    agent.version = _bump_patch_version(previous_version)
-    await _audit_agent_lifecycle(
-        db,
-        agent=agent,
-        org=org,
-        user=user,
-        action="agent.lifecycle.versioned",
-        details={
-            "previous_version": previous_version,
-            "version": agent.version,
-            "status": "published",
-        },
-    )
-    await db.commit()
-    await db.refresh(agent)
-    return await _agent_to_dict(agent)
+    """Compatibility alias for publishing the current draft."""
+    return await publish_agent(agent_id, user, org, db, "quality_improvement")
+
+
+async def _lock_agent(db, agent_id, organization_id):
+    # SQLite has no SELECT FOR UPDATE: reserve its write transaction before
+    # reading a version so concurrent publication cannot read stale state.
+    if db.bind.dialect.name == 'sqlite':
+        await db.execute(text('UPDATE agents SET id=id WHERE id=:id AND organization_id=:org'),
+                         {'id':agent_id, 'org':organization_id})
 
 
 async def _owned_agent_for_lifecycle(
@@ -795,13 +780,14 @@ async def _owned_agent_for_lifecycle(
     org: Organization,
     db: AsyncSession,
 ) -> Agent:
+    await _lock_agent(db, agent_id, org.id)
     agent = (
         await db.execute(
             select(Agent).where(
                 Agent.id == agent_id,
                 Agent.organization_id == org.id,
                 Agent.is_prebuilt.is_(False),
-            )
+            ).with_for_update()
         )
     ).scalar_one_or_none()
     if agent is None:
@@ -815,6 +801,7 @@ async def publish_agent(
     user: User = Depends(get_current_user),
     org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
+    purpose: EvaluationPurpose = "quality_improvement",
 ):
     """Publish a draft Agent; publishing an already-live Agent is idempotent."""
 
@@ -825,25 +812,80 @@ async def publish_agent(
             status_code=409,
             detail={"error": "agent_restore_required"},
         )
-    if status != "published" or not agent.is_published:
-        previous_status = status
-        agent.status = "published"
-        agent.is_published = True
-        await _audit_agent_lifecycle(
-            db,
-            agent=agent,
-            org=org,
-            user=user,
-            action="agent.lifecycle.published",
-            details={
-                "previous_status": previous_status,
-                "status": "published",
-                "version": agent.version or "1.0.0",
-            },
-        )
-        await db.commit()
-        await db.refresh(agent)
+    from app.services.agent_releases import publish
+    previous_version = agent.version
+    release = await publish(db, agent, str(user.id), purpose)
+    await _audit_agent_lifecycle(db, agent=agent, org=org, user=user,
+        action="agent.lifecycle.published", details={"previous_version":previous_version,
+        "version":release.version, "status":"published"})
+    await db.commit()
+    await db.refresh(agent)
     return await _agent_to_dict(agent)
+
+
+
+@router.get("/{agent_id}/integration")
+async def get_agent_integration(
+    agent_id: str,
+    version: str | None = Query(None, max_length=64),
+    user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.services.agent_integration import integration_manifest
+    from app.services.agent_releases import preserve_current, runtime_definition
+    agent = await _owned_agent_for_lifecycle(agent_id, org=org, db=db)
+    await preserve_current(db, agent, str(user.id))
+    resolved = await runtime_definition(db, agent, version)
+    manifest = integration_manifest(resolved)
+    await db.commit()
+    return manifest
+
+
+@router.get('/{agent_id}/releases')
+async def list_agent_releases(
+    agent_id: str, user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization), db: AsyncSession = Depends(get_db),
+    purpose: EvaluationPurpose = "quality_improvement",
+):
+    from app.models.agent_release import AgentRelease
+    from app.services.release_evaluation import publication_gate
+    from app.services.agent_releases import preserve_current, definition
+    from app.services.agent_dependencies import draft_locks
+    agent = await _owned_agent_for_lifecycle(agent_id, org=org, db=db)
+    current = await preserve_current(db, agent, str(user.id))
+    rows = (await db.execute(select(AgentRelease).where(
+        AgentRelease.agent_id == agent.id, AgentRelease.organization_id == org.id,
+    ).order_by(AgentRelease.created_at.desc(), AgentRelease.id.desc()))).scalars().all()
+    await db.commit()
+    gate = await publication_gate(db, agent, purpose)
+    prior_digest = current.runtime_pack.get('_evaluation_evidence', {}).get('draft_digest') if current else None
+    return {'evaluation_gate': gate,
+        'active_version': agent.version if agent.is_published else None,
+        'status':agent.status, 'draft_changed': bool(prior_digest and prior_digest != gate['draft_digest']) or current is None or current.definition != definition(agent) or current.runtime_pack.get('_dependency_lock', []) != await draft_locks(db, agent),
+        'releases':[{'version':r.version, 'created_at':r.created_at.isoformat() + ('Z' if r.created_at.tzinfo is None else ''),
+                     'evaluation_evidence': r.runtime_pack.get('_evaluation_evidence'),
+                     'active':agent.is_published and r.version == agent.version} for r in rows]}
+
+
+@router.post('/{agent_id}/releases/{version}/activate')
+async def activate_agent_release(
+    agent_id: str, version: str, user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization), db: AsyncSession = Depends(get_db),
+):
+    from app.services.agent_releases import find_release
+    agent = await _owned_agent_for_lifecycle(agent_id, org=org, db=db)
+    if agent.status != 'published' or not agent.is_published:
+        raise HTTPException(409, detail={'error':'agent_restore_required'})
+    if not await find_release(db, agent, version):
+        raise HTTPException(404, detail={'error':'agent_release_not_found'})
+    previous = agent.version
+    agent.version = version
+    await _audit_agent_lifecycle(db, agent=agent, org=org, user=user,
+        action='agent.lifecycle.release_activated',
+        details={'previous_version':previous, 'version':version, 'status':'published'})
+    await db.commit()
+    return {'active_version':version, 'previous_version':previous}
 
 
 @router.post("/{agent_id}/archive")

@@ -294,7 +294,10 @@ class LLMGatewayAdapter:
             result.get("degraded", False)
             or result.get("is_mock", False)
             or result.get("provider") == "mock"
-            or selected_provider_is_mock
+            # Tenant routing can select a real provider over a mock default.
+            # Gateway provenance reflects the provider that actually executed;
+            # use the pre-call hint only for legacy gateways without provenance.
+            or (selected_provider_is_mock and not result.get("provider"))
         )
         finish_reason = result.get("finish_reason", "")
         if degraded:

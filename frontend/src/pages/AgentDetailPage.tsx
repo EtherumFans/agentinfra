@@ -1,3 +1,10 @@
+import AgentWorkflow from '../components/agents/AgentWorkflow';
+import AgentDetailHeader from '../components/agents/AgentDetailHeader';
+import {summaries} from '../components/agents/PrebuiltAgentCard';
+import './AgentDetailPage.css';
+import ConversationHistory from '../components/agents/ConversationHistory';
+import MemorySearch from '../components/agents/MemorySearch';
+import {messagesFromTasks} from '../services/conversationHistory';
 // Agent Detail Page - standalone page for /ai-studio/agents/:agentId
 // Chat area (left) + SettingsCodeTab (right) with Settings/Code tabs
 import { useState, useEffect, useRef } from 'react';
@@ -8,10 +15,11 @@ import {
 } from 'lucide-react';
 
 import { useT } from '../i18n';
-import { agentsApi, billingApi } from '../services/api';
+import api, { agentsApi, billingApi } from '../services/api';
 import { agentHubApi } from '../services/agentHubApi';
 import { runtimeAgentApi } from '../services/runtimeApi';
-import { useToastStore } from '../store';
+import { useToastStore, useAuthStore } from '../store';
+import { contextKey, readContext, saveContext } from '../services/conversationContext';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import ToolSelector from '../components/agents/ToolSelector';
 import CodeSnippet from '../components/common/CodeSnippet';
@@ -35,6 +43,11 @@ export default function AgentDetailPage() {
   const t = useT();
   const { agentId } = useParams<{ agentId: string }>();
   const navigate = useNavigate();
+  const orgId = useAuthStore(s => s.currentOrgId);
+  const userId = useAuthStore(s => s.user?.id);
+  const conversationKey = contextKey(String(userId || ''), orgId || '', agentId || '');
+  const activeScopeRef = useRef(conversationKey);
+  activeScopeRef.current = conversationKey;
 
   // Agent data
   const [agent, setAgent] = useState<any>(null);
@@ -69,6 +82,9 @@ export default function AgentDetailPage() {
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
+  const [showConversations,setShowConversations]=useState(false);
+  const [showMemorySearch,setShowMemorySearch]=useState(false);
+  const [contextLoading, setContextLoading] = useState(false);
   const [sessionId, setSessionId] = useState(() => `sess-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   const [memoryReadiness, setMemoryReadiness] = useState<any | null>(null);
 
@@ -81,11 +97,13 @@ export default function AgentDetailPage() {
   const [agentName, setAgentName] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showEditPrompt, setShowEditPrompt] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [lifecycleLoading, setLifecycleLoading] = useState(false);
 
   // Orchestration config
+  const [codingAssistance, setCodingAssistance] = useState(false);
   const [routingStrategy, setRoutingStrategy] = useState<string>('llm_plan');
   const [maxRetries, setMaxRetries] = useState(2);
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.6);
@@ -122,13 +140,30 @@ export default function AgentDetailPage() {
       activeStreamRef.current = null;
     }
     activeContextRef.current = '';
-  }, [agentId]);
+    setChatMessages([]);
+    setChatLoading(false);
+    const saved = readContext(conversationKey);
+    setContextLoading(Boolean(saved));
+    let active = true;
+    if (saved) {
+      api.get(`/v2/agentic/contexts/${encodeURIComponent(saved)}`, { params: { historyLength: 0 } })
+        .then(async response => {
+          if(response.data.agentId!==agentId)throw Error('Context belongs to another agent');
+          const history=await api.get(`/v2/agentic/contexts/${encodeURIComponent(saved)}/tasks`,{params:{pageSize:20,historyLength:100}});
+          if (!active) return;
+          activeContextRef.current = saved;
+          setChatMessages(messagesFromTasks(history.data.tasks));
+        }).catch(() => { if (active) saveContext(conversationKey, ''); })
+        .finally(() => { if (active) setContextLoading(false); });
+    }
+    return () => { active = false; activeStreamRef.current?.abort(); };
+  }, [agentId, conversationKey]);
 
   // Load agent data
   useEffect(() => {
     if (!agentId) return;
 
-    const isActive = () => activeAgentIdRef.current === agentId;
+    const isActive = () => activeAgentIdRef.current === agentId && activeScopeRef.current === conversationKey;
 
     setError('');
     setLoading(true);
@@ -172,6 +207,7 @@ export default function AgentDetailPage() {
       }
       setSystemPrompt(a.system_prompt || '');
       const cfg = a.config || {};
+      setCodingAssistance(cfg.coding_catalog_assistance === 'cn-catalog-assistance-v1');
       setRoutingStrategy(cfg.routing_strategy || 'llm_plan');
       setMaxRetries(cfg.max_retries ?? 2);
       setConfidenceThreshold(cfg.confidence_threshold ?? 0.6);
@@ -252,7 +288,7 @@ export default function AgentDetailPage() {
     }).finally(() => {
       if (isActive()) setLoading(false);
     });
-  }, [agentId]);
+  }, [agentId, conversationKey]);
 
   // Load only aggregate governed-Memory readiness; no remembered content is fetched.
   useEffect(() => {
@@ -280,7 +316,7 @@ export default function AgentDetailPage() {
   const handleSend = async (overrideContent?: string) => {
     const content = overrideContent || buildMessageContent();
     if (!content.trim() || !agent) return;
-    if (isRunActionDisabled(agent)) {
+    if (contextLoading || isRunActionDisabled(agent)) {
       toast(t.agentRuntimeUnavailableHint, 'error');
       return;
     }
@@ -291,7 +327,7 @@ export default function AgentDetailPage() {
     }
     const abortController = new AbortController();
     activeStreamRef.current = abortController;
-    const isActive = () => activeAgentIdRef.current === agentId;
+    const isActive = () => activeAgentIdRef.current === agentId && activeScopeRef.current === conversationKey;
 
     const userMsg = { role: 'user', content };
     setChatMessages(prev => [...prev, userMsg]);
@@ -357,7 +393,11 @@ export default function AgentDetailPage() {
       });
 
       if (!isActive()) return;
-      if (resp.context_id) activeContextRef.current = resp.context_id;
+      if (activeScopeRef.current !== conversationKey) return;
+      if (resp.context_id) {
+        activeContextRef.current = resp.context_id;
+        saveContext(conversationKey, resp.context_id);
+      }
 
       if (resp.error) {
         setChatMessages(prev => prev.map((m, i) =>
@@ -469,6 +509,8 @@ export default function AgentDetailPage() {
         system_prompt: systemPrompt,
         expert_ids: agentExperts.map(e => e.id),
         config: {
+          ...(agent.config || {}),
+          coding_catalog_assistance: codingAssistance ? 'cn-catalog-assistance-v1' : null,
           routing_strategy: routingStrategy,
           max_retries: maxRetries,
           confidence_threshold: confidenceThreshold,
@@ -580,7 +622,7 @@ export default function AgentDetailPage() {
 
   const agentTitle = agentName || agent.name || agent.title || '智能体';
   const dynamicProjectAgent = Boolean(agent && !agent.is_prebuilt && agent.lifecycle);
-  const runActionDisabled = isRunActionDisabled(agent);
+  const runActionDisabled = contextLoading || isRunActionDisabled(agent);
   const agentRunCode = buildAgentRunSnippets({
     agentId: agent?.id || agentId || '',
     agentRef: agentRef || agent?.config?.source_agent_ref || agent?.config?.agent_ref || '',
@@ -589,7 +631,18 @@ export default function AgentDetailPage() {
   });
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="agent-detail-workspace flex flex-col flex-1 min-h-0">
+      <AgentDetailHeader name={agentTitle} description={summaries[(agent?.config?.source_agent_ref || agentRef || agentId || '').split('/').pop()?.split('@')[0] || ''] || agent.description || '提供需要处理的资料，由智能体协助完成任务，再核对处理结果。'} agentId={agent.id || agentId || ''} draft={dynamicProjectAgent && (agent.lifecycle?.state || agent.status)==='draft'} unavailable={runActionDisabled} managed={dynamicProjectAgent} advanced={showAdvanced} onAdvanced={()=>setShowAdvanced(v=>!v)} onHistory={()=>setShowConversations(v=>!v)} busy={contextLoading||chatLoading} onNew={()=>{activeContextRef.current="";saveContext(conversationKey, "");setChatMessages([]);}}/>
+      <div hidden={!showAdvanced}>
+      {agentId&&<AgentWorkflow agentId={agentId}/>}
+      <div className="p-3 border-b border-border text-sm flex flex-wrap gap-3">
+        <span>多轮对话 · 按当前用户、组织与智能体续接上下文；浏览器仅保存会话引用。</span>
+        <button disabled={contextLoading || chatLoading} className="text-primary underline disabled:opacity-50" onClick={() => {
+          activeContextRef.current = ''; saveContext(conversationKey, ''); setChatMessages([]);
+        }}>新建对话</button>
+        <button onClick={()=>setShowConversations(v=>!v)}>组织对话历史</button><button onClick={()=>setShowMemorySearch(v=>!v)}>检索个人记忆</button>
+      </div>
+      {showMemorySearch&&agentId&&<MemorySearch key={conversationKey} agentId={agentId}/>}
       {/* Runtime status bar */}
       <div className="flex items-center gap-4 px-6 py-2 bg-muted/30 border-b text-xs">
         <span className="text-muted-foreground">Runtime:</span>
@@ -712,6 +765,7 @@ export default function AgentDetailPage() {
                 {t.agentLifecycleRestore}
               </button>
             )}
+            {dynamicProjectAgent && <><Link to={`/ai-studio/agents/${agent.id}/releases`} className="px-3 py-1 rounded-md border border-border text-xs">草稿与版本</Link><Link to={`/ai-studio/agents/${agent.id}/integration`} className="px-3 py-1 rounded-md bg-primary text-primary-foreground text-xs">集成</Link></>}
             <button onClick={() => setShowTestPanel(!showTestPanel)} disabled={runActionDisabled}
               title={runActionDisabled ? t.agentLifecycleRunDisabled : undefined}
               className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-40">
@@ -736,6 +790,8 @@ export default function AgentDetailPage() {
         )}
       </div>
 
+      </div>
+      {showConversations&&agentId&&<ConversationHistory key={conversationKey} agentId={agentId} disabled={contextLoading||chatLoading} onRestore={(id,messages)=>{activeStreamRef.current?.abort();activeContextRef.current=id;saveContext(conversationKey,id);setChatMessages(messages);setShowConversations(false);}}/>}
       {/* Agent Test Panel */}
       {showTestPanel && (
         <div className="px-6 py-3 bg-blue-50/50 border-b border-blue-100">
@@ -826,18 +882,18 @@ export default function AgentDetailPage() {
         </div>
       )}
       {/* Main: chat (left) + panel (right) */}
-      <div className="flex-1 flex min-h-0">
+      <div className="agent-detail-main flex-1 flex min-h-0">
         {/* Left: Chat area - bg-muted/20 with card content */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-muted/20">
-          <div className="flex-1 p-4 flex flex-col min-h-0">
-            <div className="bg-background rounded-xl shadow-sm flex-1 flex flex-col min-h-0 overflow-y-auto">
+          <div className="agent-detail-output-area flex-1 p-4 flex flex-col min-h-0">
+            <div className="agent-detail-result bg-background rounded-xl shadow-sm flex-1 flex flex-col min-h-0 overflow-y-auto" role="region" aria-label="处理结果" aria-busy={chatLoading}>
             {chatMessages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center px-6">
+              <div className="agent-detail-empty flex flex-col items-center justify-center h-full text-center px-6">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                   <Bot size={28} className="text-primary" />
                 </div>
-                <h3 className="text-lg font-brand text-foreground mb-2">{t.askTheAgentTitle}</h3>
-                <p className="text-sm text-muted-foreground">{t.askTheAgentDesc}</p>
+                <h3 className="text-lg font-brand text-foreground mb-2">结果将在这里显示</h3>
+                <p className="text-sm text-muted-foreground">提供资料并运行后，可在这里查看和核对结果。</p>
               </div>
             ) : (
               <div className="py-6">
@@ -877,8 +933,9 @@ export default function AgentDetailPage() {
           </div>
 
           {/* Bottom input */}
-          <div className="shrink-0">
+          <div className="agent-detail-input shrink-0">
             <div className="max-w-3xl mx-auto">
+              <label className="agent-detail-input-label" htmlFor="agent-task-input">任务资料</label>
               {/* Attached case document card - iCoDer-style, above input */}
               {attachedFile && (
                 <div className="mb-2 bg-background rounded-xl shadow-sm overflow-hidden">
@@ -928,11 +985,12 @@ export default function AgentDetailPage() {
               {/* Main input */}
               <div className="bg-background rounded-2xl shadow-sm focus-within:ring-primary/30 focus-within:shadow-md transition-all">
                 <textarea
+                  id="agent-task-input"
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
-                  placeholder={t.askTheAgentPlaceholder}
-                  rows={1}
+                  placeholder="粘贴需要处理的资料，并说明你希望完成的任务。"
+                  rows={3}
                   className="w-full text-sm bg-transparent focus:outline-none placeholder:text-foreground/70 resize-none py-3 px-4 min-h-[40px] max-h-[120px]"
                   onInput={(e) => { const el = e.target as HTMLTextAreaElement; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }}
                 />
@@ -977,8 +1035,8 @@ export default function AgentDetailPage() {
                       || chatLoading
                       || runActionDisabled
                     }
-                    className="w-9 h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:opacity-30 transition-all shrink-0 flex items-center justify-center">
-                    {chatLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                    className="agent-detail-run h-9 bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:opacity-30 transition-all shrink-0 flex items-center justify-center">
+                    {chatLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}{chatLoading?'处理中…':'运行'}
                   </button>
                 </div>
 
@@ -994,7 +1052,7 @@ export default function AgentDetailPage() {
                 />
               </div>
 
-              <div className="flex flex-col items-center gap-2 mt-2">
+              <div hidden={!showAdvanced} className="flex flex-col items-center gap-2 mt-2">
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={handleWhatCanYouDo}
@@ -1013,16 +1071,16 @@ export default function AgentDetailPage() {
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center mt-2">{t.askTheAgentDesc}</p>
+              <p className="text-xs text-muted-foreground text-center mt-2">结果供人工核对 · Ctrl / ⌘ + Enter 运行</p>
             </div>
           </div>
         </div>
 
         {/* Separator */}
-        <div className="h-full w-px bg-border/40 shrink-0" />
+        <div hidden={!showAdvanced && !showRunHistory} className="h-full w-px bg-border/40 shrink-0" />
 
         {/* Right: settings/code or persisted run-history panel */}
-        <div className="w-80 bg-muted/10 shrink-0 overflow-y-auto">
+        <div hidden={!showAdvanced && !showRunHistory} className="agent-detail-settings bg-muted/10 shrink-0 overflow-y-auto">
           {showRunHistory ? (
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
@@ -1099,6 +1157,10 @@ export default function AgentDetailPage() {
                 </div>
 
                 {/* System Prompt */}
+                {!agent?.is_prebuilt && !agent?.config?.cloned_from_prebuilt && <div className="px-4 py-4 border-b border-border/20">
+                  <label className="flex gap-2 items-center text-sm"><input type="checkbox" checked={codingAssistance} onChange={e=>{setCodingAssistance(e.target.checked);setSettingsSaved(false);}}/>编码字典辅助</label>
+                  <p className="text-xs text-muted-foreground mt-2">运行时查找诊断与手术编码候选，并核对输出是否被本地目录收录。适用于四类编码 JSON 任务，结果仍需复核。保存后用于草稿，已发布版本不变。</p>
+                </div>}
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
@@ -1257,7 +1319,7 @@ export default function AgentDetailPage() {
                     title={agent?.lifecycle?.state === 'archived' ? t.agentLifecycleRestoreBeforeEdit : undefined}
                     className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all shadow-sm shadow-primary/20"
                   >
-                    {savingSettings ? t.savingAgent : settingsSaved ? t.savedAgent : t.save}
+                    {savingSettings ? t.savingAgent : settingsSaved ? (dynamicProjectAgent ? '草稿已保存，发布后生效' : t.savedAgent) : dynamicProjectAgent ? '保存草稿' : t.save}
                   </button>
                 </div>
               </div>

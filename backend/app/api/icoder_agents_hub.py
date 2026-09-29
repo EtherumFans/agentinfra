@@ -1003,7 +1003,7 @@ async def clone_agent(
     Phase 3-B2 Loop 1 (Gap 2.3). The source Agent is identified by
     ``agent_id`` (short form, e.g. ``medical-coding-agent``). The clone
     creates a new ``Agent`` row with ``is_prebuilt=False``,
-    ``organization_id=<caller's org>``, ``status=published``, and
+    ``organization_id=<caller's org>``, ``status=draft``, and
     ``config.source_agent_ref=<original agent_ref>``.
 
     Conflict strategy (idempotent): if a clone already exists for
@@ -1072,8 +1072,8 @@ async def clone_agent(
             "clone_project_id": body.project_id,
         },
         is_prebuilt=False,
-        is_published=True,
-        status="published",
+        is_published=False,
+        status="draft",
         version=str(manifest.get("version") or "1.0.0"),
         created_by=user.id,
         usage_count=0,
@@ -1085,13 +1085,13 @@ async def clone_agent(
             db,
             user_id=user.id,
             username=getattr(user, "username", None),
-            action="agent.lifecycle.cloned_published",
+            action="agent.lifecycle.cloned_draft",
             resource_type="agent",
             resource_id=cloned.id,
             details={
                 "source_agent_ref": source_agent_ref,
                 "source_runtime_agent_id": agent_id,
-                "status": "published",
+                "status": "draft",
                 "version": cloned.version,
             },
             organization_id=org.id,

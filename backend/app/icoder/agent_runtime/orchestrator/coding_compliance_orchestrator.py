@@ -251,6 +251,7 @@ class CodingComplianceOrchestrator:
             t0 = _time.monotonic()
             ctx = {
                 "case_id": case.case_id,
+                "source_text": case.input_text,
                 "stage": stage,
                 "prior_stages": {
                     s: case.stage_outputs.get(s, {})
@@ -258,6 +259,10 @@ class CodingComplianceOrchestrator:
                 },
             }
             result = self._runner(stage, runner_input, ctx) or {}
+            if not isinstance(result, dict):
+                raise ValueError("stage returned a non-object result")
+            if result.get("error") or result.get("status") in {"failed", "cancelled", "rejected"}:
+                raise ValueError(str(result.get("error_reason") or result.get("status") or "stage rejected"))
             case.stage_outputs[stage] = result
             case.stage_latencies_ms[stage] = int((_time.monotonic() - t0) * 1000)
             case.stage_errors[stage] = ""
@@ -345,6 +350,13 @@ class CodingComplianceOrchestrator:
 
     def _evaluate_review_gate(self, case: CaseState) -> None:
         """Decide AUTO_PASS / REVIEW_RECOMMENDED / REVIEW_REQUIRED / BLOCKED_*."""
+        failures = [f"stage:{stage}:{error}" for stage, error in case.stage_errors.items() if error]
+        if failures:
+            case.completion = CompletionDecision(status="INCOMPLETE", reasons=failures, review_required=True)
+            case.review_gate_status = REVIEW_BLOCKED
+            case.review_gate_blocker = BLOCKED_MISSING_DISCHARGE if case.stage_errors.get(STAGE_DISCHARGE) else "BLOCKED_STAGE_EXECUTION_FAILED"
+            case.review_gate_reasons = failures
+            return
         reasons: list[str] = []
         blocker: str = ""
 

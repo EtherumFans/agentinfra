@@ -406,6 +406,8 @@ async def put_connector_graph(
         **spec.model_dump(mode="json"),
         revision=current.revision + 1,
     )
+    from app.services.agent_releases import preserve_current
+    await preserve_current(db, agent, str(user.id))
     next_config = dict(agent.config or {})
     next_config["connector_graph"] = next_state.model_dump(mode="json")
     agent.config = next_config
@@ -465,6 +467,8 @@ async def delete_connector_graph(
         nodes=[],
         revision=current.revision + 1,
     )
+    from app.services.agent_releases import preserve_current
+    await preserve_current(db, agent, str(user.id))
     next_config = dict(agent.config or {})
     next_config["connector_graph"] = next_state.model_dump(mode="json")
     agent.config = next_config

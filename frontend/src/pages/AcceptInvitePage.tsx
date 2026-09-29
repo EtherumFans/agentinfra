@@ -41,8 +41,6 @@ export default function AcceptInvitePage() {
         tokenRef.current = null;
         const orgId = accepted.data.id as string;
         const switched = await authApi.switchOrg(orgId);
-        localStorage.setItem('access_token', switched.data.access_token);
-        localStorage.setItem('refresh_token', switched.data.refresh_token);
         setOrganizations(switched.data.organizations || [], switched.data.current_org_id || orgId);
         setMessage(`已加入组织“${accepted.data.name}”。`);
         setViewState('accepted');

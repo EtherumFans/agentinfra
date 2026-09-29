@@ -1,3 +1,4 @@
+import {ensureBrowserAccess,browserHeaders,rememberBrowserSession} from './browserSession';
 // iCoDer - API Client
 import axios, { AxiosError } from 'axios';
 
@@ -30,8 +31,8 @@ const api = axios.create({
 // A mismatch between header and JWT now produces 400
 // ``tenant_header_mismatch`` (authoritative source = JWT), so a
 // stale frontend value cannot accidentally widen access.
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+api.interceptors.request.use(async (config) => {
+  const token = config.url?.includes('/auth/browser/') ? useAuthStore.getState().accessToken : await ensureBrowserAccess();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -47,23 +48,13 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (refreshToken && error.config && !(error.config as any)._retry) {
-        (error.config as any)._retry = true;
-        try {
-          const { data } = await axios.post<TokenResponse>('/api/auth/refresh', { refresh_token: refreshToken });
-          localStorage.setItem('access_token', data.access_token);
-          localStorage.setItem('refresh_token', data.refresh_token);
-          error.config.headers.Authorization = `Bearer ${data.access_token}`;
-          return api(error.config);
-        } catch {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('icoder-auth');
-          window.location.href = '/login';
-        }
+      if(error.config && !(error.config as any)._retry && !error.config.url?.includes('/auth/browser/')){
+        (error.config as any)._retry=true;
+        const token=await ensureBrowserAccess(true);
+        if(token){error.config.headers.Authorization=`Bearer ${token}`;return api(error.config);}
       }
     }
+
     // Global error toast — map to readable Chinese
     if (error.response) {
       const status = error.response.status;
@@ -94,14 +85,14 @@ api.interceptors.response.use(
 // Auth
 export const authApi = {
   login: (username: string, password: string) =>
-    api.post<TokenResponse>('/auth/login', { username, password }),
+    api.post<TokenResponse>('/auth/browser/login', { username, password },{headers:browserHeaders}).then(r=>{rememberBrowserSession(r.data);return r;}),
   register: (username: string, password: string, email: string, fullName: string) =>
-    api.post<TokenResponse>('/auth/register', { username, password, email, full_name: fullName }),
+    api.post<TokenResponse>('/auth/browser/register', { username, password, email, full_name: fullName },{headers:browserHeaders}).then(r=>{rememberBrowserSession(r.data);return r;}),
   refresh: (refreshToken: string) =>
-    api.post<TokenResponse>('/auth/refresh', { refresh_token: refreshToken }),
+    api.post<TokenResponse>('/auth/browser/refresh', null,{headers:browserHeaders}),
   me: () => api.get('/auth/me'),
   switchOrg: (orgId: string) =>
-    api.post<TokenResponse>('/auth/switch-org', { org_id: orgId }),
+    api.post<TokenResponse>('/auth/browser/switch-org', { org_id: orgId },{headers:browserHeaders}).then(r=>{rememberBrowserSession(r.data);return r;}),
   forgotPassword: (email: string) =>
     api.post('/auth/forgot-password', { email }),
   changePassword: (currentPassword: string, newPassword: string) =>

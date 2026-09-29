@@ -225,6 +225,12 @@ def provision(connection: psycopg.Connection[Any], spec: RoleSpec) -> None:
             cursor.execute(sql.SQL("REVOKE ALL ON SCHEMA {} FROM PUBLIC").format(schema))
             cursor.execute(sql.SQL("ALTER SCHEMA {} OWNER TO {}").format(schema, migration))
             _transfer_object_ownership(cursor, spec)
+            # Schema-only restores also create standalone enum types. Table
+            # ownership does not transfer these; later enum migrations must
+            # remain executable by the migration role.
+            cursor.execute("SELECT t.typname FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace WHERE n.nspname=%s AND t.typtype='e'", (spec.schema,))
+            for (type_name,) in cursor.fetchall():
+                cursor.execute(sql.SQL('ALTER TYPE {}.{} OWNER TO {}').format(schema, sql.Identifier(type_name), migration))
 
             cursor.execute(sql.SQL("GRANT USAGE ON SCHEMA {} TO {}").format(schema, app))
             cursor.execute(sql.SQL("REVOKE CREATE ON SCHEMA {} FROM {}").format(schema, app))

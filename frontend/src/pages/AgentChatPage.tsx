@@ -24,7 +24,7 @@ import {
 
 import { agentsApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
-import { useToastStore } from '../store';
+import { useToastStore, useAuthStore } from '../store';
 import type { RuntimeRunResult } from '../types/runtime';
 import {
   generateFallbackMarkdown,
@@ -62,6 +62,11 @@ export default function AgentChatPage() {
   const navigate = useNavigate();
   const toast = useToastStore((s) => s.addToast);
   const t = useT();
+  const orgId = useAuthStore(s => s.currentOrgId);
+  const userId = useAuthStore(s => s.user?.id);
+  const scope = `${userId}:${orgId}:${effectiveAgentId}`;
+  const scopeRef = useRef(scope);
+  scopeRef.current = scope;
 
   const [agent, setAgent] = useState<any | null>(null);
   const [agentLoading, setAgentLoading] = useState(true);
@@ -75,6 +80,9 @@ export default function AgentChatPage() {
   const [outputTab, setOutputTab] = useState<OutputTab>('rendered');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const historyEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    setInput(''); setMessages([]); setAttachedFiles([]); setError(null); setLoading(false);
+  }, [scope]);
 
   // Route guard: fetch the cloned agent. If 404, redirect to Hub so the
   // user re-clones (Loop 2 acceptance: "未 Clone 的 Agent 不能直接进入 Chat").
@@ -88,10 +96,12 @@ export default function AgentChatPage() {
     agentsApi
       .get(effectiveAgentId)
       .then((r) => {
+        if (scopeRef.current !== scope) return;
         setAgent(r.data);
         setNotFound(false);
       })
       .catch((err) => {
+        if (scopeRef.current !== scope) return;
         const status = err?.response?.status;
         if (status === 404) {
           setNotFound(true);
@@ -102,8 +112,8 @@ export default function AgentChatPage() {
           toast(`${t.agentChatLoadFailed}: ${err?.message || 'unknown'}`, 'error');
         }
       })
-      .finally(() => setAgentLoading(false));
-  }, [effectiveAgentId, navigate, toast, t]);
+      .finally(() => { if (scopeRef.current === scope) setAgentLoading(false); });
+  }, [effectiveAgentId, orgId, navigate, toast, t, scope]);
 
   // Phase 4-G #3: hydrate RunHistory dropdown on page load + refresh after
   // each run completes so the user sees their recent runs without a page refresh.
@@ -133,9 +143,10 @@ export default function AgentChatPage() {
       return;
     }
     runtimeAgentApi.getRunHistory(runtimeAgentId, 20, historyDays).then(r => {
+      if (scopeRef.current !== scope) return;
       setRunHistory(r?.items || []);
     }).catch(() => {});
-  }, [runtimeAgentId, historyDays]);
+  }, [runtimeAgentId, historyDays, scope]);
 
   useEffect(() => { refreshRunHistory(); }, [refreshRunHistory]);
 
@@ -208,6 +219,7 @@ export default function AgentChatPage() {
           extra,
         });
       }
+      if (scopeRef.current !== scope) return;
       setMessages(prev => [...prev, {
         id: newMsgId(),
         role: 'agent',
@@ -219,6 +231,7 @@ export default function AgentChatPage() {
       // Phase 4-G #3: refresh history dropdown so the just-completed run appears.
       refreshRunHistory();
     } catch (err: any) {
+      if (scopeRef.current !== scope) return;
       const msg = err?.response?.data?.detail || err?.message || t.agentChatRunFailed;
       const errMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
       setError(errMsg);
@@ -231,9 +244,9 @@ export default function AgentChatPage() {
       }]);
       toast(t.agentChatRunFailed, 'error');
     } finally {
-      setLoading(false);
+      if (scopeRef.current === scope) setLoading(false);
     }
-  }, [input, loading, runtimeAgentId, agent, attachedFiles, refreshRunHistory, toast, t]);
+  }, [input, loading, runtimeAgentId, agent, attachedFiles, refreshRunHistory, toast, t, scope]);
 
   // Ctrl+Enter to submit, plain Enter = newline.
   const onTextareaKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -301,6 +314,10 @@ export default function AgentChatPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-muted/20">
+      <div role="note" className="border-b border-border p-3 text-sm">
+        此入口执行独立单轮任务，仅使用本轮输入与附件。上方记录不会自动作为下一轮上下文。
+        <Link className="ml-2 text-primary underline" to={`/ai-studio/agents/${encodeURIComponent(effectiveAgentId)}`}>进入可续接上下文的对话</Link>
+      </div>
       {/* Phase 4-D - breadcrumb: Agents > {agent_name} */}
       <div className="px-6 py-3 border-b border-border/40 bg-background flex items-center gap-2 text-sm">
         <Link

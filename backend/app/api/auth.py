@@ -247,6 +247,8 @@ async def login(data: UserLogin, request: Request, db: AsyncSession = Depends(ge
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(data: TokenRefresh, db: AsyncSession = Depends(get_db)):
     payload = decode_token(data.refresh_token)
+    from app.services.browser_sessions import validate_browser_session
+    await validate_browser_session(db, payload)
     if payload.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
@@ -267,6 +269,14 @@ async def refresh_token(data: TokenRefresh, db: AsyncSession = Depends(get_db)):
     access_token = create_access_token(user.id, user.username, user.role.value, org_id, token_version=user.token_version)
     new_refresh = create_refresh_token(user.id, org_id, token_version=user.token_version)
 
+    if payload.get('browser_session_id'):
+        import jwt
+        from app.config import settings
+        def bind_session(token):
+            claims=decode_token(token)
+            claims['browser_session_id']=payload['browser_session_id']
+            return jwt.encode(claims,settings.SECRET_KEY,algorithm=settings.JWT_ALGORITHM)
+        access_token=bind_session(access_token);new_refresh=bind_session(new_refresh)
     return TokenResponse(
         access_token=access_token,
         refresh_token=new_refresh,

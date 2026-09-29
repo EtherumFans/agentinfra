@@ -244,6 +244,8 @@ async def get_current_user(
             detail="Not authenticated. Please provide a valid Bearer token.",
         )
     payload = decode_token(credentials.credentials)
+    from app.services.browser_sessions import validate_browser_session
+    await validate_browser_session(db, payload)
     if payload.get("type") != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -282,6 +284,8 @@ async def get_current_organization(
             detail="Not authenticated.",
         )
     payload = decode_token(credentials.credentials)
+    from app.services.browser_sessions import validate_browser_session
+    await validate_browser_session(db, payload)
     token_type = payload.get("type")
     if token_type not in {"access", "runtime_token", "client_credentials"}:
         raise HTTPException(
@@ -381,6 +385,8 @@ async def get_current_client(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     payload = decode_token(credentials.credentials)
+    from app.services.browser_sessions import validate_browser_session
+    await validate_browser_session(db, payload)
     token_type = payload.get("type")
     if token_type != "client_credentials":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Client credentials required")
@@ -533,6 +539,8 @@ async def get_current_user_or_oauth_client(
             detail="Not authenticated. Please provide a valid Bearer token.",
         )
     payload = decode_token(credentials.credentials)
+    from app.services.browser_sessions import validate_browser_session
+    await validate_browser_session(db, payload)
     token_type = payload.get("type")
 
     if token_type == "client_credentials":

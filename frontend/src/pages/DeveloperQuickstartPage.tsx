@@ -1,3 +1,4 @@
+import {useAuthStore} from '../store';
 // iCoDer Developer Quickstart - iCoDer-style with i18n
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -57,10 +58,10 @@ const [oauthError, setOauthError] = useState<string | null>(null);
   ];
 
   const USE_CASE_PROMPTS: Record<UseCase, (origin: string) => string> = {
-    dictation: (origin: string) => `使用 iCoDer SDK 构建医疗语音听写 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-dictation/SKILL.md\n2. 凭据在 iCoDer 控制台中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Speech To Text API 流式传输实时音频并显示转录文本\n4. 添加自定义语音指令支持（如"下一部分"、"删除上一条"）\n5. 包含语言选择和标点符号设置面板`,
-    scribe: (origin: string) => `使用 iCoDer SDK 构建环境抄录 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-scribe/SKILL.md\n2. 凭据在 iCoDer 控制台中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Embedded Assistant API 捕获临床对话\n4. 实时显示结构化事实和临床文书\n5. 添加远程模式、AI 对话和文档反馈开关`,
-    coding: (origin: string) => `使用 iCoDer SDK 构建医学编码 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-coding/SKILL.md\n2. 凭据在 iCoDer 控制台中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Medical Coding API 将临床文本转换为结构化 ICD-10-CN 编码\n4. 显示证据摘要、候选编码和编码置信度\n5. 添加编码筛选和编码系统选择功能`,
-    chat: (origin: string) => `使用 iCoDer SDK 构建临床对话助手 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-chat/SKILL.md\n2. 凭据在 iCoDer 控制台中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Agentic Framework API 创建并调遣医学 AI 智能体\n4. 为智能体绑定专家（诊断、手术、用药信息等）\n5. 显示带证据引用的结构化编码结果`,
+    dictation: (origin: string) => `使用 iCoDer SDK 构建医疗语音听写 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-dictation/SKILL.md\n2. 凭据在 iCoDer 开发者入口中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Speech To Text API 流式传输实时音频并显示转录文本\n4. 添加自定义语音指令支持（如"下一部分"、"删除上一条"）\n5. 包含语言选择和标点符号设置面板`,
+    scribe: (origin: string) => `使用 iCoDer SDK 构建环境抄录 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-scribe/SKILL.md\n2. 凭据在 iCoDer 开发者入口中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Embedded Assistant API 捕获临床对话\n4. 实时显示结构化事实和临床文书\n5. 添加远程模式、AI 对话和文档反馈开关`,
+    coding: (origin: string) => `使用 iCoDer SDK 构建医学编码 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-coding/SKILL.md\n2. 凭据在 iCoDer 开发者入口中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Medical Coding API 将临床文本转换为结构化 ICD-10-CN 编码\n4. 显示证据摘要、候选编码和编码置信度\n5. 添加编码筛选和编码系统选择功能`,
+    chat: (origin: string) => `使用 iCoDer SDK 构建临床对话助手 Web 应用。\n\n1. 获取构建技能文件：\n   ${origin}/.well-known/agent-skills/icoder-chat/SKILL.md\n2. 凭据在 iCoDer 开发者入口中获取：\n   ${origin}/developer-quickstart\n3. 使用 iCoDer Agentic Framework API 创建并调遣医学 AI 智能体\n4. 为智能体绑定专家（诊断、手术、用药信息等）\n5. 显示带证据引用的结构化编码结果`,
   };
 
   useEffect(() => { oauthApi.list().then(res => { const clients = res.data.clients || []; if (clients.length > 0) { const c = clients[0]; setClientId(c.client_id); setClientName(c.name || c.client_name || '默认客户端'); } }).catch(() => {}).finally(() => setLoading(false)); }, []);
@@ -79,7 +80,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
     setPlaygroundResponse(null);
     const startTime = performance.now();
     try {
-      const token = localStorage.getItem('access_token');
+      const token = useAuthStore.getState().accessToken;
       const headers: Record<string, string> = {
         Authorization: token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',

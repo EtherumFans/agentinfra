@@ -337,6 +337,10 @@ class GovernedMemoryStore:
     ) -> dict[str, Any]:
         query = invocation.arguments.get("query")
         top_k = invocation.arguments.get("top_k", 5)
+        candidate_limit = invocation.arguments.get("candidate_limit", 100)
+        candidate_offset = invocation.arguments.get("candidate_offset", 0)
+        if type(candidate_limit) is not int or not 1 <= candidate_limit <= 1000 or type(candidate_offset) is not int or not 0 <= candidate_offset <= 100000:
+            raise ConnectorExecutionError("CONNECTOR_REGISTRY_ARGUMENTS_INVALID")
         if (
             not isinstance(query, str) or not query.strip() or len(query) > 500
             or not isinstance(top_k, int) or isinstance(top_k, bool)
@@ -361,14 +365,21 @@ class GovernedMemoryStore:
                     ConversationMemory.consent_id == consent.id,
                     ConversationMemory.purpose_of_use == invocation.purpose_of_use,
                     ConversationMemory.retention_until > now,
-                ).order_by(ConversationMemory.created_at.desc()).limit(100)
+                ).order_by(ConversationMemory.created_at.desc(), ConversationMemory.id.desc()).offset(candidate_offset).limit(candidate_limit+1)
             )
         ).scalars().all()
+        candidates_truncated = len(rows) > candidate_limit
+        rows = rows[:candidate_limit]
         if not rows:
             return {
                 "memories": [],
                 "returned": 0,
                 "retrieval_mode": "NO_MEMORY_CANDIDATES",
+                "candidate_limit": candidate_limit,
+                "candidate_offset": candidate_offset,
+                "next_candidate_offset": candidate_offset+candidate_limit if candidates_truncated else None,
+                "candidates_scanned": 0,
+                "candidates_truncated": False,
                 "semantic_coverage": 1.0,
                 "semantic_degraded": False,
                 "semantic_degraded_reason": None,
@@ -438,6 +449,11 @@ class GovernedMemoryStore:
             "memories": memories,
             "returned": len(memories),
             "retrieval_mode": retrieval_mode,
+            "candidate_limit": candidate_limit,
+                "candidate_offset": candidate_offset,
+                "next_candidate_offset": candidate_offset+candidate_limit if candidates_truncated else None,
+            "candidates_scanned": len(rows),
+            "candidates_truncated": candidates_truncated,
             "semantic_model": query_embedding.model if query_embedding is not None else None,
             "semantic_model_version": (
                 query_embedding.model_version if query_embedding is not None else None

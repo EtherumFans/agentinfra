@@ -90,6 +90,9 @@ def _build_run_summary(console_row: Any, events: list[Any]) -> dict[str, Any]:
         "trace_id": str(getattr(console_row, "trace_id", "") or ""),
         "run_status": str(getattr(console_row, "status", "") or "UNKNOWN"),
         "runtime_mode": str(getattr(console_row, "runtime_mode", "") or ""),
+        "executed_agent_version": getattr(console_row, "executed_agent_version", None),
+        "draft_preview": getattr(console_row, "draft_preview", None),
+        "manual_review_required": getattr(console_row, "manual_review_required", None),
         "latency_ms": int(getattr(console_row, "latency_ms", 0) or 0),
         # cost_usd is the historical DB column name; configured run pricing
         # and all public contracts use CNY (see app.config).
@@ -404,6 +407,9 @@ async def list_run_history(
                     "trace_id": row.trace_id,
                     "agent_id": row.agent_id,
                     "runtime_mode": row.runtime_mode,
+                    "executed_agent_version": row.executed_agent_version,
+                    "draft_preview": row.draft_preview,
+                    "manual_review_required": row.manual_review_required,
                     "latency_ms": row.latency_ms,
                     "cost_usd": row.cost_usd,
                     "input_preview": (row.input_text or "")[:200],

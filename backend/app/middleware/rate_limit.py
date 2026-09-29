@@ -124,7 +124,7 @@ async def rate_limit_middleware(request: Request, call_next):
     # Login and general traffic have separate windows. Sharing one IP bucket
     # lets ordinary authenticated traffic consume the much smaller login
     # budget and lock a legitimate user out before their first login attempt.
-    bucket = "login" if request.url.path == "/api/auth/login" else "general"
+    bucket = "login" if request.url.path in ("/api/auth/login", "/api/auth/browser/login") else "general"
     limit = LOGIN_LIMIT if bucket == "login" else GENERAL_LIMIT
 
     r = _get_redis_for_request(request)

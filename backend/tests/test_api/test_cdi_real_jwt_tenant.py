@@ -11,10 +11,12 @@ from app.models.cdi_case import CDICaseModel
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('platform_role', ['admin', 'coder', 'qc', 'clinician', 'insurance', 'dept_head'])
 async def test_real_jwt_org_claim_scopes_cdi_persistence(
     client,
     needs_auth,
     monkeypatch,
+    platform_role,
 ) -> None:
     """CDI must use the validated JWT organization, not a User-only attribute."""
 
@@ -37,6 +39,12 @@ async def test_real_jwt_org_claim_scopes_cdi_persistence(
     auth = register.json()
     org_id = auth["current_org_id"]
     assert org_id
+    from app import database as database_module
+    from app.models.user import User, UserRole
+    async with database_module.async_session_factory() as session:
+        user = (await session.execute(select(User).where(User.username == f'cdi-jwt-{suffix}'))).scalar_one()
+        user.role = UserRole(platform_role)
+        await session.commit()
 
     case_id = f"CASE-JWT-{suffix}"
     run = await client.post(
@@ -65,3 +73,13 @@ async def test_real_jwt_org_claim_scopes_cdi_persistence(
     )
     assert read_back.status_code == 200, read_back.text
     assert read_back.json()["case_id"] == case_id
+    other = await client.post('/api/auth/register', json={
+        'username':f'other-{suffix}', 'email':f'other-{suffix}@example.com',
+        'password':'CdiJwt!2026', 'full_name':'Other synthetic user',
+        'organization_name':f'Other Org {suffix}',
+    })
+    assert other.status_code == 201
+    denied = await client.get(f'/api/v1/cdi/runs/{case_id}', headers={
+        'Authorization':f"Bearer {other.json()['access_token']}",
+    })
+    assert denied.status_code == 404

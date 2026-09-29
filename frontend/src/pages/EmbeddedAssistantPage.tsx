@@ -578,7 +578,7 @@ export default function MyEmbeddedWidget({ accessToken }: { accessToken: string 
 
   useEffect(() => {
     const BASE_URL = 'https://YOUR_TENANT.icoder.cloud';
-    import(/* @vite-ignore */ BASE_URL + '/api/embedded/assistant.js');
+    let cancelled = false;
 
     const a = ref.current;
     if (!a) return;
@@ -590,6 +590,9 @@ export default function MyEmbeddedWidget({ accessToken }: { accessToken: string 
     a.addEventListener('embedded-event', handler);
 
     (async () => {
+      await import(/* @vite-ignore */ BASE_URL + '/api/embedded/assistant.js');
+      await customElements.whenDefined('icoder-embedded');
+      if (cancelled) return;
       await a.auth({ access_token: accessToken, token_type: 'bearer', mode: 'stateless' });
       await a.configureSession({
         defaultTemplateKey: ${JSON.stringify(c.agentRef)},
@@ -605,9 +608,13 @@ export default function MyEmbeddedWidget({ accessToken }: { accessToken: string 
         locale: { dictationLanguage: ${JSON.stringify(c.locale.dictationLanguage)}, interfaceLanguage: ${JSON.stringify(c.locale.interfaceLanguage)} },
       });
       await a.show();
-    })();
+    })().catch(error => {
+      if (!cancelled) a.dispatchEvent(new CustomEvent('embedded-event', {
+        detail: {name: 'error.triggered', payload: {message: String(error)}}
+      }));
+    });
 
-    return () => a.removeEventListener('embedded-event', handler);
+    return () => { cancelled = true; a.removeEventListener('embedded-event', handler); };
   }, [accessToken]);
 
   return <icoder-embedded ref={ref} baseURL="https://YOUR_TENANT.icoder.cloud" />;

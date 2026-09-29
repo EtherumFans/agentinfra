@@ -6,8 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const generateDynamic = vi.hoisted(() => vi.fn());
 
 vi.mock('../../services/api', () => ({
+  default: { get: vi.fn().mockResolvedValue({data:{items:[],has_more:false}}) },
   guidedDocumentsApi: { generateDynamic },
 }));
+
+vi.mock('../../store', () => ({useAuthStore: (selector: any) => selector({currentOrgId:'synthetic-org'})}));
 
 vi.mock('../../i18n', () => ({
   useT: () => new Proxy({}, { get: (_target, key) => String(key) }),

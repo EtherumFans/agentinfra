@@ -1,7 +1,7 @@
 // iCoDer Layout
 // Global header (64px) + Sidebar (w/ project selector, nav groups, footer) + Main
 import { useState, useEffect, Suspense } from 'react';
-import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
   Mic, ListTree, Asterisk,
@@ -9,7 +9,6 @@ import {
   ArrowUpRight, Bell, BookOpen, RotateCcw,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck, Code2, Cpu,
 } from 'lucide-react';
-
 import { useAuthStore, useThemeStore, useCostStore } from '../../store';
 import { oauthApi, billingApi } from '../../services/api';
 import { useT, useLocaleStore } from '../../i18n';
@@ -18,10 +17,13 @@ import { ErrorBoundary } from '../common/ErrorBoundary';
 import OrgSwitcher from './OrgSwitcher';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
-const DEFAULT_PROJECT_NAME = 'iCoDer Console';
+const DEFAULT_PROJECT_NAME = 'iCoDer';
 
 function loadProjectName(): string {
-  try { return localStorage.getItem('icoder-project-name') || DEFAULT_PROJECT_NAME; } catch { return DEFAULT_PROJECT_NAME; }
+  try {
+    const saved = localStorage.getItem('icoder-project-name');
+    return !saved || ['iCoDer Console', 'iCoDer 工作台', 'iCoDer Workbench'].includes(saved) ? DEFAULT_PROJECT_NAME : saved;
+  } catch { return DEFAULT_PROJECT_NAME; }
 }
 function saveProjectName(name: string) {
   try { localStorage.setItem('icoder-project-name', name); } catch {}
@@ -41,6 +43,18 @@ export default function Layout() {
   const [projectName, setProjectName] = useState(loadProjectName);
   const [editingProjectName, setEditingProjectName] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const documentWorkspace = /\/(text-generation|fact-extraction|speech-to-text|cdi)$/.test(location.pathname);
+  const [compactNavigation, setCompactNavigation] = useState(() => window.innerWidth <= 760);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 760px)');
+    const update = () => setCompactNavigation(media.matches);
+    update(); media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+  const overlayNavigation = documentWorkspace || compactNavigation;
+  const [workspaceNavigation, setWorkspaceNavigation] = useState(false);
+  useEffect(() => setWorkspaceNavigation(false), [location.pathname]);
 
   // Navigation IA
   const topItems = [
@@ -73,6 +87,7 @@ export default function Layout() {
         { to: '/api-clients', label: t.apiClients, icon: KeyRound },
         { to: '/team', label: t.team, icon: Users },
         { to: '/billing', label: t.billing, icon: CreditCard },
+        { to: '/operations', label: '运行运营台', icon: ChartNoAxesColumn },
         { to: '/usage', label: t.usage, icon: ChartNoAxesColumn },
         { to: '/customers', label: t.customersTitle, icon: Users2 },
         { to: '/templates', label: t.templatesTitle, icon: FileText },
@@ -153,16 +168,22 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
-      {/* ====== Global Header (64px) ====== */}
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border px-4">
+      {/* Translucent brand bar (76px), followed by the 58px toolbar. */}
+      <header className="brand-bar flex shrink-0 items-center gap-2 border-b border-border px-5">
         <div className="flex items-center justify-between w-full">
           <a href="/" className="flex items-center gap-2 text-lg font-brand text-foreground hover:opacity-80 transition-opacity">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <Asterisk size={14} className="text-primary-foreground" />
             </div>
-            iCoDer
+            <span className="flex flex-col"><span className="text-xl font-semibold">iCoDer</span><span className="brand-description text-[11px] font-normal text-muted-foreground">{t.homeSubtitle}</span></span>
           </a>
-          <div className="flex items-center gap-2">
+          <Link to="/ai-studio/agents/new" className="primary-action bg-primary text-primary-foreground px-5 py-2 text-[13px] font-medium">创建智能体</Link>
+        </div>
+      </header>
+      <div className="app-toolbar">
+        <button aria-label="工作区导航" className="toolbar-group p-2" onClick={() => overlayNavigation ? setWorkspaceNavigation(v => !v) : setCollapsed(v => !v)}><PanelLeft size={16}/></button>
+        <div className="toolbar-scroll">
+          <div className="toolbar-group">
             {/* Live cost counter + Reset */}
             {liveCost > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-background">
@@ -200,10 +221,10 @@ export default function Layout() {
             <ThemeToggle />
             {/* Notification dropdown */}
             <div className="relative">
-              <button onClick={() => { setShowNotif(!showNotif); setShowUserMenu(false); }}
+              <button aria-label="通知" onClick={() => { setShowNotif(!showNotif); setShowUserMenu(false); }}
                 className="p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors relative">
                 <Bell size={16} />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+
               </button>
               {showNotif && (
                 <div className="absolute right-0 top-full mt-1 w-64 bg-popover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
@@ -222,7 +243,7 @@ export default function Layout() {
             </div>
             {/* User menu dropdown */}
             <div className="relative">
-              <button onClick={() => { setShowUserMenu(!showUserMenu); setShowNotif(false); }}
+              <button aria-label="账户菜单" onClick={() => { setShowUserMenu(!showUserMenu); setShowNotif(false); }}
                 className="flex items-center gap-2 rounded-md p-1.5 text-sm hover:bg-accent transition-colors">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground shrink-0">
                   {initials}
@@ -253,11 +274,11 @@ export default function Layout() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* ====== Body: Sidebar + Main ====== */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <aside className={`flex flex-col border-r border-sidebar-border bg-sidebar transition-all duration-200 shrink-0 ${collapsed ? 'w-[48px]' : 'w-[224px]'}`}>
+        <aside className={`flex flex-col border border-sidebar-border bg-sidebar rounded-[18px] m-[10px] transition-all duration-200 shrink-0 ${overlayNavigation ? (workspaceNavigation ? 'absolute z-40 top-[134px] bottom-0 left-0 w-[220px] shadow-lg' : 'hidden') : (collapsed ? 'w-[48px]' : 'w-[184px]')}`}>
           {/* Sidebar header: project selector + toggle */}
           <div className="flex items-center gap-2 px-2 py-2 border-b border-sidebar-border">
             {!collapsed ? (
@@ -293,7 +314,7 @@ export default function Layout() {
                   {showProjectMenu && (
                     <div className="absolute left-2 top-full mt-1 w-52 bg-popover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                       <div className="px-3 py-2 border-b border-border">
-                        <p className="text-[10px] text-muted-foreground">{t.apiClients}</p>
+                        <p className="text-[10px] text-muted-foreground">{t.apiClients} · 显示偏好</p><p className="mt-1 text-xs text-muted-foreground">此选择不切换组织、授权或费用归属。名称仅保存在本机。</p>
                       </div>
                       <div className="max-h-40 overflow-y-auto py-1">
                         <button onClick={() => { setSelectedClient(PROJECT_SLUG); setShowProjectMenu(false); }}
@@ -375,9 +396,9 @@ export default function Layout() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-sidebar-foreground truncate">{user.full_name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
                 </div>
-                <ChevronsUpDown size={14} className="text-muted-foreground shrink-0" />
+                <ChevronsUpDown size={14} className="text-sidebar-foreground/70 shrink-0" />
               </div>
             )}
             {collapsed && (
@@ -391,7 +412,7 @@ export default function Layout() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 min-h-0 overflow-y-auto bg-background flex flex-col">
+        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto bg-background flex flex-col">
           <ErrorBoundary>
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-[200px]">

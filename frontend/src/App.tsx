@@ -1,3 +1,4 @@
+import {ensureBrowserAccess} from './services/browserSession';
 // iCoDer - iCoDer Console routing.
 // Phase 2026-06-29: Doctor / MethodCompare / RunTrace / Marketplace / old
 // AgentHub pages deleted. Routes into /runtime/doctor, /runtime/method-compare,
@@ -10,13 +11,16 @@
 // real backend paths; legacy /studio aliases remain redirects/canonical shims.
 // Phase 4-F2 (2026-07-10): RunTrace route is RESTORED — the dedicated trace
 // viewer is required by §4.3 to display trace_events from the unified endpoint.
-import { lazy } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import { useAuthStore } from './store';
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
+import PublicPolicyPage from './pages/PublicPolicyPage';
 import HomePage from './pages/HomePage';
+import AgentIntegrationPage from './pages/AgentIntegrationPage';
+import AgentReleasesPage from './pages/AgentReleasesPage';
 import AIStudioOverviewPage from './pages/AIStudioOverviewPage';
 import AgentsPage from './pages/AgentsPage';
 import AgentDetailPage from './pages/AgentDetailPage';
@@ -36,6 +40,10 @@ import TemplatesPage from './pages/TemplatesPage';
 import TicketsPage from './pages/TicketsPage';
 import RunTracePage from './pages/RunTracePage';
 
+const AgentDependenciesPage = lazy(() => import('./pages/AgentDependenciesPage'));
+const AgentOperationsPage = lazy(() => import('./pages/AgentOperationsPage'));
+const AgentJobsPage = lazy(() => import('./pages/AgentJobsPage'));
+const AgentEvaluationPage = lazy(() => import('./pages/AgentEvaluationPage'));
 const DeveloperQuickstartPage = lazy(() => import('./pages/DeveloperQuickstartPage'));
 const NewAgentPage = lazy(() => import('./pages/NewAgentPage'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
@@ -65,11 +73,20 @@ function PlatformAdminRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { isAuthenticated } = useAuthStore();
+  const [ready,setReady]=useState(false);
+  useEffect(()=>{let live=true;void ensureBrowserAccess().finally(()=>{if(live)setReady(true);});
+    const refresh=()=>{if(useAuthStore.getState().isAuthenticated)void ensureBrowserAccess();};
+    const timer=setInterval(refresh,60000);window.addEventListener('focus',refresh);
+    return ()=>{live=false;clearInterval(timer);window.removeEventListener('focus',refresh);};},[]);
+  if(!ready)return <p role="status" className="p-6">正在恢复会话…</p>;
+
 
   return (
     <>
     <ToastContainer />
     <Routes>
+      <Route path="/privacy" element={<PublicPolicyPage kind="privacy" />} />
+      <Route path="/terms" element={<PublicPolicyPage kind="terms" />} />
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
@@ -87,12 +104,18 @@ function App() {
         <Route path="ai-studio/agents/new" element={<NewAgentPage />} />
         <Route path="ai-studio/experts" element={<ExpertsPage />} />
         <Route path="ai-studio/agents/:agentId" element={<AgentDetailPage />} />
+        <Route path="ai-studio/agents/:agentId/integration" element={<AgentIntegrationPage />} />
+        <Route path="ai-studio/agents/:agentId/dependencies" element={<AgentDependenciesPage />} />
+        <Route path="ai-studio/agents/:agentId/jobs" element={<AgentJobsPage />} />
+        <Route path="ai-studio/agents/:agentId/evaluations" element={<AgentEvaluationPage />} />
+        <Route path="ai-studio/agents/:agentId/releases" element={<AgentReleasesPage />} />
         {/* Phase 4-D - chat URL: /ai-studio/agents/:agentId/chat */}
         <Route path="ai-studio/agents/:agentId/chat" element={<AgentChatPage />} />
         {/* Phase 3-B2 Loop 2 - Click-to-Chat UX (Gap 2.2). Legacy route redirects. */}
         <Route path="agents/:project_agent_id/chat" element={<AgentChatPage />} />
         {/* Phase 3-D1 Task 4 - RunTrace Viewer (9-step timeline).
             Openable from AgentChatPage via the "View RunTrace" button. */}
+        <Route path="operations" element={<AgentOperationsPage />} />
         <Route path="runs/:runId/trace" element={<RunTracePage />} />
         <Route path="ai-studio/text-generation" element={<TextGenerationPage />} />
         <Route path="ai-studio/embedded-assistant" element={<EmbeddedAssistantPage />} />

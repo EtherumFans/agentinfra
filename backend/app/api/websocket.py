@@ -61,6 +61,7 @@ async def agent_websocket(websocket: WebSocket, expert_id: str):
     if token:
         try:
             payload = decode_token(token)
+            await _validate_browser_socket(payload)
             user_id = payload.get("sub", "anonymous")
         except Exception:
             await websocket.close(code=4001, reason="Invalid token")
@@ -76,6 +77,8 @@ async def agent_websocket(websocket: WebSocket, expert_id: str):
     try:
         while True:
             data = await websocket.receive_text()
+            if token:
+                await _validate_browser_socket(payload)
             msg = json.loads(data)
 
             if msg.get("type") == "message":
@@ -127,6 +130,7 @@ async def stt_websocket(websocket: WebSocket):
     token = websocket.query_params.get("token", "")
     try:
         token_payload = decode_token(token) if token else {}
+        await _validate_browser_socket(token_payload)
     except Exception:
         await websocket.close(code=4401, reason="missing or invalid token")
         return
@@ -160,6 +164,7 @@ async def stt_websocket(websocket: WebSocket):
         while True:
             # Receive either text (JSON commands) or binary (audio chunks)
             data = await websocket.receive()
+            await _validate_browser_socket(token_payload)
             if data.get("type") == "websocket.disconnect":
                 break
 
@@ -724,3 +729,11 @@ async def _transcribe_audio(audio_bytes: bytes, mime_type: str) -> tuple[str, st
 async def ws_connections():
     """List active WebSocket connections."""
     return {"connections": list(active_connections.keys()), "count": len(active_connections)}
+
+
+async def _validate_browser_socket(payload):
+    if payload.get('browser_session_id'):
+        from app.database import AsyncSessionLocal
+        from app.services.browser_sessions import validate_browser_session
+        async with AsyncSessionLocal() as db:
+            await validate_browser_session(db,payload)

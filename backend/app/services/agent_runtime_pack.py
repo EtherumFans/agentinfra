@@ -167,6 +167,8 @@ def pack_from_prebuilt_clone(
 ) -> dict[str, Any]:
     """Reconstruct a clone from its immutable source plus safe project overlay."""
 
+    if hasattr(agent, '_release_pack'):
+        return deepcopy(agent._release_pack)
     config = agent.config or {}
     if not isinstance(config, dict):
         raise CloneRuntimeConfigurationError(
@@ -278,6 +280,8 @@ async def load_tenant_agent(
     agent_id: str,
     organization_id: str,
     db: AsyncSession,
+    version: str | None = None,
+    preview: bool = False,
 ) -> Agent | None:
     """Load an Agent only when it belongs to the active organization."""
 
@@ -287,16 +291,21 @@ async def load_tenant_agent(
             Agent.organization_id == organization_id,
         )
     )
-    return result.scalar_one_or_none()
+    from app.services.agent_releases import runtime_definition
+    return await runtime_definition(db, result.scalar_one_or_none(), version, preview)
 
 
 def pack_from_db_agent(agent: Agent) -> dict[str, Any]:
     """Build the transport-independent Pack for a tenant Agent."""
 
+    if hasattr(agent, '_release_pack'):
+        return deepcopy(agent._release_pack)
     if is_prebuilt_clone(agent):
         return pack_from_prebuilt_clone(agent)
 
     version = agent.version or "1.0.0"
+    from app.services.coding_catalog_assistance import profile
+    coding_assistance = profile(agent.config)
     return {
         "format_version": "1.2",
         "agent_type": "certified",
@@ -324,6 +333,7 @@ def pack_from_db_agent(agent: Agent) -> dict[str, Any]:
             "json_mode": False,
         },
         "backend_provider": "icoder.pure-llm.v1",
+        **({'coding_catalog_assistance': coding_assistance} if coding_assistance else {}),
         "permissions": {
             "key": f"custom-{agent.id}-default",
             "name": "Custom Agent Default",
@@ -377,6 +387,8 @@ async def pack_from_tenant_agent(
     """Build a tenant Pack, resolving project Expert overlays when required."""
 
     assert_agent_published(agent)
+    if hasattr(agent, '_release_pack'):
+        return deepcopy(agent._release_pack)
     if not is_prebuilt_clone(agent):
         return pack_from_db_agent(agent)
     config = agent.config or {}
@@ -390,17 +402,19 @@ async def resolve_tenant_runtime(
     agent_id: str,
     organization_id: str,
     db: AsyncSession,
+    version: str | None = None,
+    preview: bool = False,
 ) -> TenantRuntimeResolution:
     """Resolve project identity without crossing the organization boundary."""
 
-    db_agent = await load_tenant_agent(agent_id, organization_id, db)
+    db_agent = await load_tenant_agent(agent_id, organization_id, db, version, preview)
     assert_agent_published(db_agent)
     if not is_prebuilt_clone(db_agent):
         return TenantRuntimeResolution(
             requested_agent_id=agent_id,
             runtime_agent_id=agent_id,
             db_agent=db_agent,
-            pack=None,
+            pack=deepcopy(db_agent._release_pack) if db_agent is not None and hasattr(db_agent, '_release_pack') else None,
         )
     assert db_agent is not None
     config = db_agent.config or {}

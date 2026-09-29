@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '../store';
+import RuntimeReadinessNotice, { useRuntimeReadiness } from '../components/agents/RuntimeReadinessNotice';
 import {
   runCDI,
   getCDICase,
@@ -81,6 +82,8 @@ function mapCDIRole(appRole: string): CDIRole {
     case 'clinician':
       return 'clinician';
     case 'insurance':
+    case 'coder':
+    case 'dept_head':
       return 'auditor';
     default:
       return 'read_only';
@@ -184,16 +187,17 @@ function AuditMetric({
     ? 'text-red-700'
     : tone === 'warning'
       ? 'text-amber-700'
-      : 'text-mono-text-primary';
+      : 'text-foreground';
   return (
-    <div className="rounded border border-mono-border bg-white p-2">
-      <div className="text-[10px] text-mono-text-secondary">{label}</div>
+    <div className="rounded border border-border bg-card p-2">
+      <div className="text-[10px] text-muted-foreground">{label}</div>
       <div className={`mt-1 text-base font-semibold ${toneClass}`}>{value}</div>
     </div>
   );
 }
 
 export default function CDIWorkbenchPage() {
+  const readiness = useRuntimeReadiness('clinical-documentation-improvement-agent');
   const user = useAuthStore((s) => s.user);
   const role = mapCDIRole(user?.role ?? '');
   const showTech = canSeeTechDetails(role);
@@ -223,6 +227,7 @@ export default function CDIWorkbenchPage() {
   }, []);
 
   async function runAnalysis() {
+    if (!readiness.enabled) return;
     if (!chartInput.trim()) {
       setErrorMsg('请输入病历文本');
       setLoadState('error');
@@ -240,7 +245,7 @@ export default function CDIWorkbenchPage() {
       setErrorMsg(
         typeof detail === 'string'
           ? detail
-          : detail?.error || e?.message || 'CDI 分析失败',
+          : `${detail?.error || e?.message || 'CDI 分析失败'}。请检查模型配置与连接状态后重试；已保存病例可继续加载。`,
       );
       setLoadState('error');
     }
@@ -330,18 +335,18 @@ export default function CDIWorkbenchPage() {
       : '通过';
 
   return (
-    <div className="min-h-dvh bg-mono-surface-subtle">
+    <div className="min-h-dvh bg-muted">
       {/* Header */}
-      <div className="border-b bg-white px-6 py-4">
+      <div className="border-b bg-card px-6 py-4">
         <div className="mx-auto max-w-[1600px]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <ClipboardCheck className="h-7 w-7 text-mono-primary" />
+              <ClipboardCheck className="h-7 w-7 text-primary" />
               <div>
-                <h1 className="text-xl font-semibold tracking-tight text-mono-text-primary">
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">
                   CDI 工作台
                 </h1>
-                <p className="text-xs text-mono-text-secondary">
+                <p className="text-xs text-muted-foreground">
                   临床文档改进 · 临床事实被写清楚
                 </p>
               </div>
@@ -350,17 +355,17 @@ export default function CDIWorkbenchPage() {
               {canSeeAuditDashboard && (
                 <button
                   onClick={toggleAuditDashboard}
-                  className="rounded border border-mono-border bg-white px-3 py-1 text-mono-text-primary hover:bg-mono-surface inline-flex items-center gap-1.5"
+                  className="rounded border border-border bg-card px-3 py-1 text-foreground hover:bg-muted inline-flex items-center gap-1.5"
                 >
                   <BarChart3 className="h-3 w-3" />
                   {dashboardOpen ? '关闭审计看板' : '审计看板'}
                 </button>
               )}
-              <span className="rounded-full bg-mono-surface px-3 py-1 text-mono-text-secondary">
+              <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
                 当前角色: <span className="font-medium">{labelRole(role)}</span>
               </span>
               {caseData && (
-                <span className="rounded-full bg-mono-surface px-3 py-1 text-mono-text-secondary">
+                <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
                   病例: <span className="font-mono">{caseData.case_id}</span>
                 </span>
               )}
@@ -373,7 +378,7 @@ export default function CDIWorkbenchPage() {
         <div className="border-b bg-slate-50 px-6 py-4">
           <div className="mx-auto max-w-[1600px]">
             {dashboardLoading ? (
-              <div className="flex items-center gap-2 text-xs text-mono-text-secondary">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" /> 正在加载租户 CDI 指标…
               </div>
             ) : dashboardError ? (
@@ -390,7 +395,7 @@ export default function CDIWorkbenchPage() {
                   <AuditMetric label="平均关闭" value={formatHours(dashboard.average_hours_to_close)} />
                   <AuditMetric label="更新时间" value={new Date(dashboard.generated_at).toLocaleTimeString()} />
                 </div>
-                <p className="text-[10px] text-mono-text-secondary">
+                <p className="text-[10px] text-muted-foreground">
                   仅显示当前组织的聚合工作流指标，不返回病历正文或临床回复正文。
                 </p>
               </div>
@@ -400,23 +405,25 @@ export default function CDIWorkbenchPage() {
       )}
 
       {/* Chart input bar */}
-      <div className="border-b bg-mono-surface/40 px-6 py-3">
+      <div className="px-6 py-2"><RuntimeReadinessNotice state={readiness} /></div>
+      <div className="border-b bg-muted/40 px-6 py-3">
         <div className="mx-auto max-w-[1600px] flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-mono-text-secondary shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
               病历文本
             </label>
             <textarea
+              aria-label="病历文本"
               value={chartInput}
               onChange={(e) => setChartInput(e.target.value)}
               placeholder="粘贴病历文本 (1-32000 字符)..."
-              className="flex-1 rounded border border-mono-border bg-white px-3 py-2 text-xs text-mono-text-primary focus:outline-none focus:ring-1 focus:ring-mono-primary min-h-[60px] max-h-[120px]"
+              className="flex-1 rounded border border-border bg-card px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px] max-h-[120px]"
               maxLength={32000}
             />
             <button
               onClick={runAnalysis}
-              disabled={loadState === 'loading'}
-              className="shrink-0 rounded bg-mono-primary px-4 py-2 text-xs font-semibold text-white hover:bg-mono-primary/90 disabled:opacity-50 inline-flex items-center gap-1"
+              disabled={loadState === 'loading' || !readiness.enabled}
+              className="shrink-0 rounded bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 inline-flex items-center gap-1"
             >
               {loadState === 'loading' ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -427,17 +434,18 @@ export default function CDIWorkbenchPage() {
             </button>
           </div>
           <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-mono-text-secondary">或加载已有病例:</span>
+            <span className="text-muted-foreground">或加载已有病例:</span>
             <input
+              aria-label="已有病例编号"
               value={caseIdInput}
               onChange={(e) => setCaseIdInput(e.target.value)}
               placeholder="CASE-..."
-              className="rounded border border-mono-border bg-white px-2 py-1 text-[11px] font-mono w-64"
+              className="rounded border border-border bg-card px-2 py-1 text-[11px] font-mono w-64"
             />
             <button
               onClick={() => caseIdInput && loadCase(caseIdInput)}
               disabled={loadState === 'loading' || !caseIdInput}
-              className="rounded border border-mono-border bg-white px-3 py-1 text-[11px] text-mono-text-primary hover:bg-mono-surface disabled:opacity-50 inline-flex items-center gap-1"
+              className="rounded border border-border bg-card px-3 py-1 text-[11px] text-foreground hover:bg-muted disabled:opacity-50 inline-flex items-center gap-1"
             >
               <RefreshCw className="h-3 w-3" />
               加载
@@ -470,8 +478,8 @@ export default function CDIWorkbenchPage() {
 
       {/* Loading state */}
       {loadState === 'loading' && (
-        <div className="mx-auto max-w-[1600px] py-20 flex flex-col items-center gap-3 text-mono-text-secondary">
-          <Loader2 className="h-6 w-6 animate-spin text-mono-primary" />
+        <div className="mx-auto max-w-[1600px] py-20 flex flex-col items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <p className="text-sm">正在分析病历...</p>
           <p className="text-[11px]">CDI 流水线运行中, 预计 20-30 秒</p>
         </div>
@@ -479,8 +487,8 @@ export default function CDIWorkbenchPage() {
 
       {/* Empty state */}
       {loadState === 'idle' && !caseData && (
-        <div className="mx-auto max-w-[1600px] py-20 flex flex-col items-center gap-3 text-mono-text-secondary">
-          <ClipboardCheck className="h-10 w-10 text-mono-text-secondary/40" />
+        <div className="mx-auto max-w-[1600px] py-20 flex flex-col items-center gap-3 text-muted-foreground">
+          <ClipboardCheck className="h-10 w-10 text-muted-foreground/40" />
           <p className="text-sm">输入病历文本, 运行 CDI 分析</p>
           <p className="text-[11px]">
             工作台将识别文档缺口并生成临床澄清任务
@@ -490,27 +498,27 @@ export default function CDIWorkbenchPage() {
 
       {/* 3-pane body — only when case loaded */}
       {caseData && loadState === 'success' && (
-        <div className="mx-auto max-w-[1600px] grid grid-cols-[320px_1fr_420px] gap-0">
+        <div className="document-workspace">
           {/* ─── Pane 1: Case Context ─── */}
-          <aside className="border-r bg-white p-5 space-y-5 min-h-dvh">
+          <aside className="workspace-outline space-y-4">
             <section>
-              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-mono-text-secondary mb-2">
+              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 病历节选
               </h2>
-              <div className="rounded-md bg-mono-surface p-3 text-xs text-mono-text-primary leading-relaxed max-h-[200px] overflow-y-auto">
+              <div className="rounded-md bg-muted p-3 text-xs text-foreground leading-relaxed max-h-[200px] overflow-y-auto">
                 {caseData.chart_excerpt_preview}
               </div>
             </section>
 
             {caseData.encounter_summary && (
               <section>
-                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-mono-text-secondary mb-2">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   就诊摘要
                 </h2>
-                <ul className="space-y-1.5 text-xs text-mono-text-primary">
+                <ul className="space-y-1.5 text-xs text-foreground">
                   {caseData.encounter_summary.key_points.map((p, i) => (
                     <li key={i} className="flex gap-2">
-                      <span className="text-mono-text-secondary">·</span>
+                      <span className="text-muted-foreground">·</span>
                       <span>{p}</span>
                     </li>
                   ))}
@@ -520,7 +528,7 @@ export default function CDIWorkbenchPage() {
 
             {/* ─── Status layering (Master Task §7.3) ─── */}
             <section>
-              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-mono-text-secondary mb-2">
+              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 状态分层
               </h2>
               <div className="space-y-1.5 text-xs">
@@ -558,7 +566,7 @@ export default function CDIWorkbenchPage() {
 
             {caseData.specialist_trace.length > 0 && (
               <section>
-                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-mono-text-secondary mb-2">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   专家协作
                 </h2>
                 <div className="space-y-2">
@@ -568,23 +576,23 @@ export default function CDIWorkbenchPage() {
                     return (
                       <div
                         key={t.expert_id}
-                        className="rounded-md border border-mono-border p-2 text-xs"
+                        className="rounded-md border border-border p-2 text-xs"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-mono-text-primary">
+                          <span className="font-medium text-foreground">
                             {labelExpert(t.expert_id)}
                           </span>
                           {invoked ? (
                             <CheckCircle2 className="h-3 w-3 text-green-600" />
                           ) : (
-                            <XCircle className="h-3 w-3 text-mono-text-secondary" />
+                            <XCircle className="h-3 w-3 text-muted-foreground" />
                           )}
                         </div>
-                        <p className="mt-1 text-[11px] text-mono-text-secondary">
+                        <p className="mt-1 text-[11px] text-muted-foreground">
                           {mode ? labelExecutionMode(mode) : (t.consulted ? '已调用' : '未调用')}
                         </p>
                         {invoked && t.rationale && (
-                          <p className="mt-1 text-[11px] text-mono-text-secondary leading-relaxed">
+                          <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
                             {t.rationale}
                           </p>
                         )}
@@ -597,7 +605,7 @@ export default function CDIWorkbenchPage() {
 
             {caseData.risk_flags.length > 0 && (
               <section>
-                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-mono-text-secondary mb-2">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   风险提示
                 </h2>
                 <div className="space-y-2">
@@ -619,7 +627,7 @@ export default function CDIWorkbenchPage() {
               <section>
                 <button
                   onClick={() => setTechDetailsOpen((v) => !v)}
-                  className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-mono-text-secondary mb-2 hover:text-mono-text-primary"
+                  className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 hover:text-foreground"
                 >
                   <span className="flex items-center gap-1">
                     <Lock className="h-3 w-3" />
@@ -639,18 +647,18 @@ export default function CDIWorkbenchPage() {
                         className={`rounded border p-1.5 text-[10px] font-mono ${
                           t.degraded
                             ? 'border-yellow-300 bg-yellow-50'
-                            : 'border-mono-border bg-white'
+                            : 'border-border bg-card'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-mono-text-primary">
+                          <span className="text-foreground">
                             {t.expert_id ? labelExpert(t.expert_id) : t.stage}
                           </span>
-                          <span className="text-mono-text-secondary">
+                          <span className="text-muted-foreground">
                             {t.latency_ms}ms · {t.total_tokens}tok
                           </span>
                         </div>
-                        <div className="text-mono-text-secondary mt-0.5 truncate">
+                        <div className="text-muted-foreground mt-0.5 truncate">
                           {t.run_id}
                         </div>
                       </div>
@@ -662,42 +670,42 @@ export default function CDIWorkbenchPage() {
           </aside>
 
           {/* ─── Pane 2: Gaps & Queries ─── */}
-          <main className="p-5 space-y-5">
+          <main className="document-desk space-y-4">
             {/* Documentation Gaps */}
             <section>
               <header className="flex items-center justify-between mb-3">
-                <h2 className="flex items-center gap-2 text-sm font-semibold text-mono-text-primary">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <AlertTriangle className="h-4 w-4 text-yellow-600" />
                   文档缺口 ({caseData.documentation_gaps.length})
                 </h2>
               </header>
               <div className="space-y-3">
                 {caseData.documentation_gaps.length === 0 ? (
-                  <div className="rounded-lg border border-mono-border bg-white p-4 text-xs text-mono-text-secondary">
+                  <div className="rounded-lg border border-border bg-card p-4 text-xs text-muted-foreground">
                     未发现文档缺口
                   </div>
                 ) : (
                   caseData.documentation_gaps.map((g) => (
                     <div
                       key={g.gap_id}
-                      className="rounded-lg border border-mono-border bg-white p-4"
+                      className="rounded-lg border border-border bg-card p-4"
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div>
-                          <span className="inline-block rounded-full bg-mono-surface px-2 py-0.5 text-[10px] text-mono-text-secondary">
+                          <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                             {labelGapType(g.gap_type)}
                           </span>
-                          <h3 className="mt-1 text-sm font-medium text-mono-text-primary">
+                          <h3 className="mt-1 text-sm font-medium text-foreground">
                             {g.description}
                           </h3>
                         </div>
                       </div>
-                      <p className="text-xs text-mono-text-secondary mb-2">
+                      <p className="text-xs text-muted-foreground mb-2">
                         {g.why_it_matters}
                       </p>
-                      <div className="rounded bg-mono-surface p-2 text-xs">
-                        <div className="text-mono-text-secondary">病历证据:</div>
-                        <div className="mt-1 text-mono-text-primary">
+                      <div className="rounded bg-muted p-2 text-xs">
+                        <div className="text-muted-foreground">病历证据:</div>
+                        <div className="mt-1 text-foreground">
                           &ldquo;{g.evidence_span.quote}&rdquo;
                         </div>
                       </div>
@@ -710,14 +718,14 @@ export default function CDIWorkbenchPage() {
             {/* Provider Queries */}
             <section>
               <header className="flex items-center justify-between mb-3">
-                <h2 className="flex items-center gap-2 text-sm font-semibold text-mono-text-primary">
-                  <HelpCircle className="h-4 w-4 text-mono-primary" />
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <HelpCircle className="h-4 w-4 text-primary" />
                   临床澄清任务 ({caseData.proposed_provider_queries.length})
                 </h2>
               </header>
               <div className="space-y-3">
                 {caseData.proposed_provider_queries.length === 0 ? (
-                  <div className="rounded-lg border border-mono-border bg-white p-4 text-xs text-mono-text-secondary">
+                  <div className="rounded-lg border border-border bg-card p-4 text-xs text-muted-foreground">
                     无临床澄清任务
                   </div>
                 ) : (
@@ -729,16 +737,16 @@ export default function CDIWorkbenchPage() {
                         onClick={() => setSelectedQueryId(q.query_id)}
                         className={`w-full text-left rounded-lg border p-4 transition-colors ${
                           selected
-                            ? 'border-mono-primary ring-1 ring-mono-primary/30 bg-mono-primary/5'
-                            : 'border-mono-border bg-white hover:border-mono-primary/50'
+                            ? 'border-primary ring-1 ring-primary/30 bg-primary/5'
+                            : 'border-border bg-card hover:border-primary/50'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex-1">
-                            <h3 className="text-sm font-medium text-mono-text-primary">
+                            <h3 className="text-sm font-medium text-foreground">
                               {q.topic}
                             </h3>
-                            <p className="mt-0.5 text-xs text-mono-text-secondary">
+                            <p className="mt-0.5 text-xs text-muted-foreground">
                               {q.reason}
                             </p>
                           </div>
@@ -754,7 +762,7 @@ export default function CDIWorkbenchPage() {
                           >
                             {LIFECYCLE_LABELS[q.lifecycle_state]}
                           </span>
-                          <span className="text-[10px] text-mono-text-secondary">
+                          <span className="text-[10px] text-muted-foreground">
                             {q.response_options.length} 个选项
                           </span>
                         </div>
@@ -769,7 +777,7 @@ export default function CDIWorkbenchPage() {
             {canSeeQueryAudit && caseData.query_rewrite_queue.length > 0 && (
               <section>
                 <header className="mb-3 flex items-center justify-between">
-                  <h2 className="flex items-center gap-2 text-sm font-semibold text-mono-text-primary">
+                  <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Lock className="h-4 w-4 text-amber-700" />
                     安全门禁工作项 ({caseData.query_rewrite_queue.length})
                   </h2>
@@ -782,20 +790,20 @@ export default function CDIWorkbenchPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="text-sm font-medium text-mono-text-primary">
+                          <h3 className="text-sm font-medium text-foreground">
                             {item.topic || item.query_text || item.query_id}
                           </h3>
-                          <p className="mt-1 text-[11px] text-mono-text-secondary">
+                          <p className="mt-1 text-[11px] text-muted-foreground">
                             缺口引用：{item.gap_id || '未提供'}
                             {item.gap_reference_valid === false ? '（引用无效，已保留审计）' : ''}
                           </p>
                         </div>
-                        <span className="shrink-0 rounded border border-amber-300 bg-white px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                        <span className="shrink-0 rounded border border-amber-300 bg-card px-2 py-0.5 text-[10px] font-semibold text-amber-800">
                           {labelQueryAuditStatus(item.status)}
                         </span>
                       </div>
                       {item.query_text && (
-                        <p className="mt-2 text-xs leading-relaxed text-mono-text-primary">
+                        <p className="mt-2 text-xs leading-relaxed text-foreground">
                           {item.query_text}
                         </p>
                       )}
@@ -807,7 +815,7 @@ export default function CDIWorkbenchPage() {
                         </ul>
                       )}
                       {item.rewrite_attempt_status && (
-                        <div className="mt-2 rounded border border-amber-200 bg-white/70 p-2 text-[11px] text-amber-950">
+                        <div className="mt-2 rounded border border-amber-200 bg-card/70 p-2 text-[11px] text-amber-950">
                           <p>
                             自动重写状态：{item.rewrite_attempt_status}
                             {item.replacement_query_id
@@ -834,10 +842,10 @@ export default function CDIWorkbenchPage() {
           </main>
 
           {/* ─── Pane 3: Physician Response Panel ─── */}
-          <aside className="border-l bg-white p-5 space-y-4 min-h-dvh">
+          <aside className="workspace-inspector space-y-3">
             <header className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-mono-primary" />
-              <h2 className="text-sm font-semibold text-mono-text-primary">
+              <Activity className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">
                 临床澄清任务详情
               </h2>
             </header>
@@ -846,7 +854,7 @@ export default function CDIWorkbenchPage() {
               <>
                 <div className="space-y-3">
                   <div>
-                    <div className="text-[11px] uppercase tracking-wider text-mono-text-secondary">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
                       任务状态
                     </div>
                     <div
@@ -857,23 +865,23 @@ export default function CDIWorkbenchPage() {
                   </div>
 
                   <div>
-                    <div className="text-[11px] uppercase tracking-wider text-mono-text-secondary">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
                       澄清问句
                     </div>
-                    <p className="mt-1 text-xs text-mono-text-primary leading-relaxed">
+                    <p className="mt-1 text-xs text-foreground leading-relaxed">
                       {selectedQuery.query_text}
                     </p>
                   </div>
 
                   <div>
-                    <div className="text-[11px] uppercase tracking-wider text-mono-text-secondary mb-2">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
                       可选答复
                     </div>
                     <div className="space-y-1.5">
                       {selectedQuery.response_options.map((opt, idx) => (
                         <label
                           key={idx}
-                          className="flex items-start gap-2 rounded border border-mono-border p-2 text-xs hover:bg-mono-surface cursor-pointer"
+                          className="flex items-start gap-2 rounded border border-border p-2 text-xs hover:bg-muted cursor-pointer"
                         >
                           <input
                             type="radio"
@@ -885,21 +893,21 @@ export default function CDIWorkbenchPage() {
                               selectedQuery.lifecycle_state !== 'VIEWED'
                             }
                           />
-                          <span className="text-mono-text-primary">{opt}</span>
+                          <span className="text-foreground">{opt}</span>
                         </label>
                       ))}
                     </div>
                   </div>
 
                   {/* 非诱导检查 summary (no raw NLQ-XXX codes) */}
-                  <div className="rounded-md bg-mono-surface p-3 text-xs">
+                  <div className="rounded-md bg-muted p-3 text-xs">
                     <div className="flex items-center gap-2 mb-1">
                       <ShieldCheck className="h-3 w-3 text-green-700" />
-                      <span className="font-semibold text-mono-text-primary">
+                      <span className="font-semibold text-foreground">
                         非诱导检查
                       </span>
                     </div>
-                    <div className="text-mono-text-secondary">
+                    <div className="text-muted-foreground">
                       结果:{' '}
                       <span className="font-medium">
                         {labelNLQVerdict(selectedQuery.nlq_gate_verdict)}
@@ -926,7 +934,7 @@ export default function CDIWorkbenchPage() {
                 </div>
               </>
             ) : (
-              <p className="text-xs text-mono-text-secondary">
+              <p className="text-xs text-muted-foreground">
                 选择一个临床澄清任务以查看详情
               </p>
             )}
@@ -944,8 +952,8 @@ export default function CDIWorkbenchPage() {
 function StatusRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <span className="text-mono-text-secondary">{label}</span>
-      <span className="text-mono-text-primary text-right">{value}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-foreground text-right">{value}</span>
     </div>
   );
 }
@@ -967,7 +975,7 @@ function ActionButtons({
 
   if (role === 'read_only') {
     return (
-      <div className="rounded bg-gray-50 p-2 text-center text-xs text-mono-text-secondary">
+      <div className="rounded bg-gray-50 p-2 text-center text-xs text-muted-foreground">
         <Eye className="mr-1 inline h-3 w-3" />
         只读权限
       </div>
@@ -989,13 +997,13 @@ function ActionButtons({
 
   if (s === 'DRAFT') {
     return (
-      <div className="rounded bg-mono-text-secondary/10 p-2 text-center text-xs text-mono-text-secondary">
+      <div className="rounded bg-muted-foreground/10 p-2 text-center text-xs text-muted-foreground">
         <Clock className="mr-1 inline h-3 w-3" />
         CDI 专员提交后进入审核
         {canReviewCDI && (
           <button
             onClick={() => onTransition(query, 'PENDING_CDI_REVIEW')}
-            className="mt-1 block w-full rounded bg-mono-primary px-3 py-2 text-xs text-white"
+            className="mt-1 block w-full rounded bg-primary px-3 py-2 text-xs text-primary-foreground"
           >
             提交 CDI 审核
           </button>
@@ -1008,7 +1016,7 @@ function ActionButtons({
     return (
       <button
         onClick={() => onTransition(query, 'APPROVED')}
-        className="rounded bg-mono-primary px-3 py-2 text-xs text-white"
+        className="rounded bg-primary px-3 py-2 text-xs text-primary-foreground"
       >
         <CheckCircle2 className="mr-1 inline h-3 w-3" />
         CDI 专员: 审核通过
@@ -1020,7 +1028,7 @@ function ActionButtons({
     return (
       <button
         onClick={() => onTransition(query, 'SENT_TO_CLINICIAN')}
-        className="rounded bg-mono-primary px-3 py-2 text-xs text-white"
+        className="rounded bg-primary px-3 py-2 text-xs text-primary-foreground"
       >
         <Send className="mr-1 inline h-3 w-3" />
         发送给医生
@@ -1030,13 +1038,13 @@ function ActionButtons({
 
   if (s === 'SENT_TO_CLINICIAN') {
     return (
-      <div className="rounded bg-mono-text-secondary/10 p-2 text-center text-xs text-mono-text-secondary">
+      <div className="rounded bg-muted-foreground/10 p-2 text-center text-xs text-muted-foreground">
         <Eye className="mr-1 inline h-3 w-3" />
         等待医生查看
         {canRespondClinician && (
           <button
             onClick={() => onTransition(query, 'VIEWED')}
-            className="mt-1 block w-full rounded bg-mono-text-secondary px-3 py-2 text-xs text-white"
+            className="mt-1 block w-full rounded bg-muted-foreground px-3 py-2 text-xs text-primary-foreground"
           >
             标记为已查看
           </button>
@@ -1049,7 +1057,7 @@ function ActionButtons({
     return (
       <button
         onClick={() => onTransition(query, 'RESPONDED')}
-        className="rounded bg-mono-primary px-3 py-2 text-xs text-white"
+        className="rounded bg-primary px-3 py-2 text-xs text-primary-foreground"
       >
         <FileText className="mr-1 inline h-3 w-3" />
         提交答复
@@ -1061,7 +1069,7 @@ function ActionButtons({
     return (
       <button
         onClick={() => onTransition(query, 'REVALIDATED')}
-        className="rounded bg-mono-primary px-3 py-2 text-xs text-white"
+        className="rounded bg-primary px-3 py-2 text-xs text-primary-foreground"
       >
         <ShieldCheck className="mr-1 inline h-3 w-3" />
         CDI 复核

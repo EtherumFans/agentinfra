@@ -15,6 +15,7 @@ from app.models.team import TeamMember, TeamInvite, TeamRole
 from app.models.expert import Expert, McpServer
 from app.models.memory import ConversationMemory, MemoryConsent
 from app.models.agent import Agent
+from app.models.agent_release import AgentRelease
 from app.models.oauth import OAuthClient, OAuthToken
 from app.models.runtime_persistence import RuntimeSession, RuntimeTransition, RuntimeAuditRecord, DUCDecision
 from app.models.code_table import CodeTable, CodeMapping
@@ -142,3 +143,15 @@ __all__ = [
     "ContextRow", "ContextMessageRow", "ContextTaskRefRow",
     "ContextArtifactRefRow", "OriginalInputAuditRow",
 ]
+
+from app.models.agent_evaluation import AgentEvaluation
+
+from app.models.agent_job import AgentJob
+
+from app.models.agent_dependency import AgentDependency
+
+from app.models.browser_session import BrowserSession
+from app.models.model_connection import ModelConnection
+from app.models.agent_evaluation_review import AgentEvaluationReview
+from app.models.evaluation_dataset import EvaluationDataset, EvaluationBatch, EvaluationBatchItem
+from app.models.document_review import DocumentReview

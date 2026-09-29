@@ -29,6 +29,7 @@ import json
 import logging
 import time
 import uuid
+import hashlib
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -83,6 +84,8 @@ def _build_in_process_runner(current_user: User, request: Request | None = None)
     AgentRunResponse as a dict for the orchestrator.
     """
 
+    upstream: list[dict[str, Any]] = []
+
     def _runner(agent_id: str, input_text: str, context: dict | None = None) -> dict:
         from app.api.agent_run import (
             AgentRunRequest,
@@ -91,16 +94,32 @@ def _build_in_process_runner(current_user: User, request: Request | None = None)
         )
 
         async def _drive() -> dict:
+            source_text = (context or {}).get("source_text", input_text)
+            version = hashlib.sha256(source_text.encode("utf-8")).hexdigest()
             body = AgentRunRequest(
-                input=AgentRunRequestInput(text=input_text),
+                input=AgentRunRequestInput(
+                    text=input_text,
+                    documents=[{"document_id": "source-discharge", "document_version": version,
+                                "document_type": "discharge_summary", "text": source_text, "normalization": "none"}],
+                    upstream_results=list(upstream),
+                ),
             )
-            response = await run_agent(
+            response = await asyncio.wait_for(run_agent(
                 agent_id=agent_id,
                 body=body,
                 request=request,
                 current_user=current_user,
-            )
-            return response.model_dump(mode="json") if hasattr(response, "model_dump") else dict(response)
+            ), timeout=120)
+            envelope = response.model_dump(mode="json") if hasattr(response, "model_dump") else dict(response)
+            if envelope.get("error"):
+                raise RuntimeError(envelope.get("error_reason") or "stage execution failed")
+            result = envelope.get("result")
+            if not isinstance(result, dict):
+                raise RuntimeError("stage response missing structured result")
+            if all(envelope.get(key) for key in ("run_id", "schema_ref", "result_attestation")):
+                upstream.append({"agent_id": agent_id, "result": result, "run_id": envelope["run_id"],
+                                 "schema_ref": envelope["schema_ref"], "attestation": envelope["result_attestation"]})
+            return {**result, "run_id": envelope.get("run_id", ""), "trace_id": envelope.get("trace_id", "")}
 
         return asyncio.run(_drive())
 

@@ -8,6 +8,17 @@ import { useT } from '../i18n';
 
 type Mode = 'login' | 'register' | 'forgot';
 
+export function authenticationError(error: any, fallback: string): string {
+  if (error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT') return '连接超时，请稍后重试。';
+  if (!error?.response && error?.request) return '无法连接服务，请检查网络或联系管理员确认服务已启动。';
+  if (error?.response?.status >= 500) return '服务暂时不可用，请稍后重试；如持续出现，请联系管理员检查服务和数据库连接。';
+  const detail = error?.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) return '填写的信息不符合要求，请检查邮箱格式和其他字段。';
+  if (typeof detail?.message === 'string') return detail.message;
+  return fallback;
+}
+
 export default function LoginPage() {
   const t = useT();
   const { login } = useAuthStore();
@@ -42,7 +53,7 @@ export default function LoginPage() {
       login(user, access_token, refresh_token, organizations || [], current_org_id || '');
       continueAfterAuthentication();
     } catch (err: any) {
-      setError(err?.response?.data?.detail || '登录失败');
+      setError(authenticationError(err, '登录失败'));
     } finally { setLoading(false); }
   };
 
@@ -59,7 +70,7 @@ export default function LoginPage() {
       login(user, access_token, refresh_token, organizations || [], current_org_id || '');
       continueAfterAuthentication();
     } catch (err: any) {
-      setError(err?.response?.data?.detail || '注册失败');
+      setError(authenticationError(err, '注册失败'));
     } finally { setLoading(false); }
   };
 
@@ -81,7 +92,7 @@ export default function LoginPage() {
     <div className="min-h-dvh flex flex-col items-center justify-center bg-background">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-brand font-bold text-foreground tracking-tight">iCoDer Console</h1>
+          <h1 className="text-2xl font-brand font-bold text-foreground tracking-tight">{t.appName}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t.appTagline}</p>
         </div>
 
@@ -156,7 +167,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-xs text-muted-foreground text-center mt-8">
-          使用前请阅读 <button onClick={() => navigate('/support')} className="text-primary hover:underline">隐私政策</button> 和 <button onClick={() => navigate('/support')} className="text-primary hover:underline">服务条款</button>
+          使用前请阅读 <button onClick={() => navigate('/privacy')} className="text-primary hover:underline">隐私政策</button> 和 <button onClick={() => navigate('/terms')} className="text-primary hover:underline">服务条款</button>
         </p>
       </div>
     </div>

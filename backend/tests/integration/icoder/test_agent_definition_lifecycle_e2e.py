@@ -66,6 +66,10 @@ def test_project_agent_lifecycle_is_explicit_audited_and_fail_closed() -> None:
         assert created.status_code in (200, 201), created.text
         agent = created.json()
         agent_id = agent["id"]
+        assert agent["status"] == "draft"
+        published = client.post(f"/api/rest/v1/agent_definitions/{agent_id}/publish")
+        assert published.status_code == 200, published.text
+        agent = published.json()
         assert agent["status"] == "published"
         assert agent["is_published"] is True
         assert agent["version"] == "1.0.0"
@@ -73,7 +77,7 @@ def test_project_agent_lifecycle_is_explicit_audited_and_fail_closed() -> None:
             "state": "published",
             "effective_published": True,
             "run_action_enabled": True,
-            "allowed_actions": ["archive", "version", "delete"],
+            "allowed_actions": ["publish", "archive", "version", "delete"],
             "version": "1.0.0",
         }
 
@@ -100,7 +104,8 @@ def test_project_agent_lifecycle_is_explicit_audited_and_fail_closed() -> None:
             json={"description": "Synthetic lifecycle test, updated"},
         )
         assert updated.status_code == 200, updated.text
-        assert updated.json()["version"] == "1.0.1"
+        assert updated.json()["version"] == "1.0.0"
+        assert client.post(f"/api/rest/v1/agent_definitions/{agent_id}/publish").json()["version"] == "1.0.1"
 
         archived = client.post(
             f"/api/rest/v1/agent_definitions/{agent_id}/archive"
@@ -142,15 +147,17 @@ def test_project_agent_lifecycle_is_explicit_audited_and_fail_closed() -> None:
         actions_and_details = _audit_actions(agent_id)
         actions = [action for action, _ in actions_and_details]
         assert actions == [
-            "agent.lifecycle.created_published",
+            "agent.lifecycle.created_draft",
+            "agent.lifecycle.published",
             "agent.lifecycle.updated",
+            "agent.lifecycle.published",
             "agent.lifecycle.archived",
             "agent.lifecycle.restored",
         ]
         update_details = dict(actions_and_details)["agent.lifecycle.updated"]
         assert update_details["changed_fields"] == ["description"]
         assert update_details["previous_version"] == "1.0.0"
-        assert update_details["version"] == "1.0.1"
+        assert update_details["version"] == "1.0.0"
         assert "system_prompt" not in update_details
 
         deleted = client.delete(

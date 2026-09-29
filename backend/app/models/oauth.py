@@ -38,7 +38,7 @@ class OAuthClient(Base, TimestampMixin):
     scopes: Mapped[str] = mapped_column(String(512), default="api:read api:write")  # space-separated
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     owner_id: Mapped[str] = mapped_column(String(12), nullable=False, index=True)  # user who created it
-    last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     token_expires_seconds: Mapped[int] = mapped_column(default=300)  # 5 minutes default (Corti parity)
 
     # Phase 7 Gate 5 §10: partner embed attribution
@@ -118,7 +118,7 @@ class OAuthToken(Base, TimestampMixin):
     client_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     token_hash: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
     scopes: Mapped[str] = mapped_column(String(512), default="")
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
 
 

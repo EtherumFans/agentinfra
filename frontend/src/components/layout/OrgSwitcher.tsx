@@ -21,8 +21,6 @@ export default function OrgSwitcher() {
     setSwitching(true);
     try {
       const { data } = await authApi.switchOrg(org.id);
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
       setOrganizations(data.organizations || organizations, data.current_org_id || org.id);
       setOpen(false);
       window.location.reload();

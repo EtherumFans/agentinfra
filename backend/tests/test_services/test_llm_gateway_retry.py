@@ -55,6 +55,31 @@ def _success_body(content: str = "ok") -> dict:
 def _make_provider(transport: httpx.MockTransport) -> DeepSeekProvider:
     return DeepSeekProvider(api_key="test-key", _transport=transport)
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize('mode',[None,'enabled','disabled'])
+async def test_explicit_thinking_mode_payload(mode,fresh_circuit):
+    handler,calls=_mock_transport([(200,_success_body())])
+    provider=DeepSeekProvider(api_key='test-key',thinking=mode,_transport=httpx.MockTransport(handler))
+    await provider.generate([{'role':'user','content':'synthetic'}])
+    body=json.loads(calls[0].content)
+    if mode is None:assert 'thinking' not in body
+    else:assert body['thinking']=={'type':mode}
+
+def test_thinking_mode_rejects_unknown_value():
+    with pytest.raises(ValueError,match='invalid_deepseek_thinking_mode'):
+        DeepSeekProvider(thinking='unknown')
+
+@pytest.mark.asyncio
+async def test_explicit_thinking_mode_stream_payload(fresh_circuit):
+    captured=[]
+    def handler(request):
+        captured.append(json.loads(request.content))
+        return httpx.Response(200,headers={'content-type':'text/event-stream'},text='data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n')
+    provider=DeepSeekProvider(api_key='test-key',thinking='disabled',_transport=httpx.MockTransport(handler))
+    events=[event async for event in provider.generate_stream([{'role':'user','content':'synthetic'}])]
+    assert captured[0]['thinking']=={'type':'disabled'}
+    assert events[-1]['result']['content']=='ok'
+
 
 def _assert_degraded(resp: dict, expected_reason: str) -> None:
     """Assert the response carries the degraded contract fields."""

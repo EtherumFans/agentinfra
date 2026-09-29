@@ -1,6 +1,5 @@
 // iCoDer - Zustand Store (Multi-Tenant)
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 import type { User, Review, Encounter } from '../types';
 
@@ -32,6 +31,11 @@ export function clearAllIcoderBrowserStorage(): void {
   for (const key of ICODER_LOCALSTORAGE_KEYS) {
     try { window.localStorage.removeItem(key); } catch { /* ignore */ }
   }
+  try {
+    for (const key of Object.keys(window.sessionStorage)) {
+      if (key.startsWith('icoder-context:')) window.sessionStorage.removeItem(key);
+    }
+  } catch { /* browser storage may be unavailable */ }
 }
 
 export function listIcoderBrowserStorageKeys(): string[] {
@@ -63,52 +67,26 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: false,
-      organizations: [],
-      currentOrgId: null,
-      login: (user, accessToken, refreshToken, orgs = [], orgId = '') => {
-        localStorage.setItem('access_token', accessToken);
-        localStorage.setItem('refresh_token', refreshToken);
-        set({ user, accessToken, refreshToken, isAuthenticated: true, organizations: orgs, currentOrgId: orgId });
-      },
-      setOrganizations: (orgs, orgId) => set({ organizations: orgs, currentOrgId: orgId }),
-      setCurrentOrgId: (orgId) => set({ currentOrgId: orgId }),
-      logout: () => {
-        // Phase A1A Gate 4.6 — clear ALL icoder-* localStorage + auth tokens.
-        // Pre-Gate-4.6 only access_token + refresh_token were removed, leaving
-        // icoder-textgen-templates (user-saved templates that may carry pasted
-        // PHI), icoder-billing-*, icoder-settings, and the zustand icoder-auth
-        // blob on disk. On a shared machine a subsequent different user could
-        // inherit the previous user's templates + UI preferences.
-        clearAllIcoderBrowserStorage();
-        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, organizations: [], currentOrgId: null });
-      },
-    }),
-    {
-      name: 'icoder-auth',
-      partialize: (state) => ({
-        user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        isAuthenticated: state.isAuthenticated,
-        organizations: state.organizations,
-        currentOrgId: state.currentOrgId,
-      }),
-      onRehydrateStorage: () => (state) => {
-        if (state?.accessToken) {
-          localStorage.setItem('access_token', state.accessToken);
-          localStorage.setItem('refresh_token', state.refreshToken || '');
-        }
-      },
-    },
-  ),
-);
+// Retire legacy persisted credentials on first load. Browser sessions are restored
+// from the HttpOnly cookie; no JWT or user profile is rehydrated from storage.
+if(typeof localStorage!=='undefined')for(const key of ['access_token','refresh_token','icoder-auth'])localStorage.removeItem(key);
+export const useAuthStore = create<AuthState>()((set,get)=>({
+ user:null,accessToken:null,refreshToken:null,isAuthenticated:false,organizations:[],currentOrgId:null,
+ login:(user,accessToken,_refreshToken,organizations=[],currentOrgId='')=>{
+  for(const key of ['access_token','refresh_token','icoder-auth'])localStorage.removeItem(key);
+  set({user,accessToken,refreshToken:null,isAuthenticated:true,organizations,currentOrgId});
+ },
+ setOrganizations:(organizations,currentOrgId)=>set({organizations,currentOrgId}),
+ setCurrentOrgId:currentOrgId=>set({currentOrgId}),
+ logout:()=>{
+  void fetch('/api/auth/browser/logout',{method:'POST',credentials:'same-origin',headers:{'X-iCoDer-Browser':'1'}}).then(async r=>{
+   if(!r.ok)throw Error();
+   const session=await import('../services/browserSession');session.invalidateBrowserSession();
+   clearAllIcoderBrowserStorage();
+   set({user:null,accessToken:null,refreshToken:null,isAuthenticated:false,organizations:[],currentOrgId:null});
+  }).catch(()=>useToastStore.getState().addToast('退出未确认，请检查网络后重试。','error'));
+ }
+}));
 
 interface AppState {
   sidebarCollapsed: boolean;

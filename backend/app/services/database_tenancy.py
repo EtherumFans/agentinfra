@@ -8,13 +8,22 @@ from __future__ import annotations
 
 import re
 
-from sqlalchemy import text
+from sqlalchemy import text, event
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 
 TENANT_SETTING = "icoder.current_organization_id"
 _ORGANIZATION_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+@event.listens_for(Session, 'after_begin')
+def _rebind_verified_session_tenant(session, transaction, connection):
+    """Retain verified request authority across commits, never on pooled connections."""
+    tenant = session.info.get('icoder_verified_tenant')
+    if tenant and connection.dialect.name == 'postgresql':
+        connection.execute(text('SELECT set_config(:setting, :tenant, true)'),
+            {'setting':TENANT_SETTING, 'tenant':tenant})
 
 
 def _validated_organization_id(organization_id: str) -> str:
@@ -39,6 +48,7 @@ async def bind_tenant_to_transaction(
     bind = session.get_bind()
     if bind.dialect.name != "postgresql":
         return
+    session.info['icoder_verified_tenant'] = normalized
     await session.execute(
         text("SELECT set_config(:setting_name, :tenant_id, true)"),
         {"setting_name": TENANT_SETTING, "tenant_id": normalized},
@@ -54,6 +64,7 @@ def bind_tenant_to_sync_session(
     bind = session.get_bind()
     if bind.dialect.name != "postgresql":
         return
+    session.info['icoder_verified_tenant'] = normalized
     session.execute(
         text("SELECT set_config(:setting_name, :tenant_id, true)"),
         {"setting_name": TENANT_SETTING, "tenant_id": normalized},

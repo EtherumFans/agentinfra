@@ -146,6 +146,8 @@ class A2ATaskRuntime:
                             == A2ATaskExecutionRow.task_id,
                         )
                         .where(
+                            A2ATaskExecutionRow.organization_id == organization_id,
+                            ContextTaskRefRow.organization_id == organization_id,
                             ContextTaskRefRow.state.in_([
                                 TaskState.SUBMITTED.value,
                                 TaskState.WORKING.value,

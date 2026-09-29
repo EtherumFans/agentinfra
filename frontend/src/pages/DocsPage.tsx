@@ -32,7 +32,7 @@ export default function DocsPage() {
           <div className="mb-10">
             <h1 className="text-2xl font-bold text-foreground mb-2">iCoDer 开发者文档</h1>
             <p className="text-sm text-muted-foreground max-w-2xl">
-              iCoDer - 可审计的临床AI。预置编码审核、语音转录、文书生成、事实提取和AI智能体。通过SDK、Web Components或REST API嵌入您的HIS/EMR系统。
+              {t.appName} — {t.appTagline}。通过 SDK、Web Components 或 REST API，将文书处理、医学编码与质量审核能力接入您的 HIS/EMR 系统或工作流程。
             </p>
             <div className="flex items-center gap-3 mt-4">
               <a href={`${BACKEND_BASE_URL}/docs`} target="_blank" rel="noopener noreferrer"
@@ -108,7 +108,7 @@ export default function DocsPage() {
                     <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[11px] font-bold text-primary-foreground">1</div>
                     <h3 className="text-sm font-semibold text-foreground">获取 API 凭据</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground ml-8">在 iCoDer Console 注册，进入 API 客户端页面创建 OAuth 客户端，保存 Client ID 和 Client Secret。</p>
+                  <p className="text-xs text-muted-foreground ml-8">在 iCoDer 注册，进入 API 客户端页面创建 OAuth 客户端，保存 Client ID 和 Client Secret。</p>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-2">

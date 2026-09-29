@@ -1,5 +1,7 @@
 // iCoDer Text Generation - Apple Minimalist Design
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import {useAuthStore} from '../store';
+import DocumentReviewPanel from '../components/DocumentReviewPanel';
 import {
   BookOpen, Sparkles, Loader2,
   Copy, Check,
@@ -191,6 +193,11 @@ const LANGUAGES = [
 const TEMPLATE_CATEGORIES = ['全部', '住院', '门诊', '手术', '急诊', '护理', '通用'];
 
 export default function TextGenerationPage() {
+  const org = useAuthStore(s=>s.currentOrgId);
+  const scope = useRef(org); scope.current=org;
+  const [reviewSource,setReviewSource]=useState('');
+  const [reviewOrg,setReviewOrg]=useState<typeof org>(org);
+  const [reviewTitle,setReviewTitle]=useState('文书复核');
   const locale = useLocaleStore(s => s.locale);
   const t = useT();
   const [templates, setTemplates] = useState<Template[]>(() =>
@@ -210,6 +217,7 @@ export default function TextGenerationPage() {
   const [copied, setCopied] = useState(false);
   const [genEvents, setGenEvents] = useState<{type:string;data:Record<string,unknown>;timestamp:string;credits?:number}[]>([]);
   const [genCredits, setGenCredits] = useState(0);
+  useEffect(()=>{setInput('');setOutput('');setReviewSource('');setError('');setLoading(false);},[org]);
 
   // Template editing
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
@@ -242,6 +250,7 @@ export default function TextGenerationPage() {
   const currentTemplate = templates.find(t => t.key === activeTemplate);
 
   const handleGenerate = async () => {
+    const requestOrg=org;
     if (!input.trim() || !activeTemplate || !currentTemplate) return;
     setLoading(true); setError(''); setOutput('');
     setGenEvents(prev => [...prev.slice(-50), { type: 'generate_start', data: { template: activeTemplate, inputLength: input.length }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
@@ -280,6 +289,8 @@ export default function TextGenerationPage() {
         .join('\n\n');
       if (!generated) throw new Error('服务未返回可显示的文书内容。');
       const credits = response.data.usageInfo.creditsConsumed;
+      if(scope.current!==requestOrg)return;
+      setReviewOrg(requestOrg);setReviewSource(input);setReviewTitle(currentTemplate.name);
       setOutput(generated);
       setGenCredits(current => current + credits);
       setGenEvents(prev => [...prev.slice(-50), {
@@ -289,6 +300,7 @@ export default function TextGenerationPage() {
         credits,
       }]);
     } catch (err: any) {
+      if(scope.current!==requestOrg)return;
       const detail = err?.response?.data?.detail;
       const message = typeof detail === 'string'
         ? detail
@@ -296,7 +308,7 @@ export default function TextGenerationPage() {
       setError(message);
       setGenEvents(prev => [...prev.slice(-50), { type: 'generate_error', data: { error: message, template: activeTemplate }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
     } finally {
-      setLoading(false);
+      if(scope.current===requestOrg)setLoading(false);
     }
   };
 
@@ -538,7 +550,7 @@ print(result["output"])`;
             <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{output}</div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/50">
+          <div className="workspace-empty flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
             <Sparkles size={28} />
             <p className="text-sm">生成的文书将显示在这里</p>
           </div>
@@ -560,7 +572,7 @@ print(result["output"])`;
   );
 
   return (
-    <>
+    <div className="text-generation-page">
       <WorkbenchLayout
         title={t.textGenBreadcrumb}
         description="基于医疗文书模板快速生成结构化临床文档"
@@ -572,6 +584,7 @@ print(result["output"])`;
         eventInspector={inspectorSlot}
       />
 
+      <DocumentReviewPanel key={org} source={reviewOrg===org?reviewSource:''} draft={reviewOrg===org?output:''} title={reviewTitle}/>
       {/* Template Editor Modal */}
       {showTemplateEditor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowTemplateEditor(false)}>
@@ -686,6 +699,6 @@ print(result["output"])`;
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

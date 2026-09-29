@@ -2,13 +2,15 @@
 
 The selected deployment is stored inside the organization's JSON settings so
 it follows the existing tenant lifecycle without introducing a secret store.
-Only deployment identifiers and version metadata are persisted; credentials
-and endpoint URLs remain operator-owned environment configuration.
+Legacy deployment selection stores only identifiers and version metadata.
+An enabled organization connection overrides that selection using credentials
+from the separate encrypted model_connections table and a fixed endpoint.
 """
 
 from __future__ import annotations
 
 from contextvars import ContextVar, Token
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
 
@@ -46,6 +48,13 @@ def reset_request_tenant(token: Token[str]) -> None:
 
 def current_request_tenant() -> str:
     return _request_tenant_id.get()
+
+@contextmanager
+def tenant_model_scope(tenant_id: str):
+    """Scope background execution to an already verified tenant, like HTTP middleware."""
+    token=bind_request_tenant(tenant_id)
+    try:yield
+    finally:reset_request_tenant(token)
 
 
 def selection_from_settings(settings: Any) -> TenantModelSelection:
@@ -117,7 +126,13 @@ async def resolve_tenant_model_route(
                 )
             )
         ).scalar_one_or_none()
+        from app.models.model_connection import ModelConnection
+        connection = await db.get(ModelConnection, tenant_id)
     if row is None:
         raise LookupError("tenant_model_policy_not_found")
+    if connection is not None and connection.enabled:
+        from app.services.model_connection import provider_for
+        return {'mode': 'pinned', 'deployment_id': 'organization-deepseek',
+                'version': connection.version, '_provider': provider_for(connection)}
     selection = selection_from_settings(row)
     return selection.to_public_dict()

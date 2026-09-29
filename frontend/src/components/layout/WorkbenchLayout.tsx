@@ -1,8 +1,5 @@
-// WorkbenchLayout - shared shell for 5 AI Studio tool pages.
-// P1.3 Stage 6 (2026-07-02): shell only, individual pages not migrated yet.
-// Layout pattern: left Input / right Output 50/50 + right Settings panel + bottom Event Inspector.
-// Pages adopt this shell in Phase 2; for now it's a contract skeleton.
-import { ReactNode } from 'react';
+// Shared document workspace: outline, paper canvas, and editable inspector.
+import { ReactNode, useRef, useState } from 'react';
 import { Settings, Terminal, PanelLeft, PanelRight } from 'lucide-react';
 
 import { useT } from '../../i18n';
@@ -29,59 +26,45 @@ export default function WorkbenchLayout({
   outputLabel,
 }: WorkbenchLayoutProps) {
   const t = useT();
+  const inputRef = useRef<HTMLDivElement>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
+  const [selected, setSelected] = useState('output');
   return (
-    <div className="flex h-full flex-col bg-background">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">{title}</h1>
-          {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
-        </div>
+    <div className="workspace-shell">
+      <div className="workspace-heading">
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
       </div>
-
-      {/* Body: split (left input/output 50-50) + right settings */}
-      <div className="flex flex-1 min-h-0">
-        {/* Left: input + output 50/50 */}
-        <div className="flex flex-1 min-w-0">
-          <div className="flex-1 min-w-0 border-r border-border flex flex-col">
-            <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30">
-              <PanelLeft size={12} className="text-muted-foreground" />
-              <span className="text-xs font-medium text-foreground">{inputLabel || t.workbenchLayoutInput}</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3">{input}</div>
+      <div className="document-workspace">
+        <nav className="workspace-outline" aria-label="工作区目录">
+          <h2>{title}</h2>
+          <p className="text-[11px] text-muted-foreground mb-4">{description}</p>
+          <button className="workspace-thumbnail" aria-current={selected === 'output'} onClick={() => {
+            setSelected('output'); outputRef.current?.scrollIntoView({block:'nearest'});
+          }}><PanelRight size={16} className="mb-3" />{outputLabel || t.workbenchLayoutOutput}</button>
+          <button className="workspace-thumbnail" aria-current={selected === 'input'} onClick={() => {
+            setSelected('input'); inputRef.current?.scrollIntoView({block:'nearest'});
+          }}><PanelLeft size={16} className="mb-3" />{inputLabel || t.workbenchLayoutInput}</button>
+        </nav>
+        <section className="document-desk" aria-label={outputLabel || t.workbenchLayoutOutput}>
+          <div ref={outputRef} className="document-paper flex flex-col">
+            <h2 className="text-sm font-semibold mb-4">{outputLabel || t.workbenchLayoutOutput}</h2>
+            <div className="flex-1 min-h-[400px]">{output}</div>
           </div>
-          <div className="flex-1 min-w-0 flex flex-col">
-            <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30">
-              <PanelRight size={12} className="text-muted-foreground" />
-              <span className="text-xs font-medium text-foreground">{outputLabel || t.workbenchLayoutOutput}</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3">{output}</div>
-          </div>
-        </div>
-
-        {/* Right: settings panel (collapsible) */}
-        {settings && (
-          <div className="w-64 shrink-0 border-l border-border flex flex-col">
-            <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30">
-              <Settings size={12} className="text-muted-foreground" />
-              <span className="text-xs font-medium text-foreground">{t.workbenchLayoutSettings}</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3">{settings}</div>
-          </div>
-        )}
+        </section>
+        <aside className="workspace-inspector" aria-label="输入与辅助信息">
+          <section ref={inputRef} className="inspector-card">
+            <h2>{inputLabel || t.workbenchLayoutInput}</h2>
+            <div className="inspector-input flex flex-col">{input}</div>
+          </section>
+          {settings && <section className="inspector-card">
+            <h2 className="flex items-center gap-2"><Settings size={14}/>{t.workbenchLayoutSettings}</h2>{settings}
+          </section>}
+          {eventInspector && <section className="inspector-card">
+            <h2 className="flex items-center gap-2"><Terminal size={14}/>{t.workbenchLayoutEventInspector}</h2>{eventInspector}
+          </section>}
+        </aside>
       </div>
-
-      {/* Bottom: event inspector */}
-      {eventInspector && (
-        <div className="border-t border-border shrink-0 max-h-48 overflow-y-auto">
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30 sticky top-0">
-            <Terminal size={12} className="text-muted-foreground" />
-            <span className="text-xs font-medium text-foreground">{t.workbenchLayoutEventInspector}</span>
-          </div>
-          <div className="p-3">{eventInspector}</div>
-        </div>
-      )}
     </div>
   );
 }
-

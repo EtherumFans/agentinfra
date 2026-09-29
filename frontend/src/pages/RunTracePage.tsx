@@ -38,6 +38,14 @@ import type {
 } from '../types/runtime';
 import { useT } from '../i18n';
 
+export function ExecutionIdentity({summary}: {summary: Pick<RunTraceResponse["summary"], "executed_agent_version" | "draft_preview" | "manual_review_required">}) {
+  return (<div className="rounded-md bg-muted/30 p-2">
+                  <p className="text-[10px] text-muted-foreground">实际执行版本</p>
+                  <p className="text-xs font-semibold mt-1">{summary.executed_agent_version || '历史记录未保存版本'}{summary.draft_preview ? ' · 草稿调试' : ''}</p>
+                  <p className="text-xs mt-1">{summary.manual_review_required === true ? '需人工复核' : summary.manual_review_required === false ? '执行结果未要求复核' : '复核要求未记录'}</p>
+                </div>);
+}
+
 const STEP_ORDER: string[] = [
   'user_message_received',
   'planner_selected_experts',
@@ -889,6 +897,7 @@ export default function RunTracePage() {
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <ExecutionIdentity summary={summary}/>
                 <div className="rounded-md bg-muted/30 p-2">
                   <p className="text-[10px] text-muted-foreground">{t.runTraceRunStatus}</p>
                   <p className={`text-xs font-mono font-semibold mt-1 ${summary.error ? 'text-red-700' : 'text-foreground'}`}>

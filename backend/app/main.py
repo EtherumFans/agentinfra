@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
-from app.database import get_db, init_db, verify_production_database
+from app.database import get_db, init_db, verify_production_database, engine
 from app.services.access_log_privacy import install_uvicorn_access_log_privacy
 import app.models  # noqa: F401 — register all models with Base before init_db() creates tables
 
@@ -126,7 +126,7 @@ async def lifespan(app: FastAPI):
     # prior platform_gateway instance.
     from app.coding_runtime import reset_dispatcher
     reset_dispatcher()
-    if settings.ICODER_DEPLOYMENT_MODE == "cloud":
+    if settings.ICODER_DEPLOYMENT_MODE == "cloud" or engine.dialect.name == "postgresql":
         await verify_production_database()
         logger.info("Production PostgreSQL schema and tenant RLS verified")
     else:
@@ -2064,7 +2064,15 @@ async def lifespan(app: FastAPI):
             "data_asset_version": "iCoDerA v1.0.0",
         }
 
+    from app.services.agent_jobs import AgentJobWorker
+    _agent_job_worker = AgentJobWorker()
+    await _agent_job_worker.start(app)
+    from app.services.evaluation_batch_worker import EvaluationBatchWorker
+    _evaluation_worker = EvaluationBatchWorker()
+    await _evaluation_worker.start(app)
     yield
+    await _evaluation_worker.stop()
+    await _agent_job_worker.stop()
     logger.info("Shutting down")
     _a2a_task_runtime = getattr(app.state, "a2a_task_runtime", None)
     if _a2a_task_runtime is not None:
@@ -2112,7 +2120,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="面向中国医院病案首页与医保结算清单场景的编码审核智能体",
+    description="用智能体协助文书处理、医学编码与质量审核",
     lifespan=lifespan,
 )
 
@@ -2212,6 +2220,14 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Health check
+@app.get("/api/health/ready")
+async def readiness_check():
+    from app.services.service_readiness import database_readiness
+    state = await database_readiness(engine)
+    return JSONResponse(status_code=200 if state['ready'] else 503, content=state,
+                        headers={'Cache-Control':'no-store'})
+
+
 @app.get("/api/health")
 async def health_check():
     from app.services.prerecorded_media_decoder import (
@@ -2249,6 +2265,8 @@ async def health_check():
 
 
 # Register API routers
+from app.api.document_reviews import router as document_reviews_router
+app.include_router(document_reviews_router)
 from app.api.auth import router as auth_router
 from app.api.encounters import router as encounters_router
 from app.api.admin import router as admin_router
@@ -2329,6 +2347,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+from app.api.browser_auth import router as browser_auth_router
+app.include_router(browser_auth_router)
 app.include_router(encounters_router)
 app.include_router(codes_router)
 app.include_router(billing_router)
@@ -2352,6 +2372,8 @@ app.include_router(templates_router)             # /api/templates/* (Templates B
 app.include_router(tickets_router)               # /api/tickets/* (Tickets Portal — Corti parity)
 app.include_router(run_trace_router)             # /api/runtime/runs/{run_id}/trace (Phase 3-D1 Task 4)
 app.include_router(coding_predict_router)        # /api/v1/coding/predict (G001 refactor 2026-07-09 — Corti-like Fast Coding default)
+from app.api.agent_jobs import router as agent_jobs_router
+app.include_router(agent_jobs_router)
 app.include_router(agent_run_router)             # /api/v1/agents/{id}/run (Phase 4-F 2026-07-09 — unified Agent Run facade)
 app.include_router(coding_compliance_router)    # /api/v1/coding-compliance/run (Phase 5 Track C Gate 5 — 7-stage mainline)
 app.include_router(cdi_router)                  # /api/v1/cdi/* (Phase 5 Track D Gate 9 — CDI Core Entry Agent)
@@ -2363,6 +2385,8 @@ app.include_router(platform_environments_router)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)
 app.include_router(platform_tenants_router)
 app.include_router(model_catalog_router)
+from app.api.model_connection import router as model_connection_router
+app.include_router(model_connection_router)
 app.include_router(clinical_model_packages_router)
 app.include_router(tools_router)
 app.include_router(runtime_platform_router)  # /api/runtime-platform/* (backward compat)
@@ -2461,3 +2485,16 @@ async def root():
         "docs": "/docs",
         "health": "/api/health",
     }
+
+from app.api.agent_memory_search import router as agent_memory_search_router
+app.include_router(agent_memory_search_router)
+
+from app.api.agent_evaluations import router as agent_evaluations_router
+from app.api.agent_dependency_routes import router as agent_dependency_router
+app.include_router(agent_evaluations_router)
+from app.api.evaluation_datasets import router as evaluation_datasets_router
+app.include_router(evaluation_datasets_router)
+app.include_router(agent_dependency_router)
+
+from app.api.agent_operations import router as agent_operations_router
+app.include_router(agent_operations_router)

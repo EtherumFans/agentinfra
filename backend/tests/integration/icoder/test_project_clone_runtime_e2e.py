@@ -93,6 +93,7 @@ def test_clone_runtime_pack_preserves_source_contract_and_applies_prompt(
 ) -> None:
     clone = _clone(client)
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     assert clone["runtime_agent_id"] == project_agent_id
     assert clone["source_runtime_agent_id"] == SOURCE_ID
     assert clone["run_url"].endswith(
@@ -104,6 +105,7 @@ def test_clone_runtime_pack_preserves_source_contract_and_applies_prompt(
         json={"system_prompt": CUSTOM_PROMPT},
     )
     assert update.status_code == 200, update.text
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
 
     from app.database import AsyncSessionLocal
     from app.models.agent import Agent
@@ -162,6 +164,7 @@ def test_project_expert_binding_is_resolved_and_enters_provider_policy(
 ) -> None:
     clone = _clone(client)
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     from app.database import AsyncSessionLocal
     from app.models.expert import Expert
 
@@ -201,6 +204,7 @@ def test_project_expert_binding_is_resolved_and_enters_provider_policy(
         },
     )
     assert update.status_code == 200, update.text
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
 
     card_response = client.get(
         f"/api/v2/agentic/agents/{project_agent_id}/.well-known/agent-card.json"
@@ -270,11 +274,13 @@ def test_project_id_executes_over_unified_run_and_owns_trace(
 ) -> None:
     clone = _clone(client)
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     update = client.put(
         f"/api/rest/v1/agent_definitions/{project_agent_id}",
         json={"system_prompt": CUSTOM_PROMPT},
     )
     assert update.status_code == 200, update.text
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
 
     from icoder_runtime.backends.registry import get_default_registry
 
@@ -330,6 +336,7 @@ def test_project_id_executes_over_a2a_with_project_attribution(
 ) -> None:
     clone = _clone(client)
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     payload = {
         "jsonrpc": "2.0",
         "id": "project-clone-a2a",
@@ -379,6 +386,7 @@ def test_project_clone_connector_graph_executes_over_a2a_with_one_audit_chain(
 
     clone = _clone(client)
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
 
     previous_admin_override = app.dependency_overrides.get(_connector_admin)
     had_admin_override = _connector_admin in app.dependency_overrides
@@ -429,6 +437,7 @@ def test_project_clone_connector_graph_executes_over_a2a_with_one_audit_chain(
         )
         assert graph_response.status_code == 200, graph_response.text
         assert graph_response.json()["revision"] == 1
+        assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     finally:
         if had_admin_override:
             app.dependency_overrides[_connector_admin] = previous_admin_override
@@ -570,6 +579,7 @@ def test_clone_provenance_is_immutable_and_cross_tenant_resolution_is_empty(
 ) -> None:
     clone = _clone(client)
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     forged = client.put(
         f"/api/rest/v1/agent_definitions/{project_agent_id}",
         json={
@@ -608,6 +618,7 @@ def test_dedicated_clone_uses_source_dispatch_but_keeps_project_identity(
     )
     assert clone_response.status_code == 201, clone_response.text
     project_agent_id = clone_response.json()["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
 
     detail = client.get(
         f"/api/rest/v1/agent_definitions/{project_agent_id}"
@@ -656,6 +667,7 @@ def test_dedicated_clone_uses_source_dispatch_but_keeps_project_identity(
         json={"system_prompt": project_policy},
     )
     assert update.status_code == 200, update.text
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     customized = client.post(
         f"/api/v1/agents/{project_agent_id}/run",
         json={"input": {"text": "合成去标识病历"}},
@@ -700,6 +712,7 @@ def test_dedicated_clone_keeps_source_expert_graph_and_adds_project_policy(
     )
     assert clone_response.status_code == 201, clone_response.text
     project_agent_id = clone_response.json()["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
 
     removal = client.put(
         f"/api/rest/v1/agent_definitions/{project_agent_id}",
@@ -741,6 +754,7 @@ def test_dedicated_clone_keeps_source_expert_graph_and_adds_project_policy(
         },
     )
     assert update.status_code == 200, update.text
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     saved_customization = update.json()["runtime_customization"]
     assert saved_customization["source_expert_ids"] == ["coding-expert"]
     assert saved_customization["project_expert_ids"] == [PROJECT_EXPERT_ID]
@@ -800,6 +814,7 @@ def test_dedicated_clone_a2a_reaches_source_handler_with_project_identity(
     assert clone_response.status_code == 201, clone_response.text
     clone = clone_response.json()
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     payload = {
         "jsonrpc": "2.0",
         "id": "dedicated-project-clone-a2a",
@@ -880,12 +895,14 @@ def test_dedicated_clone_customization_executes_over_a2a_with_safe_trace(
     assert clone_response.status_code == 201, clone_response.text
     clone = clone_response.json()
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     sentinel = "A2A_DEDICATED_PROJECT_POLICY_SECRET_SENTINEL"
     update = client.put(
         f"/api/rest/v1/agent_definitions/{project_agent_id}",
         json={"system_prompt": sentinel},
     )
     assert update.status_code == 200, update.text
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
 
     payload = {
         "jsonrpc": "2.0",
@@ -1027,12 +1044,14 @@ def test_cdi_clone_customization_executes_over_a2a_with_safe_trace(
     assert clone_response.status_code == 201, clone_response.text
     clone = clone_response.json()
     project_agent_id = clone["project_agent_id"]
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     sentinel = "CDI_A2A_PROJECT_POLICY_SECRET_SENTINEL"
     update = client.put(
         f"/api/rest/v1/agent_definitions/{project_agent_id}",
         json={"system_prompt": sentinel},
     )
     assert update.status_code == 200, update.text
+    assert client.post(f"/api/rest/v1/agent_definitions/{project_agent_id}/publish").status_code == 200
     customization = update.json()["runtime_customization"]
     assert customization["runtime_kind"] == "dedicated"
     assert customization["source_expert_ids"] == [

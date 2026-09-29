@@ -190,6 +190,9 @@ async def setup_db():
     if _parsed_test_db_url.get_backend_name() == "postgresql":
         test_engine_kwargs["poolclass"] = NullPool
     _test_engine = create_async_engine(_test_db_url, **test_engine_kwargs)
+    if _parsed_test_db_url.get_backend_name() == "sqlite":
+        from sqlalchemy import event
+        event.listen(_test_engine.sync_engine, "connect", _db_module._configure_sqlite_connection)
     _db_module.engine = _test_engine
     _db_module.AsyncSessionLocal = async_sessionmaker(
         _test_engine,

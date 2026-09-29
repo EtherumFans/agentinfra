@@ -372,7 +372,11 @@ class DeepSeekProvider(BaseLLMProvider):
         temperature: float = 0.1,
         timeout: int = 120,
         _transport: Any = None,
+        thinking: str | None = None,
     ):
+        if thinking not in (None, "enabled", "disabled"):
+            raise ValueError("invalid_deepseek_thinking_mode")
+        self.thinking = thinking
         self.api_key = api_key or os.environ.get("ICODER_CREDENTIAL_LLM", "")
         self.base_url = base_url.rstrip("/")
         self.model = model
@@ -444,6 +448,8 @@ class DeepSeekProvider(BaseLLMProvider):
         }
         if tools:
             payload["tools"] = tools
+        if self.name == "deepseek" and getattr(self, "thinking", None) is not None:
+            payload["thinking"] = {"type": self.thinking}
         if response_schema:
             payload["response_format"] = {"type": "json_object", "schema": response_schema}
 
@@ -558,6 +564,8 @@ class DeepSeekProvider(BaseLLMProvider):
         }
         if self._stream_include_usage:
             payload["stream_options"] = {"include_usage": True}
+        if self.name == "deepseek" and getattr(self, "thinking", None) is not None:
+            payload["thinking"] = {"type": self.thinking}
         if tools:
             payload["tools"] = tools
         if response_schema:
@@ -1106,12 +1114,17 @@ class LLMGateway:
         denied = self._egress_denial(provider)
         if denied is not None:
             return denied
-        return await provider.generate(
-            messages=messages,
-            tools=tools,
-            response_schema=response_schema,
-            context=context,
-        )
+        from icoder_runtime.observability.model_usage import record_model_usage
+        try:
+            result = await provider.generate(
+                messages=messages, tools=tools,
+                response_schema=response_schema, context=context,
+            )
+        except Exception:
+            record_model_usage(provider.name, {})
+            raise
+        record_model_usage(provider.name, result)
+        return result
 
     def register(self, provider: BaseLLMProvider, *, default: bool = False, alias: str = "") -> "LLMGateway":
         """Register a provider. If default=True, set as the default provider."""
@@ -1219,6 +1232,11 @@ class LLMGateway:
                     failure["model_routing"] = routing
                     return None, routing, failure
             try:
+                # Only the trusted server-side tenant resolver can supply this
+                # adapter. It is request-scoped and never enters shared registry.
+                resolved = route.get('_provider')
+                if isinstance(resolved, BaseLLMProvider):
+                    return resolved, routing, None
                 return self.get_exact(deployment_id), routing, None
             except LLMProviderNotConfigured:
                 failure = _mock_fallback_response(
@@ -1395,6 +1413,9 @@ class LLMGateway:
                     "provider_stream_missing_completion"
                 )
             last_result = completed
+            if denied is None:
+                from icoder_runtime.observability.model_usage import record_model_usage
+                record_model_usage(candidate_name, completed)
             degraded = completed.get("degraded") is True
             if not degraded:
                 if index > 0:

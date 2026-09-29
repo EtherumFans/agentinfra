@@ -374,6 +374,26 @@ async def test_graceful_stop_releases_lease_and_next_runtime_recovers() -> None:
 
 
 @pytest.mark.asyncio
+async def test_start_recovers_task_only_for_its_organization() -> None:
+    context_id, task_id = await _seed_submitted_execution()
+    other_org = uuid.uuid4().hex[:12]
+    runtime = A2ATaskRuntime(_ImmediateHandler())
+    scheduled = []
+    runtime.schedule = lambda app, task, org: scheduled.append((task, org))
+    try:
+        async with database.AsyncSessionLocal() as db:
+            db.add(Organization(id=other_org, name='Recovery isolation test', slug=f'recovery-{other_org}', settings={}))
+            await db.commit()
+        await runtime.start(FastAPI())
+        assert [item for item in scheduled if item[0] == task_id] == [(task_id, 'org_default1')]
+    finally:
+        await _cleanup(context_id)
+        async with database.AsyncSessionLocal() as db:
+            await db.execute(delete(Organization).where(Organization.id == other_org))
+            await db.commit()
+
+
+@pytest.mark.asyncio
 async def test_validated_response_is_persisted_as_exact_multi_chunk_stream() -> None:
     context_id, task_id = await _seed_submitted_execution()
     handler = _LongImmediateHandler()

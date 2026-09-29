@@ -222,6 +222,7 @@ async def get_model_catalog(
     _current_user: User = Depends(get_current_user),
     current_org: Organization = Depends(get_current_organization),
     member: OrganizationMember = Depends(require_org_membership),
+    db: AsyncSession = Depends(get_db),
 ) -> ModelCatalogResponse:
     response.headers["Cache-Control"] = "no-store"
     policy = getattr(request.app.state, "data_policy", None)
@@ -235,13 +236,26 @@ async def get_model_catalog(
         or settings.LLM_API_KEY
     )
     deployment_map = dict(getattr(request.app.state, "model_deployments", {}) or {})
+    configured_model = settings.LLM_MODEL
+    if configured_provider == 'mock' and deployment_map.get('mock'):
+        configured_model = deployment_map['mock'].get('model') or 'mock/1.0'
+    from app.models.model_connection import ModelConnection
+    connection = await db.get(ModelConnection, current_org.id)
+    selection = selection_from_settings(current_org.settings).to_public_dict()
+    if connection is not None and connection.enabled:
+        deployment_map['organization-deepseek'] = {
+            'id': 'organization-deepseek', 'provider_id': 'deepseek',
+            'model': connection.model, 'is_default': False, 'tenant_selectable': False,
+            'credential_configured': True, 'endpoint_configuration_valid': True,
+        }
+        selection = {'mode': 'pinned', 'deployment_id': 'organization-deepseek', 'version': connection.version}
     catalog = build_model_catalog(
             configured_provider=configured_provider,
-            configured_model=settings.LLM_MODEL,
+            configured_model=configured_model,
             configured_base_url=settings.LLM_BASE_URL,
             credential_configured=credential_configured,
             data_policy=policy,
-            tenant_selection=selection_from_settings(current_org.settings).to_public_dict(),
+            tenant_selection=selection,
             registered_deployments=list(deployment_map.values()),
     )
     # Health probes are intentionally process-local and configuration-only.
@@ -271,7 +285,7 @@ async def get_model_catalog(
         if isinstance(canary, dict):
             deployment["canary_status"] = str(canary.get("status") or "not_run")
             deployment["canary_checked_at"] = canary.get("checked_at")
-    catalog["selection_editable"] = member.role.value in {"owner", "admin"}
+    catalog["selection_editable"] = member.role.value in {"owner", "admin"} and not bool(connection and connection.enabled)
     effective_metadata = deployment_map.get(
         str(catalog.get("effective_deployment_id") or "").strip().lower()
     ) or {}

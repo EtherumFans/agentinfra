@@ -20,7 +20,7 @@ Indexes:
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, false
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, JSON, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -67,12 +67,23 @@ class RunHistoryModel(Base, TimestampMixin):
     )
 
     # Run envelope fields (from AgentRunResponse)
+    executed_agent_version: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    draft_preview: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    manual_review_required: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     run_id: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
     trace_id: Mapped[str] = mapped_column(String(64), default="", server_default="")
     # Includes the full governed-provider backend_type, not only short modes.
     runtime_mode: Mapped[str] = mapped_column(String(128), default="", server_default="")
     latency_ms: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0, server_default="0.0")
+    # Actual gateway metadata; NULL means unobserved, never a fabricated zero.
+    model_calls: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    model_input_tokens: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    model_output_tokens: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    model_estimated_cost_usd: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    model_usage_complete: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    model_cost_complete: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    model_usage: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     # Input/output (input_text truncated to bound row size)
     input_text: Mapped[str] = mapped_column(Text, default="")

@@ -91,6 +91,37 @@ def connector_url(agent_id: str = SOURCE) -> str:
     return f"/api/v2/agentic/agents/{agent_id}/connectors"
 
 
+@pytest.mark.asyncio
+async def test_memory_window_reports_excluded_old_facts(client, monkeypatch):
+    from cryptography.fernet import Fernet
+    import app.database as database
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    grant = await client.post(f"/api/v2/agentic/agents/{SOURCE}/memory-consent", json={
+        "purpose_of_use":"treatment", "retention_days":30, "expires_in_days":30, "acknowledgement":True,
+    })
+    assert grant.status_code == 200
+    store = GovernedMemoryStore()
+    async with database.AsyncSessionLocal() as db:
+        old = await store.invoke(db, memory_invocation("remember", {"content":"偏好古典音乐", "role":"user"}))
+        old_row = await db.get(ConversationMemory, old["memory_id"])
+        old_row.created_at = datetime.now(UTC) - timedelta(days=1)
+        await db.flush()
+        for index in range(100):
+            await store.invoke(db, memory_invocation("remember", {"content":f"合成记录编号{index}，偏好中文说明", "role":"user"}))
+        await db.commit()
+        recalled = await store.invoke(db, memory_invocation("recall", {"query":"偏好古典音乐", "top_k":20}))
+        assert recalled["candidate_limit"] == 100
+        assert recalled["candidates_scanned"] == 100
+        assert recalled["candidates_truncated"] is True
+        assert old["memory_id"] not in [item.get("memory_id") for item in recalled["memories"]]
+        earlier=await store.invoke(db,memory_invocation('recall',{'query':'偏好古典音乐','top_k':20,'candidate_offset':100}))
+        assert earlier['candidate_offset']==100
+        assert earlier['candidates_scanned']==1
+        assert old['memory_id'] in [item['memory_id'] for item in earlier['memories']]
+        assert earlier['next_candidate_offset'] is None
+
+
+
 def memory_invocation(operation: str, arguments: dict, **overrides) -> ConnectorInvocation:
     values = {
         "organization_id": "org_default1",

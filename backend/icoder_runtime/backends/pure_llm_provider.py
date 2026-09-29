@@ -519,6 +519,10 @@ class PureLLMProvider:
             )
 
         try:
+            if ctx.agent_pack.get('coding_catalog_assistance'):
+                from app.services.coding_catalog_assistance import augment
+                from starlette.concurrency import run_in_threadpool
+                user_input = await run_in_threadpool(augment, user_input, ctx.agent_pack['coding_catalog_assistance'])
             resp = await client.complete(
                 system_prompt=system_prompt,
                 user_input=user_input,
@@ -594,6 +598,10 @@ class PureLLMProvider:
             model_routing=model_routing,
             model_telemetry=model_telemetry,
         )
+        coding_validation = None
+        if ctx.agent_pack.get('coding_catalog_assistance'):
+            from app.services.coding_catalog_assistance import validate_output
+            coding_validation = validate_output(safe_text)
         return BackendResponse(
             status=status,
             summary=_extract_first_paragraph(safe_text),
@@ -604,7 +612,7 @@ class PureLLMProvider:
             cost_usd=resp.cost_usd,
             finish_state="completed",
             finish_reason=resp.finish_reason or None,
-            raw_provider_response=resp.raw,
+            raw_provider_response={**(resp.raw or {}), **({'coding_validation':coding_validation} if coding_validation else {})},
             evidence_refs=[],
             trace_refs=[ctx.run_id],
         )
@@ -636,7 +644,7 @@ class PureLLMProvider:
             req.user_input or ctx.redacted_input or _extract_user_input(req)
         )
         client = self._resolve_client()
-        if not user_input or client is None or not hasattr(client, "stream"):
+        if not user_input or client is None or not hasattr(client, "stream") or ctx.agent_pack.get('coding_catalog_assistance'):
             resp = await self.invoke(req, ctx)
             yield {"step": "backend_invoked", "payload": resp}
             text = resp.markdown or ""

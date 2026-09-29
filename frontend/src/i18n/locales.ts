@@ -1339,8 +1339,8 @@ export interface LocaleDict {
 
 const zhCN: LocaleDict = {
   // Common
-  appName: 'iCoDer Console',
-  appTagline: '可审计的临床AI',
+  appName: 'iCoDer',
+  appTagline: '用智能体协助文书处理、医学编码与质量审核',
   save: '保存',
   cancel: '取消',
   confirm: '确认',
@@ -1357,19 +1357,19 @@ const zhCN: LocaleDict = {
 
   // Sidebar
   home: '首页',
-  homeSubtitle: '医疗收入合规 AI 工作台',
+  homeSubtitle: '用智能体协助文书处理、医学编码与质量审核',
   homeFooterHint: '所有工作台支持通过 API Client 程序化访问',
   homeTabTranscribe: '转写',
   homeTabTranscribeDesc: '实时捕捉医患对话,为环境式病历和临床级口述应用提供支持',
   homeTabTranscribeCta: '开始录音',
   homeTabDocument: '文书',
-  homeTabDocumentDesc: '基于临床文本自动生成结构化医疗文书',
+  homeTabDocumentDesc: '根据临床文本协助生成结构化医疗文书，供人工复核',
   homeTabDocumentCta: '生成文书',
   homeTabChat: '对话',
-  homeTabChatDesc: '为你的应用嵌入 AI 对话助手',
+  homeTabChatDesc: '选择智能体，通过对话协助处理文书、编码与质量审核任务',
   homeTabChatCta: '打开助手',
   homeTabCode: '编码',
-  homeTabCodeDesc: '基于临床证据生成准确的医学编码(ICD-10-CN / ICD-9-CM-3)',
+  homeTabCodeDesc: '根据临床证据提出医学编码建议，支持人工复核（ICD-10-CN / ICD-9-CM-3）',
   homeTabCodeCta: '打开编码工作台',
   homePropRealtime: '实时转写,支持环境式病历',
   homePropDication: '临床级口述应用',
@@ -1422,7 +1422,7 @@ const zhCN: LocaleDict = {
   loggingIn: '登录中...',
 
   // Home
-  getStartedBanner: '开始使用 iCoDer Console',
+  getStartedBanner: '开始使用 iCoDer',
   getStartedDesc: '在 AI Studio 中立即测试编码能力，或跟随开发者快速入门发起您的第一个 API 请求',
   aiStudioBtn: 'AI Studio',
   developerQuickstartBtn: '开发者快速入门',
@@ -1995,7 +1995,7 @@ const zhCN: LocaleDict = {
   inReview: '审核中',
   // ── AI Studio Overview ──
   overviewTitle: 'AI Studio 总览',
-  overviewSubtitle: '直接在 iCoDer 控制台中测试和配置各项功能',
+  overviewSubtitle: '使用智能体协助整理文书、提出编码建议和检查文档质量；也可结合专业知识与工作流程，创建自己的智能体。处理结果供人工复核。',
   overviewExplore: '探索',
   overviewExploreDesc: '构建AI智能体，生成实时转录文本、临床文书等内容',
   overviewInspect: '检查',
@@ -2280,7 +2280,7 @@ const zhCN: LocaleDict = {
 
   // Phase 3-E - Release Notes
   releaseNotesTitle: 'Release Notes',
-  releaseNotesSubtitle: 'iCoDer 医疗 AI 智能体平台版本变更记录。',
+  releaseNotesSubtitle: 'iCoDer 文书处理、医学编码、质量审核及智能体功能的更新记录。',
   releaseNotesApiPolicy: 'API 变更策略',
 
   // Phase 3-E - Reset Password
@@ -2402,7 +2402,7 @@ const zhCN: LocaleDict = {
   agentChatBreadcrumbAgents: '智能体',
   agentChatTextareaPlaceholder: '我能帮你什么？',
   agentChatAddContext: '添加上下文',
-  agentChatConsumesCredits: '向智能体发送消息会消耗积分',
+  agentChatConsumesCredits: '运行费用为估算；开发账本不代表实付，以提供商账单为准',
   agentChatSettings: '设置',
   agentChatCode: '代码',
   agentChatNameLabel: '名称',
@@ -2635,7 +2635,7 @@ const zhCN: LocaleDict = {
   // Phase 3-E+ - AI Studio Overview
   aiStudioOverviewHeroEyebrow: 'AI Studio',
   aiStudioOverviewHeroTitle: '总览',
-  aiStudioOverviewHeroTagline: '直接在 iCoDer 控制台测试和配置用例',
+  aiStudioOverviewHeroTagline: '使用智能体协助整理文书、提出编码建议和检查文档质量；也可结合专业知识与工作流程，创建自己的智能体。处理结果供人工复核。',
   aiStudioOverviewExploreLabel: '探索',
   aiStudioOverviewExploreDesc: '构建智能体、生成实时转录、临床文书等',
   aiStudioOverviewInspectLabel: '检查',
@@ -2674,8 +2674,8 @@ const zhCN: LocaleDict = {
 
 const enUS: LocaleDict = {
   // Common
-  appName: 'iCoDer Console',
-  appTagline: 'Auditable Clinical AI',
+  appName: 'iCoDer',
+  appTagline: 'AI agents to assist with clinical documentation, medical coding, and quality review',
   save: 'Save',
   cancel: 'Cancel',
   confirm: 'Confirm',
@@ -2692,19 +2692,19 @@ const enUS: LocaleDict = {
 
   // Sidebar
   home: 'Home',
-  homeSubtitle: 'Medical revenue compliance AI workbench',
+  homeSubtitle: 'AI agents to assist with clinical documentation, medical coding, and quality review',
   homeFooterHint: 'All workbenches support API access via API Clients.',
   homeTabTranscribe: 'Transcribe',
   homeTabTranscribeDesc: 'Capture conversation in real time for ambient scribes and clinical-grade dictation applications',
   homeTabTranscribeCta: 'Start recording',
   homeTabDocument: 'Document',
-  homeTabDocumentDesc: 'Generate structured clinical documentation from clinical text',
+  homeTabDocumentDesc: 'Draft structured clinical documentation from clinical text for human review',
   homeTabDocumentCta: 'Generate document',
   homeTabChat: 'Chat',
-  homeTabChatDesc: 'Embed an AI assistant into your application',
+  homeTabChatDesc: 'Choose an agent to assist with documentation, coding, and quality review through conversation',
   homeTabChatCta: 'Open assistant',
   homeTabCode: 'Code',
-  homeTabCodeDesc: 'Generate accurate medical codes grounded in clinical evidence (ICD-10-CN / ICD-9-CM-3)',
+  homeTabCodeDesc: 'Suggest medical codes grounded in clinical evidence for human review (ICD-10-CN / ICD-9-CM-3)',
   homeTabCodeCta: 'Open coding workbench',
   homePropRealtime: 'Real-time transcription for ambient scribes',
   homePropDication: 'Clinical-grade dictation applications',
@@ -2757,7 +2757,7 @@ const enUS: LocaleDict = {
   loggingIn: 'Logging in...',
 
   // Home
-  getStartedBanner: 'Get started with iCoDer Console',
+  getStartedBanner: 'Get started with iCoDer',
   getStartedDesc: 'Test capabilities right away in AI Studio, or follow the developer quickstart to make your first request',
   aiStudioBtn: 'AI Studio',
   developerQuickstartBtn: 'Developer quickstart',
@@ -3330,7 +3330,7 @@ const enUS: LocaleDict = {
   inReview: 'In Review',
   // ── AI Studio Overview ──
   overviewTitle: 'AI Studio Overview',
-  overviewSubtitle: 'Test and configure use cases directly from iCoDer Console',
+  overviewSubtitle: 'Use agents to organize clinical documents, suggest medical codes, and review document quality. Create your own agents using domain knowledge and workflows. Results are for human review.',
   overviewExplore: 'Explore',
   overviewExploreDesc: 'Build agents, generate live transcripts, clinical documents and more',
   overviewInspect: 'Inspect',
@@ -3615,7 +3615,7 @@ const enUS: LocaleDict = {
 
   // Phase 3-E - Release Notes
   releaseNotesTitle: 'Release Notes',
-  releaseNotesSubtitle: 'iCoDer medical AI agent platform version change log.',
+  releaseNotesSubtitle: 'Updates to iCoDer documentation, medical coding, quality review, and agent features.',
   releaseNotesApiPolicy: 'API change policy',
 
   // Phase 3-E - Reset Password
@@ -3970,7 +3970,7 @@ const enUS: LocaleDict = {
   // Phase 3-E+ - AI Studio Overview
   aiStudioOverviewHeroEyebrow: 'AI Studio',
   aiStudioOverviewHeroTitle: 'Overview',
-  aiStudioOverviewHeroTagline: 'Test and configure use cases directly from iCoDer Console',
+  aiStudioOverviewHeroTagline: 'Use agents to organize clinical documents, suggest medical codes, and review document quality. Create your own agents using domain knowledge and workflows. Results are for human review.',
   aiStudioOverviewExploreLabel: 'Explore',
   aiStudioOverviewExploreDesc: 'Build agents, generate live transcripts, clinical documents and more',
   aiStudioOverviewInspectLabel: 'Inspect',

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     ICODER_DEPLOYMENT_MODE: str = "local"  # local | cloud
 
     # ── Application ───────────────────────────────────────────────────────────
-    APP_NAME: str = "iCoDer Clinical AI Platform"
+    APP_NAME: str = "iCoDer"
     APP_VERSION: str = "1.0.0"
     APP_ENV: str = "local"  # local | cloud (deprecated: was "production" pre-flip)
     DEBUG: bool = False
